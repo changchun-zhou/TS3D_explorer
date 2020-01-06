@@ -9,7 +9,9 @@
 //=======================================================
 // Description :
 //========================================================
-module PEC (
+module PEC #(
+    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + C_LOG_2(`CHANNEL_DEPTH) + 2 )
+    )(
     input                   clk     ,
     input                   rst_n   ,
     input                   PEBPEC_FnhRow      ,
@@ -50,7 +52,6 @@ module PEC (
     output                                        PECRAM_EnWr,
     output [ `C_LOG_2(`LENPSUM)         - 1 : 0 ] PECRAM_AddrWr,
     output [  PSUM_WIDTH * `LENPSUM     - 1 : 0 ] PECRAM_DatWr,
-
     output                                        PECRAM_EnRd,
     output [ `C_LOG_2(`LENPSUM)         - 1 : 0 ] PECRAM_AddrRd,
     input  [ PSUM_WIDTH * `LENPSUM      - 1 : 0 ] RAMPEC_DatRd 
