@@ -20,10 +20,10 @@ module PEB #(
     input                                       POOLPEB_AddrRd,
     output                                      PEBPOOL_Dat,
 
-    input                                       LSTPEB_FnhRow
-    input                                       LSTPEB_StaRow
-    input                                       LSTPEB_FnhBlk
-    input                                       LSTPEB_FnhFrm
+    input                                       LSTPEB_FnhRow,
+    input                                       LSTPEB_StaRow,
+    input                                       LSTPEB_FnhBlk,
+    input                                       LSTPEB_FnhFrm,
 
     input                                       LSTPEB_RdyAct,
     output                                      LSTPEB_GetAct,
@@ -110,7 +110,7 @@ module PEB #(
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
-    
+        
 wire                                        FlgRAM2;              
 
 wire                                        PECRAM_EnWr0;

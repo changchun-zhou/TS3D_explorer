@@ -24,8 +24,24 @@
 
 
 `define BLOCK_DEPTH 32
+`define CHANNEL_DEPTH 32
 `define DATA_WIDTH 8
+`define NUMPEC 16
+
+`define GBFWEI_ADDRWIDTH 6  //64 > 16*3
+`define KERNEL_SIZE 9
+`define GBFWEI_DATAWIDTH `DATA_WIDTH * `KERNEL_SIZE
+`define GBFFLGWEI_DATAWIDTH `BLOCK_DEPTH * `KERNEL_SIZE
+`define GBFACT_ADDRWIDTH 8
+// `define GBFFLGACT_ADDRWIDTH 8
+
 
 `define LENROW 16
 `define LENPSUM 14
 `define PSUM 
+
+// Config parameters
+`define FRAME_WIDTH 5
+`define PATCH_WIDTH 8
+`define BLK_WIDTH   1024/`BLOCK_DEPTH   //ONLY FOR CONV, FC?
+`define LAYER_WIDTH 8 //256 layers

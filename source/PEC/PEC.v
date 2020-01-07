@@ -14,11 +14,14 @@ module PEC #(
     )(
     input                   clk     ,
     input                   rst_n   ,
-    input                   PEBPEC_FnhRow      ,
-    input                   PEBPEC_StaRow      ,
-    input                   PEBPEC_FnhBlk      ,
-    input                   PEBPEC_FnhFrm      ,
-    // input                   PEBPEC_FrtBlk      ,//DO NOT get from data, instead 0;
+
+    input                   LSTPEC_FrtActRow   ,// because read and write simultaneously
+    input                   LSTPEC_LstActRow   ,//
+    input                   LSTPEC_LstActBlk   ,//
+
+    input                   NXTPEC_FrtActRow   ,
+    input                   NXTPEC_LstActRow   ,
+    input                   NXTPEC_LstActBlk   ,
 
     input                                         LSTPEC_RdyAct,// level
     output                                        LSTPEC_GetAct,// PAULSE
@@ -27,7 +30,7 @@ module PEC #(
     output                                        NXTPEC_RdyAct,// To Next PEC: THIS PEC's ACT is NOT ever gotten
     input                                         NXTPEC_GetAct,// THIS PEC's ACT is gotten
 
-    input                                         DISWEIPEC_RdyWei,
+    input                                         DISWEIPEC_RdyWei ,
     input [ `CHANNEL_DEPTH              - 1 : 0 ] DISWEIMAC_FlgWei0,
     input [ `CHANNEL_DEPTH              - 1 : 0 ] DISWEIMAC_FlgWei1,
     input [ `CHANNEL_DEPTH              - 1 : 0 ] DISWEIMAC_FlgWei2,
@@ -69,23 +72,28 @@ module PEC #(
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
-wire CfgMac;
+wire                                CfgMac;
 
-wire MACPEC_Fnh0;
-wire MACPEC_Fnh1;
-wire MACPEC_Fnh2;
-wire MACPEC_Fnh3;
-wire MACPEC_Fnh4;
-wire MACPEC_Fnh5;
-wire MACPEC_Fnh6;
-wire MACPEC_Fnh7;
-wire MACPEC_Fnh8;
+wire                                MACPEC_Fnh0;
+wire                                MACPEC_Fnh1;
+wire                                MACPEC_Fnh2;
+wire                                MACPEC_Fnh3;
+wire                                MACPEC_Fnh4;
+wire                                MACPEC_Fnh5;
+wire                                MACPEC_Fnh6;
+wire                                MACPEC_Fnh7;
+wire                                MACPEC_Fnh8;
 
 reg [ `CHANNEL_DEPTH              - 1 : 0 ] PECMAC_FlgAct;
 reg [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] PECMAC_Act;
 reg                                         PECMAC_Sta;
 
-wire                                PECCNV_PlsAcc;
+wire                                PECCNV_PlsAcc;// level
+reg                                 PECCNV_PlsAcc_d;// level
+wire                                PlsFnhAll;
+wire                                FnhRow;
+wire                                StaRow;
+wire                                FnhBlk;
 wire                                PECCNV_FnhRow;
 
 wire [  PSUM_WIDTH * `LENPSUM       - 1 : 0 ] PECCNV_Psum;
@@ -109,16 +117,24 @@ reg [ 2 - 1 : 0  ] state;
 
 always @(*) begin
     case (state)
-      IDLE  : if ( 1'b1 )
-                  next_state <= CFGWEI;
-      CFGWEI: if ( DISWEIPEC_RdyWei )
-                next_state <= CFGACT;
-      CFGACT: if( LSTPEC_RdyAct && PECCNV_PlsAcc)
-                next_state <= WAITGET;
-      WAITGET  : if( PEBPEC_FnhBlk )
-                next_state <= IDLE;
-              else if( NXTPEC_GetAct )
-                next_state <= CFGACT;
+      IDLE  :   if ( 1'b1 )
+                    next_state <= CFGWEI;
+                else 
+                    next_state <= IDLE;  // avoid Latch
+      CFGWEI:   if ( DISWEIPEC_RdyWei )
+                    next_state <= CFGACT;
+                else 
+                    next_state <= CFGWEI
+      CFGACT:   if( LSTPEC_RdyAct && PECCNV_PlsAcc)
+                    next_state <= WAITGET;
+                else 
+                    next_state <= CFGACT;
+      WAITGET  :if( FnhBlk )
+                    next_state <= IDLE;
+                else if( NXTPEC_GetAct )
+                    next_state <= CFGACT;
+                else 
+                    next_state <= WAITGET;
 
       default: next_state <= IDLE;
     endcase
@@ -142,17 +158,37 @@ assign LSTPEC_GetAct = CfgMac;
 
 // Connect CNV && MAC
 // update ACT and Start
+// Level
 assign PECCNV_PlsAcc =   MACPEC_Fnh6 && MACPEC_Fnh7 && MACPEC_Fnh8
                       && MACPEC_Fnh3 && MACPEC_Fnh4 && MACPEC_Fnh5
                       && MACPEC_Fnh0 && MACPEC_Fnh1 && MACPEC_Fnh2 ;
+
+
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( ~rst_n ) begin
+        PECCNV_PlsAcc_d <= 0;
+    end else begin
+        PECCNV_PlsAcc_d <= PECCNV_PlsAcc;
+    end
+end
+assign PlsFnhAll = PECCNV_PlsAcc && ~PECCNV_PlsAcc_d;
+assign StaRow = LSTPEC_FrtActRow && PlsFnhAll;
+assign FnhRow = LSTPEC_LstActRow && PlsFnhAll;
+assign FnhBlk = LSTPEC_LstActBlk && PlsFnhAll;
 
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         PECMAC_FlgAct <= 0;
         PECMAC_Act    <= 0;
+        NXTPEC_FrtActRow <= 0;
+        NXTPEC_LstActBlk <= 0;
+        NXTPEC_LstActRow <= 0;
     end else if ( CfgMac ) begin
         PECMAC_FlgAct <= PEBPEC_FlgAct;
         PECMAC_Act    <= PEBPEC_Act;
+        NXTPEC_FrtActRow <= LSTPEC_FrtActRow;
+        NXTPEC_LstActBlk <= LSTPEC_LstActBlk;
+        NXTPEC_LstActRow <= LSTPEC_LstActRow;
     end
 end
 always @ ( posedge clk or negedge rst_n ) begin
@@ -162,34 +198,34 @@ always @ ( posedge clk or negedge rst_n ) begin
         PECMAC_Sta <= CfgMac;//paulse
     end
 end
-assign PECCNV_FnhRow = PEBPEC_FnhRow;
+assign PECCNV_FnhRow = FnhRow;
 
 
 // Read SRAM
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         PECRAM_AddrRd <= 0;
-    end else if ( PEBPEC_FnhBlk ) begin
+    end else if ( FnhBlk ) begin
         PECRAM_AddrRd <= 0;
-    end else if ( PEBPEC_StaRow ) begin
+    end else if ( StaRow ) begin
         PECRAM_AddrRd <= PECRAM_AddrRd + 1;
     end
 end
-assign PECRAM_EnRd = PEBPEC_StaRow ;
+assign PECRAM_EnRd = StaRow ;
 assign PECCNV_Psum = RAMPEC_DatRd ;
 
 // Write SRAM
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         PECRAM_AddrWr <= 0;
-    end else if ( PEBPEC_FnhBlk ) begin
+    end else if ( FnhBlk ) begin
         PECRAM_AddrWr <= 0;        
-    end else if ( PEBPEC_FnhRow ) begin
+    end else if ( FnhRow ) begin
         PECRAM_AddrWr <= PECRAM_AddrWr + 1;
     end
 end
 assign PECRAM_DatWr = CNVOUT_Psum2;
-assign PECRAM_EnWr  = PEBPEC_FnhRow;
+assign PECRAM_EnWr  = FnhRow;
 
 
 
