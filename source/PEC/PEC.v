@@ -23,13 +23,17 @@ module PEC #(
     input                   NXTPEC_LstActRow   ,
     input                   NXTPEC_LstActBlk   ,
 
+    input                   CTRLWEIPEC_RdyWei  ,
+    output                  PECCTRLWEI_GetWei  ,//=CTRLWEIPEC_RdyWei paulse
+    // output                  PEC_FnhBlk,
+
     input                                         LSTPEC_RdyAct,// level
     output                                        LSTPEC_GetAct,// PAULSE
     input [ `CHANNEL_DEPTH              - 1 : 0 ] PEBPEC_FlgAct,
     input [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] PEBPEC_Act,
     output                                        NXTPEC_RdyAct,// To Next PEC: THIS PEC's ACT is NOT ever gotten
     input                                         NXTPEC_GetAct,// THIS PEC's ACT is gotten
-
+/*
     input                                         DISWEIPEC_RdyWei ,
     input [ `CHANNEL_DEPTH              - 1 : 0 ] DISWEIMAC_FlgWei0,
     input [ `CHANNEL_DEPTH              - 1 : 0 ] DISWEIMAC_FlgWei1,
@@ -51,7 +55,7 @@ module PEC #(
     input [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] DISWEIMAC_Wei6,
     input [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] DISWEIMAC_Wei7,
     input [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] DISWEIMAC_Wei8,
-
+*/
     output                                        PECRAM_EnWr,
     output [ `C_LOG_2(`LENPSUM)         - 1 : 0 ] PECRAM_AddrWr,
     output [  PSUM_WIDTH * `LENPSUM     - 1 : 0 ] PECRAM_DatWr,
@@ -121,7 +125,7 @@ always @(*) begin
                     next_state <= CFGWEI;
                 else 
                     next_state <= IDLE;  // avoid Latch
-      CFGWEI:   if ( DISWEIPEC_RdyWei )
+      CFGWEI:   if ( CTRLWEIPEC_RdyWei )
                     next_state <= CFGACT;
                 else 
                     next_state <= CFGWEI
@@ -130,7 +134,7 @@ always @(*) begin
                 else 
                     next_state <= CFGACT;
       WAITGET  :if( FnhBlk )
-                    next_state <= IDLE;
+                    next_state <= IDLE;// wait config new weights
                 else if( NXTPEC_GetAct )
                     next_state <= CFGACT;
                 else 
@@ -151,6 +155,27 @@ end
 
 
 assign CfgMac = next_state == WAITGET && state == CFGACT;
+
+assign CfgWei = next_state == CFGACT && state == CFGWEI;
+assign PECCTRLWEI_GetWei = next_state == CFGACT && state == CFGWEI;//==CTRLWEIPEC_RdyWei
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+         <= ;
+    end else if ( CfgWei ) begin
+        Wei <= DISWEIPEC_Wei;
+        FlgWei <= DISWEIPEC_FlgWei;
+        ValNumWei <= DISWEIPEC_ValNumWei;
+        AddrBaseWei0 <= DISWEI_AddrBase0;//
+        AddrBaseWei1 <= DISWEI_AddrBase0 + ValNumWei[0];
+        AddrBaseWei2 <= DISWEI_AddrBase0 + ValNumWei[0] + ValNumWei[1];
+        AddrBaseWei3 <= DISWEI_AddrBase0 + ValNumWei[0] + ValNumWei[1] + ValNumWei[2];
+        AddrBaseWei4 <= DISWEI_AddrBase0 + ValNumWei[0] + ValNumWei[1] + ValNumWei[2] + ValNumWei[3];
+        AddrBaseWei5 <= DISWEI_AddrBase0 + ValNumWei[0] + ValNumWei[1] + ValNumWei[2] + ValNumWei[3] + ValNumWei[4];
+        AddrBaseWei6 <= DISWEI_AddrBase0 + ValNumWei[0] + ValNumWei[1] + ValNumWei[2] + ValNumWei[3] + ValNumWei[4] + ValNumWei[5];
+        AddrBaseWei7 <= DISWEI_AddrBase0 + ValNumWei[0] + ValNumWei[1] + ValNumWei[2] + ValNumWei[3] + ValNumWei[4] + ValNumWei[5] + ValNumWei[6];
+        AddrBaseWei8 <= DISWEI_AddrBase0 + ValNumWei[0] + ValNumWei[1] + ValNumWei[2] + ValNumWei[3] + ValNumWei[4] + ValNumWei[5] + ValNumWei[6] + ValNumWei[7];
+    end
+end
 
 // output Rdy/ Get
 assign NXTPEC_RdyAct = state == WAITGET;

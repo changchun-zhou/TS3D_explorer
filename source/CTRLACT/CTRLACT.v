@@ -54,37 +54,7 @@ module  CTRLACT #(
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
-localparam IDLE = 3'b000;
-localparam CHECKDATA = 3'b001;
-localparam CFGACT = 3'b011;
-localparam WAITGET = 3'b010;
 
-reg [ 3 - 1 : 0          ] state;
-reg [ 3 - 1 : 0          ] next_state;
-
-always @(*) begin
-    case (state)
-      IDLE    : if ( CTRLACT_PlsFetch )
-                    next_state <= CHECKDATA;
-                else 
-                    next_state <= IDLE;
-
-      CHECKDATA:if( GBFACT_Val && GBFFLGACT_Val && GBFVNACT_Val)
-                    next_state <= CFGACT;
-                else 
-                    next_state <= CHECKDATA;
-      CFGACT  : if( NearFnhPacker) //config finish
-                    next_state <= WAITGET;
-                else 
-                    next_state <= CFGACT;
-      WAITGET : if( DISACT_GetAct )
-                    next_state <= IDLE;
-                else 
-                    next_state <= WAITGET;
-
-      default: next_state <= IDLE;
-    endcase
-end
 
 
 // For loop

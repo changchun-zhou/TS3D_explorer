@@ -16,7 +16,7 @@ module DISWEI #(
     input                                                       clk     ,
     input                                                       rst_n   ,
     input                                                       CTRLWEI_PlsFetch,
-    input                                                       CTRLWEI_GetWei, 
+    // input                                                       CTRLWEI_GetWei, 
     output                                                      DISWEI_RdyWei,
     output [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE- 1 : 0 ] DISWEIPEC_Wei,
     output [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE          - 1 : 0 ] DISWEIPEC_FlgWei,
@@ -95,15 +95,6 @@ generate
       end
 endgenerate
 
-// assign DISWEI_AddrBase0 = 8 - ValNumRmn ;//
-// assign DISWEI_AddrBase1 = DISWEI_AddrBase0 + ValNumWei[0];
-// assign DISWEI_AddrBase2 = DISWEI_AddrBase1 + ValNumWei[1];
-// assign DISWEI_AddrBase3 = DISWEI_AddrBase2 + ValNumWei[2];
-// assign DISWEI_AddrBase4 = DISWEI_AddrBase3 + ValNumWei[3];
-// assign DISWEI_AddrBase5 = DISWEI_AddrBase4 + ValNumWei[4];
-// assign DISWEI_AddrBase6 = DISWEI_AddrBase5 + ValNumWei[5];
-// assign DISWEI_AddrBase7 = DISWEI_AddrBase6 + ValNumWei[6];
-// assign DISWEI_AddrBase8 = DISWEI_AddrBase7 + ValNumWei[7];
 
 // 3st stage Pipeline
 always @ ( posedge clk or negedge rst_n ) begin
@@ -112,6 +103,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     end else if ( CTRLWEI_PlsFetch ) begin
         ValNumPEC <= ValNumWei[0] + ValNumWei[1] + ValNumWei[2] + ValNumWei[3] + ValNumWei[4] + 
                      ValNumWei[5] + ValNumWei[6] + ValNumWei[7] + ValNumWei[8] ;
+        DISWEIPEC_ValNumWei <= ValNumWei;
     end
 end
 // 3st stage Pipeline
@@ -149,6 +141,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         DISWEIPEC_Wei <= 0;
     end else if ( GBFWEI_EnRd_d ) begin
         DISWEIPEC_Wei <= {DISWEIPEC_Wei, GBFWEI_DatRd};//
+        DISWEI_AddrBase0 <= ( CntFetch << 3 + ValNumRmn) - ValNumPEC;
     end
 end
 
