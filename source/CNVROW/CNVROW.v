@@ -29,9 +29,13 @@ module CNVROW #(
     input [ `CHANNEL_DEPTH              - 1 : 0 ] PECMAC_FlgWei1,
     input [ `CHANNEL_DEPTH              - 1 : 0 ] PECMAC_FlgWei2,
 
-    input [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] PECMAC_Wei0,
-    input [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] PECMAC_Wei1,
-    input [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] PECMAC_Wei2,
+    input [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE- 1 : 0 ] PECMAC_Wei,
+    // input [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] PECMAC_Wei1,
+    // input [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] PECMAC_Wei2,
+
+    input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE) - 1 : 0 ] PECMAC_AddrBaseWei0,
+    input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE) - 1 : 0 ] PECMAC_AddrBaseWei1,
+    input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE) - 1 : 0 ] PECMAC_AddrBaseWei2,
 
     input [  PSUM_WIDTH * `LENPSUM       - 1 : 0 ] CNVIN_Psum,
     output reg [  PSUM_WIDTH * `LENPSUM       - 1 : 0 ] CNVOUT_Psum                         
@@ -98,7 +102,8 @@ MACAW MACAW0
         .PECMAC_FlgAct (PECMAC_FlgAct),
         .PECMAC_Act    (PECMAC_Act),
         .PECMAC_FlgWei (PECMAC_FlgWei0),
-        .PECMAC_Wei    (PECMAC_Wei0),
+        .PECMAC_Wei    (PECMAC_Wei),
+        .PECMAC_AddrBaseWei( PECMAC_AddrBaseWei0 ),
         .MACMAC_Mac    ( 0),
         .MACCNV_Mac    (MACCNV_Mac0)
     );
@@ -112,7 +117,8 @@ MACAW MACAW1
         .PECMAC_FlgAct (PECMAC_FlgAct),
         .PECMAC_Act    (PECMAC_Act),
         .PECMAC_FlgWei (PECMAC_FlgWei1),
-        .PECMAC_Wei    (PECMAC_Wei1),
+        .PECMAC_Wei    (PECMAC_Wei),
+        .PECMAC_AddrBaseWei( PECMAC_AddrBaseWei1 ),
         .MACMAC_Mac    ( MACCNV_Mac0),
         .MACCNV_Mac    (MACCNV_Mac1)
     );
@@ -125,7 +131,8 @@ MACAW MACAW2
         .PECMAC_FlgAct (PECMAC_FlgAct),
         .PECMAC_Act    (PECMAC_Act),
         .PECMAC_FlgWei (PECMAC_FlgWei2),
-        .PECMAC_Wei    (PECMAC_Wei2),
+        .PECMAC_Wei    (PECMAC_Wei),
+        .PECMAC_AddrBaseWei( PECMAC_AddrBaseWei2 ),
         .MACMAC_Mac    ( MACCNV_Mac1),
         .MACCNV_Mac    (MACCNV_Mac2)
     );

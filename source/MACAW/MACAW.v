@@ -18,7 +18,8 @@ module MACAW(
     input [ `CHANNEL_DEPTH              - 1 : 0 ] PECMAC_FlgAct,
     input [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] PECMAC_Act,
     input [ `CHANNEL_DEPTH              - 1 : 0 ] PECMAC_FlgWei,    
-    input [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] PECMAC_Wei,
+    input [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE- 1 : 0 ] PECMAC_Wei,
+    input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE) - 1 : 0 ] PECMAC_AddrBaseWei,
 
     input [ `DATA_WIDTH + `C_LOG_2(`CHANNEL_DEPTH*3)- 1 : 0 ] MACMAC_Mac,
     output [ `DATA_WIDTH + `C_LOG_2(`CHANNEL_DEPTH*3)- 1 : 0 ] MACCNV_Mac
@@ -56,8 +57,8 @@ always @ ( posedge clk or negedge rst_n ) begin
         FlgWei <= 0;
         // ValFlg  <= 0;
     end else if ( PECMAC_Sta ) begin
-        FlgAct <= `PECMAC_FlgAct;
-        FlgWei <= `PECMAC_FlgWei;
+        FlgAct <= PECMAC_FlgAct;
+        FlgWei <= PECMAC_FlgWei;
         // ValFlg  <= 1;
     end else if ( ValOffset ) begin
         FlgAct <= FlgAct & ~Set; // drop ahead 1
@@ -107,7 +108,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         MACCNV_Mac <= MACMAC_Mac;
     end else if ( ValAddr ) begin
         MACCNV_Mac <= MACCNV_Mac + PECMAC_Act[  AddrAct << `C_LOG_2(`DATA_WIDTH) +: `DATA_WIDTH] 
-                                 * PECMAC_Wei[  AddrWei << `C_LOG_2(`DATA_WIDTH) +: `DATA_WIDTH];
+                                 * PECMAC_Wei[  ( AddrWei + PECMAC_AddrBaseWei ) << `C_LOG_2(`DATA_WIDTH) +: `DATA_WIDTH];
     end
 end
 
