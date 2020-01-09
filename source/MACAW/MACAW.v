@@ -13,7 +13,7 @@ module MACAW(
     input                   clk     ,
     input                   rst_n   ,
     input                   PECMAC_Sta      ,
-    output                  MACPEC_Fnh,//level; same with Mac
+    output reg                 MACPEC_Fnh,//level; same with Mac
 
     input [ `CHANNEL_DEPTH              - 1 : 0 ] PECMAC_FlgAct,
     input [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] PECMAC_Act,
@@ -22,7 +22,7 @@ module MACAW(
     input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE) - 1 : 0 ] PECMAC_AddrBaseWei,
 
     input [ `DATA_WIDTH + `C_LOG_2(`CHANNEL_DEPTH*3)- 1 : 0 ] MACMAC_Mac,
-    output [ `DATA_WIDTH + `C_LOG_2(`CHANNEL_DEPTH*3)- 1 : 0 ] MACCNV_Mac
+    output reg[ `DATA_WIDTH + `C_LOG_2(`CHANNEL_DEPTH*3)- 1 : 0 ] MACCNV_Mac
 
 );
 //=====================================================================================================================
@@ -36,7 +36,7 @@ module MACAW(
 reg                                           ValFlg;
 reg [ `CHANNEL_DEPTH                - 1 : 0 ] FlgAct;
 reg [ `CHANNEL_DEPTH                - 1 : 0 ] FlgWei;
-reg [ `CHANNEL_DEPTH                - 1 : 0 ] Set;
+wire [ `CHANNEL_DEPTH                - 1 : 0 ] Set;
 
 wire                                          ValOffset;
 wire[ `C_LOG_2(`CHANNEL_DEPTH)      - 1 : 0 ] OffsetAct;
@@ -50,7 +50,29 @@ reg [ `C_LOG_2(`CHANNEL_DEPTH)       - 1 : 0 ] AddrWei;
 // Logic Design :
 //=====================================================================================================================
 
+localparam IDLE = 0; 
+localparam COMP = 1;
+reg  state;
+always @(posedge clk or negedge rst_n) begin
+  if(~rst_n) begin
+    state <= IDLE;
+  end else begin
+    case (state)
+      IDLE: if ( PECMAC_Sta )
+                state <= COMP;
+      COMP: if( MACPEC_Fnh)
+                state <= IDLE;
+
+      default: state <= IDLE;
+    endcase
+  end
+end
+
+
 // Update Flg and ValFlg
+
+
+
 always @ ( posedge clk or negedge rst_n ) begin 
     if ( ~rst_n ) begin
         FlgAct <= 0;
@@ -122,23 +144,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
-localparam IDLE = 0; 
-localparam COMP = 1;
-reg  state;
-always @(posedge clk or negedge rst_n) begin
-  if(~rst_n) begin
-    state <= IDLE;
-  end else begin
-    case (state)
-      IDLE: if ( PECMAC_Sta )
-                state <= COMP;
-      COMP: if( MACPEC_Fnh)
-                state <= IDLE
 
-      default: state <= IDLE;
-    endcase
-  end
-end
 
 
 //=====================================================================================================================
@@ -149,6 +155,8 @@ FLGOFFSET #(
         .DATA_WIDTH(`CHANNEL_DEPTH),
         .ADDR_WIDTH(`C_LOG_2(`CHANNEL_DEPTH))
     ) FLGOFFSET (
+        .clk    (clk),
+        .rst_n  (rst_n),
         .Act    (FlgAct),
         .Wei    (FlgWei),
         .ValFlg  ( ValFlg),

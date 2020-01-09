@@ -16,14 +16,14 @@ module  PACKER #(
 ) (
     input                                   clk     ,
     input                                   rst_n   ,
-    input  [ `C_LOG_2(NUM_DATA    - 1 : 0 ] NumPacker, // 0-31 stands for 1-32 data
+    input  [ `C_LOG_2(NUM_DATA)    - 1 : 0 ] NumPacker, // 0-31 stands for 1-32 data
     input                                   Sta,//paulse
     input                                   Bypass ,// paulse 0 data
 
     output                                  ReqDat,
     input                                   ValDat, // Make sure ValDat delay 1 clk after ReqDat
     input  [ DATA_WIDTH           - 1 : 0 ] Dat,
-    output [ DATA_WIDTH * NUM_DATA- 1 : 0 ] DatPacker,  
+    output reg [ DATA_WIDTH * NUM_DATA- 1 : 0 ] DatPacker,  
     output                                  NearFnhPacker  // because Dat delay 1 clk after ReqDat  
 );
 //=====================================================================================================================
@@ -55,7 +55,7 @@ always @(*) begin
       IDLE    : if ( Sta && ~Bypass )
                   next_state <= READ;
                 else 
-                  next_state <= IDLE
+                  next_state <= IDLE;
       READ: if( NearFnhPacker)
                   next_state <= IDLE;
             else
@@ -69,7 +69,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         state <= IDLE;
     end else  begin
-        state <= next_state
+        state <= next_state;
     end
 end
 

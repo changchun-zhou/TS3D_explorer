@@ -14,18 +14,16 @@
 // input GetWei, produce CTRLWEI_PlsFetch activate Pipeline 1 clk;
 // collect RdyWei from DISWEI, set 1 to RdyWei of NXTPEC;
 //========================================================
-module CTRLWEI #(
-    parameter  = 
-) (
-    input                                         clk     ,
-    input                                         rst_n   ,
-    input                                         TOP_Sta,
+module CTRLWEI (
+    input                                           clk     ,
+    input                                           rst_n   ,
+    input                                           TOP_Sta,
 
-    output [ `NUMPEC                    - 1 : 0 ]CTRLWEIPEC_RdyWei ,//48 b
-    input  [ `NUMPEC                    - 1 : 0 ]PECCTRLWEI_GetWei , 
+    output reg [ `NUMPEC                        -1 : 0] CTRLWEIPEC_RdyWei ,//48 b
+    input  [ `NUMPEC                        -1 : 0] PECCTRLWEI_GetWei , 
 
     input                                        DISWEI_RdyWei, 
-    output                                       CTRLWEI_PlsFetch,
+    output                                       CTRLWEI_PlsFetch
 );
 //=====================================================================================================================
 // Constant Definition :
@@ -44,12 +42,12 @@ reg [ `C_LOG_2(`NUMPEC)   - 1 : 0 ] IDPEC;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
-localparam IDLE = 3'b000;
+localparam IDLE     = 3'b000;
 localparam PREPIPE1 = 3'b100;
 localparam PREPIPE2 = 3'b101;
 localparam PREPIPE3 = 3'b111;
 localparam PREPIPE4 = 3'b110;
-localparam GETWEI = 3'b010;
+localparam GETWEI   = 3'b010;
 
 reg [ 3 - 1 : 0          ] state;
 reg [ 3 - 1 : 0          ] next_state;
@@ -74,10 +72,11 @@ always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         state <= IDLE;
     end else  begin
-        state <= next_state
+        state <= next_state;
     end
 end
 
+//GBFWEI is scheduled ahead
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         IDPEC <= 0;

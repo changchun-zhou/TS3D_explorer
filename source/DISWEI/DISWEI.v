@@ -10,26 +10,24 @@
 // Description :
 // Pipeline because of 6 clk between GetWei and RdyWei;
 //========================================================
-module DISWEI #(
-    parameter  = 
-) (
+module DISWEI (
     input                                                       clk     ,
     input                                                       rst_n   ,
     input                                                       CTRLWEI_PlsFetch,
     // input                                                       CTRLWEI_GetWei, 
     output                                                      DISWEI_RdyWei,
-    output [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE- 1 : 0 ] DISWEIPEC_Wei,
-    output [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE          - 1 : 0 ] DISWEIPEC_FlgWei,
+    output reg [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE  -1 : 0] DISWEIPEC_Wei,
+    output reg [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE            -1 : 0] DISWEIPEC_FlgWei,
+    output reg [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   - 1 : 0 ] DISWEI_AddrBase,
     // output   DISWEI_AddrBase0,
-    input                                        GBFWEI_Val, //valid 
-    output                                       GBFWEI_EnRd,
-    output [ `GBFWEI_ADDRWIDTH          - 1 : 0 ]GBFWEI_AddrRd,
-    input  [ `GBFWEI_DATAWIDTH          - 1 : 0 ]GBFWEI_DatRd,
-
-    input                                        GBFFLGWEI_Val, //valid 
-    output                                       GBFFLGWEI_EnRd,
-    output [ `GBFWEI_ADDRWIDTH          - 1 : 0 ]GBFFLGWEI_AddrRd,
-    input  [ `GBFFLGWEI_DATAWIDTH       - 1 : 0 ]GBFFLGWEI_DatRd
+    input                                                       GBFWEI_Val, //valid 
+    output                                                      GBFWEI_EnRd,
+    output reg [ `GBFWEI_ADDRWIDTH                          -1 : 0] GBFWEI_AddrRd,
+    input  [ `GBFWEI_DATAWIDTH                          -1 : 0] GBFWEI_DatRd,
+    input                                                       GBFFLGWEI_Val, //valid 
+    output                                                      GBFFLGWEI_EnRd,
+    output reg [ `GBFWEI_ADDRWIDTH                          -1 : 0] GBFFLGWEI_AddrRd,
+    input  [ `GBFFLGWEI_DATAWIDTH                       -1 : 0] GBFFLGWEI_DatRd
                         
 );
 //=====================================================================================================================
@@ -43,12 +41,13 @@ module DISWEI #(
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
-
-
-
-
-
-
+reg [ `C_LOG_2(`BLOCK_DEPTH)    -1 : 0] ValNumWei[ 0 : `KERNEL_SIZE - 1];
+reg                                                         GBFWEI_EnRd_d;
+reg [ `C_LOG_2(`BLOCK_DEPTH * `KERNEL_SIZE )  - 1 : 0 ] ValNumPEC;
+reg [ `GBFFLGWEI_DATAWIDTH                       -1 : 0] GBFFLGWEI_DatRd_d;
+reg [ `GBFFLGWEI_DATAWIDTH                       -1 : 0] GBFFLGWEI_DatRd_dd;
+reg [ `C_LOG_2(`KERNEL_SIZE)                    -1 : 0 ] ValNumRmn;
+reg [ `C_LOG_2(`BLOCK_DEPTH )                     -1 : 0] CntFetch;
 
 //=====================================================================================================================
 // Logic Design :
@@ -59,7 +58,7 @@ module DISWEI #(
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         GBFFLGWEI_AddrRd <= 0;
-    end else if (  ) begin
+    end else if ( 1'b0 ) begin ////////////////////////////////
         GBFFLGWEI_AddrRd <= 0;
     end else if ( CTRLWEI_PlsFetch ) begin
         GBFFLGWEI_AddrRd <= GBFFLGWEI_AddrRd + 1;
@@ -72,9 +71,11 @@ always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         DISWEIPEC_FlgWei <= 0;
     end else if ( CTRLWEI_PlsFetch ) begin
-        DISWEIPEC_FlgWei <= GBFFLGWEI_DatRd_d;
+        DISWEIPEC_FlgWei <= GBFFLGWEI_DatRd; //GBFFLGWEI_DatRd_d ??
     end
 end
+
+
 generate
   genvar i;
   for( i=0; i<`KERNEL_SIZE ; i=i+1) begin: AddrWeiGen
@@ -90,20 +91,20 @@ generate
                               GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+ 5] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+13] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+21] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+29] +
                               GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+ 6] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+14] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+22] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+30] +
                               GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+ 7] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+15] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+23] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+31]  ;
-
           end
       end
+  end
 endgenerate
 
 
 // 3st stage Pipeline
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
-         <= ;
+        ValNumPEC <= 0;
     end else if ( CTRLWEI_PlsFetch ) begin
         ValNumPEC <= ValNumWei[0] + ValNumWei[1] + ValNumWei[2] + ValNumWei[3] + ValNumWei[4] + 
                      ValNumWei[5] + ValNumWei[6] + ValNumWei[7] + ValNumWei[8] ;
-        DISWEIPEC_ValNumWei <= ValNumWei;
+        // DISWEIPEC_ValNumWei <= ValNumWei;
     end
 end
 // 3st stage Pipeline
@@ -116,10 +117,18 @@ always @ ( posedge clk or negedge rst_n ) begin
 end
 
 always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        GBFFLGWEI_DatRd_d <= 0;
+    end else begin
+        GBFFLGWEI_DatRd_d <= GBFFLGWEI_DatRd;
+    end
+end
+
+always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         ValNumRmn <= 0;
     end else if ( CTRLWEI_PlsFetch ) begin
-        ValNumRmn <= DISWEI_AddrBase0;
+        ValNumRmn <= DISWEI_AddrBase;
     end
 end                  
 always @ ( posedge clk or negedge rst_n ) begin
@@ -132,16 +141,32 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+          GBFWEI_EnRd_d <= 0 ;
+    end else begin
+         GBFWEI_EnRd_d <= GBFWEI_EnRd;
+    end
+end
+
 //Long delay chain: ValNumWei -> ValNumPEC -> FnhFetch -> next_state ->PlsFetch
 //fanout
 assign GBFWEI_EnRd = ( CntFetch << 3 + ValNumRmn) < ValNumPEC;
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+          GBFWEI_AddrRd <= 0;
+    end else if ( GBFWEI_EnRd ) begin
+         GBFWEI_AddrRd <= GBFWEI_AddrRd + 1;
+    end
+end
+
 //
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         DISWEIPEC_Wei <= 0;
     end else if ( GBFWEI_EnRd_d ) begin
         DISWEIPEC_Wei <= {DISWEIPEC_Wei, GBFWEI_DatRd};//
-        DISWEI_AddrBase0 <= ( CntFetch << 3 + ValNumRmn) - ValNumPEC;
+        DISWEI_AddrBase <= ( CntFetch << 3 + ValNumRmn) - ValNumPEC;
     end
 end
 

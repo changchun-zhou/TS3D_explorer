@@ -2,6 +2,8 @@ module FLGOFFSET # (
 	parameter DATA_WIDTH = 32,
 	parameter ADDR_WIDTH = 5  )
 	(
+	input 												clk,
+	input  												rst_n,
 	input [ DATA_WIDTH	- 1 : 0 ] Act,
 	input [ DATA_WIDTH  - 1 : 0 ] Wei,
 	input 						  ValFlg,

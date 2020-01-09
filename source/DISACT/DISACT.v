@@ -9,37 +9,33 @@
 //=======================================================
 // Description :
 //========================================================
-module DISACT #(
-    parameter  = 
-) (
-    input                   clk     ,
-    input                   rst_n   ,
-    input                   CTRLACT_PlsFetch      ,
+module DISACT (
+    input                                       clk     ,
+    input                                       rst_n   ,
 
-    output                  CTRLACT_GetAct,                    
+    input                                       CTRLACT_PlsFetch,
+    output                                      CTRLACT_GetAct,                    
 
     output                                      DISACT_RdyAct,
     input                                       DISACT_GetAct,
-    output[ `BLOCK_DEPTH                - 1 : 0 ]DISACT_FlgAct,
-    input[ `DATA_WIDTH * `BLOCK_DEPTH   - 1 : 0 ]DISACT_Act,    
+    output[ `BLOCK_DEPTH                -1 : 0] DISACT_FlgAct,
+    input[ `DATA_WIDTH * `BLOCK_DEPTH   -1 : 0] DISACT_Act,    
 
 
     input                                       GBFACT_Val, //valid 
-    output                                       GBFACT_EnRd,
-    output [ `GBFACT_ADDRWIDTH- 1 : 0 ]GBFACT_AddrRd,
-    input  [ `DATA_WIDTH                - 1 : 0 ]GBFACT_DatRd,
+    output                                      GBFACT_EnRd,
+    output reg [ `GBFACT_ADDRWIDTH          -1 : 0] GBFACT_AddrRd,
+    input  [ `DATA_WIDTH                -1 : 0] GBFACT_DatRd,
 
-    input                                        GBFFLGACT_Val, //valid 
-    output                                       GBFFLGACT_EnRd,
-    output [ `GBFACT_ADDRWIDTH- 1 : 0 ]GBFFLGACT_AddrRd,
-    input  [ `BLOCK_DEPTH                - 1 : 0 ]GBFFLGACT_DatRd,
+    input                                       GBFFLGACT_Val, //valid 
+    output                                      GBFFLGACT_EnRd,
+    output reg [ `GBFACT_ADDRWIDTH          -1 : 0] GBFFLGACT_AddrRd,
+    input  [ `BLOCK_DEPTH               -1 : 0] GBFFLGACT_DatRd,
 
-    input                                        GBFVNACT_Val, //valid num ACT
-    output                                       GBFVNACT_EnRd,
-    output [ `GBFACT_ADDRWIDTH- 1 : 0 ]GBFVNACT_AddrRd,
-    input  [ `C_LOG_2(`BLOCK_DEPTH)     - 1 : 0 ]GBFVNACT_DatRd,
-
-
+    input                                       GBFVNACT_Val, //valid num ACT
+    output                                      GBFVNACT_EnRd,
+    output reg [ `GBFACT_ADDRWIDTH          -1 : 0] GBFVNACT_AddrRd,
+    input  [ `C_LOG_2(`BLOCK_DEPTH)     -1 : 0] GBFVNACT_DatRd
                         
 );
 //=====================================================================================================================
@@ -53,11 +49,12 @@ module DISACT #(
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
-
-
-
-
-
+wire                                NearFnhPacker;
+wire                                PlsFetch;
+reg                                     PACKER_ValDat;
+wire                                PACKER_ReqDat;
+reg                                     PACKER_Sta;
+wire                                PACKER_Bypass;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -100,7 +97,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         state <= IDLE;
     end else  begin
-        state <= next_state
+        state <= next_state;
     end
 end
 
@@ -125,7 +122,7 @@ assign GBFVNACT_EnRd = PlsFetch;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         GBFACT_AddrRd <= 0;
-    end else if(  ) begin
+    end else if( 1'b1 ) begin ////////////////////////////////////////
         GBFACT_AddrRd <= 0;
     end else if( GBFACT_EnRd) begin
         GBFACT_AddrRd <= GBFACT_AddrRd + 1;
@@ -152,7 +149,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         GBFFLGACT_AddrRd <= 0;
-    end else if (  ) begin
+    end else if ( 1'b1 ) begin ///////////////////////////////////
         GBFFLGACT_AddrRd <= 0;
     end else if ( GBFFLGACT_EnRd ) begin
         GBFFLGACT_AddrRd <= GBFFLGACT_AddrRd + 1;
@@ -180,6 +177,4 @@ PACKER #(
         .DatPacker     (DISACT_Act),
         .NearFnhPacker (NearFnhPacker)
     );
-
-
 endmodule

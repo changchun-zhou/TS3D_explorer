@@ -9,9 +9,7 @@
 //=======================================================
 // Description :
 //========================================================
-module  CTRLACT #(
-    parameter  = 
-) (
+module  CTRLACT (
     input                                       clk     ,
     input                                       rst_n   ,
     input                                       TOP_Sta,
@@ -27,12 +25,11 @@ module  CTRLACT #(
 
     output                                       CTRLACT_FrtActRow,
     output                                       CTRLACT_LstActRow,
-    output                                       CTRLACT_LstActBlk,
+    output                                       CTRLACT_LstActBlk
 
     // output                                       CTRLACT_FnhPat,
     // output                                       CTRLACT_FnhIfm,
     // output                                       CTRLACT_FnhFrm,
-
 
 );
 //=====================================================================================================================
@@ -46,11 +43,18 @@ module  CTRLACT #(
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
-
-
-
-
-
+reg  [ `C_LOG_2(`LENROW)           - 1 : 0 ] CntAct;
+reg  [ `C_LOG_2(`LENROW)           - 1 : 0 ] CntRow;
+wire                                                CTRLACT_FrtActBlk;
+wire                                                CTRLACT_FrtActFrm;
+reg  [ `BLK_WIDTH                  - 1 : 0 ] CntBlk;
+reg  [ `FRAME_WIDTH                - 1 : 0 ] CntFrm;
+reg  [ `PATCH_WIDTH                - 1 : 0 ] CntPat;
+reg  [ `LAYER_WIDTH                - 1 : 0 ] CntLay;
+wire                                         FrtActPat;
+wire                                         FrtActFrm;
+wire                                         FrtActLay;
+wire                                         Restart = 0; ////////////////////////////////
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -77,7 +81,7 @@ end
 //     end
 // end
 
-assign CTRLACT_PlsFetch = TOP_Sta || ( CTRLACT_GetAct && );
+assign CTRLACT_PlsFetch = TOP_Sta || ( CTRLACT_GetAct && 1'b1);//////////////////
 
 assign CTRLACT_LstActRow = CntAct == CFG_LenRow;
 assign CTRLACT_FrtActRow = CntAct == 0;

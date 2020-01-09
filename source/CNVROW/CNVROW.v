@@ -10,7 +10,7 @@
 // Description :
 //========================================================
 module CNVROW #(
-    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + C_LOG_2(`CHANNEL_DEPTH) + 2 )
+    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`CHANNEL_DEPTH) + 2 )
  
 ) (
     input                   clk     ,

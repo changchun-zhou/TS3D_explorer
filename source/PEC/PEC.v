@@ -10,26 +10,26 @@
 // Description :
 //========================================================
 module PEC #(
-    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + C_LOG_2(`CHANNEL_DEPTH) + 2 )
+    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`CHANNEL_DEPTH) + 2 )
     )(
     input                   clk     ,
     input                   rst_n   ,
-
-    input                   LSTPEC_FrtActRow   ,// because read and write simultaneously
-    input                   LSTPEC_LstActRow   ,//
-    input                   LSTPEC_LstActBlk   ,//
-
-    input                   NXTPEC_FrtActRow   ,
-    input                   NXTPEC_LstActRow   ,
-    input                   NXTPEC_LstActBlk   ,
 
     input                   CTRLWEIPEC_RdyWei  ,
     output                  PECCTRLWEI_GetWei  ,//=CTRLWEIPEC_RdyWei paulse
 
     input [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE- 1 : 0 ] DISWEIPEC_Wei,
-    input [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE- 1 : 0 ]DISWEIPEC_FlgWei,
+    input [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE          - 1 : 0 ] DISWEIPEC_FlgWei,
     input [ `C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE   - 1 : 0 ] DISWEIPEC_ValNumWei,
+    input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   - 1 : 0 ] DISWEI_AddrBase,
 
+    input                   LSTPEC_FrtActRow   ,// because read and write simultaneously
+    input                   LSTPEC_LstActRow   ,//
+    input                   LSTPEC_LstActBlk   ,//
+
+    output reg                  NXTPEC_FrtActRow   ,
+    output reg                  NXTPEC_LstActRow   ,
+    output reg                  NXTPEC_LstActBlk   ,
     // output                  PEC_FnhBlk,
 
     input                                         LSTPEC_RdyAct,// level
@@ -40,10 +40,10 @@ module PEC #(
     input                                         NXTPEC_GetAct,// THIS PEC's ACT is gotten
 
     output                                        PECRAM_EnWr,
-    output [ `C_LOG_2(`LENPSUM)         - 1 : 0 ] PECRAM_AddrWr,
+    output reg [ `C_LOG_2(`LENPSUM)         - 1 : 0 ] PECRAM_AddrWr,
     output [  PSUM_WIDTH * `LENPSUM     - 1 : 0 ] PECRAM_DatWr,
     output                                        PECRAM_EnRd,
-    output [ `C_LOG_2(`LENPSUM)         - 1 : 0 ] PECRAM_AddrRd,
+    output reg [ `C_LOG_2(`LENPSUM)         - 1 : 0 ] PECRAM_AddrRd,
     input  [ PSUM_WIDTH * `LENPSUM      - 1 : 0 ] RAMPEC_DatRd 
 
 );
@@ -118,6 +118,7 @@ wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei4;
 wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei5;
 wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei6;
 wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei7;
+wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei8;
 
 //=====================================================================================================================
 // Logic Design :
@@ -141,7 +142,7 @@ always @(*) begin
       CFGWEI:   if ( CTRLWEIPEC_RdyWei )
                     next_state <= CFGACT;
                 else 
-                    next_state <= CFGWEI
+                    next_state <= CFGWEI;
       CFGACT:   if( LSTPEC_RdyAct && PECCNV_PlsAcc)
                     next_state <= WAITGET;
                 else 
@@ -155,7 +156,6 @@ always @(*) begin
 
       default: next_state <= IDLE;
     endcase
-  end
 end
 
 always @ ( posedge clk or negedge rst_n ) begin
@@ -188,15 +188,15 @@ always @ ( posedge clk or negedge rst_n ) begin
         PECMAC_Wei          <= DISWEIPEC_Wei;
         FlgWei              <= DISWEIPEC_FlgWei;
         // ValNumWei           <= DISWEIPEC_ValNumWei;
-        PECMAC_AddrBaseWei0 <= DISWEI_AddrBase0;//
-        PECMAC_AddrBaseWei1 <= DISWEI_AddrBase0 + ValNumWei0;
-        PECMAC_AddrBaseWei2 <= DISWEI_AddrBase0 + ValNumWei0 + ValNumWei1;
-        PECMAC_AddrBaseWei3 <= DISWEI_AddrBase0 + ValNumWei0 + ValNumWei1 + ValNumWei2;
-        PECMAC_AddrBaseWei4 <= DISWEI_AddrBase0 + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3;
-        PECMAC_AddrBaseWei5 <= DISWEI_AddrBase0 + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4;
-        PECMAC_AddrBaseWei6 <= DISWEI_AddrBase0 + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4 + ValNumWei5;
-        PECMAC_AddrBaseWei7 <= DISWEI_AddrBase0 + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4 + ValNumWei5 + ValNumWei6;
-        PECMAC_AddrBaseWei8 <= DISWEI_AddrBase0 + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4 + ValNumWei5 + ValNumWei6 + ValNumWei7;
+        PECMAC_AddrBaseWei0 <= DISWEI_AddrBase;//
+        PECMAC_AddrBaseWei1 <= DISWEI_AddrBase + ValNumWei0;
+        PECMAC_AddrBaseWei2 <= DISWEI_AddrBase + ValNumWei0 + ValNumWei1;
+        PECMAC_AddrBaseWei3 <= DISWEI_AddrBase + ValNumWei0 + ValNumWei1 + ValNumWei2;
+        PECMAC_AddrBaseWei4 <= DISWEI_AddrBase + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3;
+        PECMAC_AddrBaseWei5 <= DISWEI_AddrBase + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4;
+        PECMAC_AddrBaseWei6 <= DISWEI_AddrBase + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4 + ValNumWei5;
+        PECMAC_AddrBaseWei7 <= DISWEI_AddrBase + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4 + ValNumWei5 + ValNumWei6;
+        PECMAC_AddrBaseWei8 <= DISWEI_AddrBase + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4 + ValNumWei5 + ValNumWei6 + ValNumWei7;
     end
 end
 assign PECMAC_FlgWei0 = FlgWei[ `BLOCK_DEPTH * 0 +: `BLOCK_DEPTH];
