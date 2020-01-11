@@ -7,8 +7,8 @@ module FLGOFFSET # (
 	input [ DATA_WIDTH	- 1 : 0 ] Act,
 	input [ DATA_WIDTH  - 1 : 0 ] Wei,
 	input 						  ValFlg,
-	output  [ DATA_WIDTH  - 1 : 0 ] OffsetAct,
-	output[ DATA_WIDTH  - 1 : 0 ] OffsetWei,
+	output  [ ADDR_WIDTH  - 1 : 0 ] OffsetAct,// ADDR_WIDTH + 1?? ///////////////////////
+	output[ ADDR_WIDTH  - 1 : 0 ] OffsetWei,
 	output reg [ DATA_WIDTH   - 1 : 0 ] SetOut,
 	output reg 					  ValOffset
 

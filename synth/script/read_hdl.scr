@@ -1,0 +1,21 @@
+# File: read_hdl.scr
+
+# define design files:
+set VERILOG_FILES { \
+../source/TS3D/TS3D.v\
+../source/CONFIG/CONFIG.v\
+../source/PEL/PEL.v\
+../source/PEB/PEB.v\
+../source/PEC/PEC.v\
+../source/CNVROW/CNVROW.v\
+../source/MACAW/MACAW.v\
+../source/FLGOFFSET/FLGOFFSET.v\
+../source/CTRLWEI/CTRLWEI.v\
+../source/DISWEI/DISWEI.v\
+../source/CTRLACT/CTRLACT.v\
+../source/DISACT/DISACT.v\
+../source/PACKER/PACKER.v\
+../source/primitives/RAM_SIM/SRAM_DUAL.v\
+
+}
+

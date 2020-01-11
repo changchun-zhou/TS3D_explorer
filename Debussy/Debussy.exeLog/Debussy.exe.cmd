@@ -8,3 +8,5 @@ wvOpenFile -win $_nWave2 \
 wvRestoreSignal -win $_nWave2 "TS3D_tb.rc"
 srcResizeWindow 0 0 804 500
 wvResizeWindow -win $_nWave2 54 237 960 332
+wvCloseWindow -win $_nWave2
+debExit

@@ -10,24 +10,22 @@
 // Description :
 // Pipeline because of 6 clk between GetWei and RdyWei;
 //========================================================
+`include "../include/dw_params_presim.vh"
 module DISWEI (
-    input                                                       clk     ,
-    input                                                       rst_n   ,
-    input                                                       CTRLWEI_PlsFetch,
-    // input                                                       CTRLWEI_GetWei, 
-    output                                                      DISWEI_RdyWei,
-    output reg [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE  -1 : 0] DISWEIPEC_Wei,
-    output reg [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE            -1 : 0] DISWEIPEC_FlgWei,
-    output reg [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   - 1 : 0 ] DISWEI_AddrBase,
-    // output   DISWEI_AddrBase0,
-    input                                                       GBFWEI_Val, //valid 
-    output                                                      GBFWEI_EnRd,
-    output reg [ `GBFWEI_ADDRWIDTH                          -1 : 0] GBFWEI_AddrRd,
-    input  [ `GBFWEI_DATAWIDTH                          -1 : 0] GBFWEI_DatRd,
-    input                                                       GBFFLGWEI_Val, //valid 
-    output                                                      GBFFLGWEI_EnRd,
-    output reg [ `GBFWEI_ADDRWIDTH                          -1 : 0] GBFFLGWEI_AddrRd,
-    input  [ `GBFFLGWEI_DATAWIDTH                       -1 : 0] GBFFLGWEI_DatRd
+    input                                                           clk             ,
+    input                                                           rst_n           ,
+    input                                                           CTRLWEI_PlsFetch,
+    output reg  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE -1 : 0] DISWEIPEC_Wei   ,
+    output reg  [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE           -1 : 0] DISWEIPEC_FlgWei,
+    output reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)    -1 : 0] DISWEI_AddrBase ,
+    input                                                           GBFWEI_Val      , //valid 
+    output                                                          GBFWEI_EnRd     ,
+    output reg  [ `GBFWEI_ADDRWIDTH                         -1 : 0] GBFWEI_AddrRd   ,
+    input       [ `GBFWEI_DATAWIDTH                         -1 : 0] GBFWEI_DatRd    ,
+    input                                                           GBFFLGWEI_Val   , //valid 
+    output                                                          GBFFLGWEI_EnRd  ,
+    output reg  [ `GBFWEI_ADDRWIDTH                         -1 : 0] GBFFLGWEI_AddrRd,
+    input       [ `GBFFLGWEI_DATAWIDTH                      -1 : 0] GBFFLGWEI_DatRd  
                         
 );
 //=====================================================================================================================

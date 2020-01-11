@@ -28,7 +28,7 @@ reg   [ `GBFACT_ADDRWIDTH          -1 : 0]  GBFVNACT_AddrWr = 0 ;
 reg   [ `C_LOG_2(`BLOCK_DEPTH)     -1 : 0]  GBFVNACT_DatWr = 0 ;
 
 // TS3D Outputs
-wire  [ PSUM_WIDTH * `LENPSUM      -1 : 0]  PEBPOOL_Dat ;
+wire  [ PSUM_WIDTH * `LENPSUM      -1 : 0]  PELPOOL_Dat ;
 
 // TS3D Bidirs
 
@@ -89,6 +89,6 @@ TS3D  u_TS3D (
     .GBFVNACT_AddrWr         ( GBFVNACT_AddrWr   [ `GBFACT_ADDRWIDTH          -1 : 0]  ),
     .GBFVNACT_DatWr          ( GBFVNACT_DatWr    [ `C_LOG_2(`BLOCK_DEPTH)     -1 : 0]  ),
 
-    .PEBPOOL_Dat             ( PEBPOOL_Dat       [ PSUM_WIDTH * `LENPSUM      -1 : 0]  )
+    .PELPOOL_Dat             ( PELPOOL_Dat       [ PSUM_WIDTH * `LENPSUM      -1 : 0]  )
 );
 endmodule

@@ -14,6 +14,7 @@
 // input GetWei, produce CTRLWEI_PlsFetch activate Pipeline 1 clk;
 // collect RdyWei from DISWEI, set 1 to RdyWei of NXTPEC;
 //========================================================
+`include "../include/dw_params_presim.vh"
 module CTRLWEI (
     input                                           clk     ,
     input                                           rst_n   ,

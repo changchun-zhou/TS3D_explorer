@@ -9,42 +9,41 @@
 //=======================================================
 // Description :
 //========================================================
+`include "../include/dw_params_presim.vh"
 module PEC #(
     parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`CHANNEL_DEPTH) + 2 )
     )(
     input                   clk     ,
     input                   rst_n   ,
 
-    input                   CTRLWEIPEC_RdyWei  ,
-    output                  PECCTRLWEI_GetWei  ,//=CTRLWEIPEC_RdyWei paulse
-
-    input [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE- 1 : 0 ] DISWEIPEC_Wei,
-    input [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE          - 1 : 0 ] DISWEIPEC_FlgWei,
-    input [ `C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE   - 1 : 0 ] DISWEIPEC_ValNumWei,
-    input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   - 1 : 0 ] DISWEI_AddrBase,
-
-    input                   LSTPEC_FrtActRow   ,// because read and write simultaneously
-    input                   LSTPEC_LstActRow   ,//
-    input                   LSTPEC_LstActBlk   ,//
-
-    output reg                  NXTPEC_FrtActRow   ,
-    output reg                  NXTPEC_LstActRow   ,
-    output reg                  NXTPEC_LstActBlk   ,
+    input                                                       CTRLWEIPEC_RdyWei  ,
+    output                                                      PECCTRLWEI_GetWei  ,//=CTRLWEIPEC_RdyWei paulse
+    input [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE   -1 : 0] DISWEIPEC_Wei,
+    input [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE             -1 : 0] DISWEIPEC_FlgWei,
+    input [ `C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE      -1 : 0] DISWEIPEC_ValNumWei,
+    input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)      -1 : 0] DISWEI_AddrBase,
+    input                                                       LSTPEC_FrtActRow   ,// because read and write simultaneously
+    input                                                       LSTPEC_LstActRow   ,//
+    input                                                       LSTPEC_LstActBlk   ,//
+    output reg                                                  NXTPEC_FrtActRow   ,
+    output reg                                                  NXTPEC_LstActRow   ,
+    output reg                                                  NXTPEC_LstActBlk   ,
     // output                  PEC_FnhBlk,
+    input                                                       LSTPEC_RdyAct,// level
+    output                                                      LSTPEC_GetAct,// PAULSE
+    input [ `CHANNEL_DEPTH                              -1 : 0] PEBPEC_FlgAct,
+    input [ `DATA_WIDTH * `CHANNEL_DEPTH                -1 : 0] PEBPEC_Act,
+    output                                                      NXTPEC_RdyAct,// To Next PEC: THIS PEC's ACT is NOT ever gotten
+    input                                                       NXTPEC_GetAct,// THIS PEC's ACT is gotten
+    output reg [ `CHANNEL_DEPTH                         -1 : 0] PECMAC_FlgAct,
+    output reg [ `DATA_WIDTH * `CHANNEL_DEPTH           -1 : 0] PECMAC_Act,
 
-    input                                         LSTPEC_RdyAct,// level
-    output                                        LSTPEC_GetAct,// PAULSE
-    input [ `CHANNEL_DEPTH              - 1 : 0 ] PEBPEC_FlgAct,
-    input [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] PEBPEC_Act,
-    output                                        NXTPEC_RdyAct,// To Next PEC: THIS PEC's ACT is NOT ever gotten
-    input                                         NXTPEC_GetAct,// THIS PEC's ACT is gotten
-
-    output                                        PECRAM_EnWr,
-    output reg [ `C_LOG_2(`LENPSUM)         - 1 : 0 ] PECRAM_AddrWr,
-    output [  PSUM_WIDTH * `LENPSUM     - 1 : 0 ] PECRAM_DatWr,
-    output                                        PECRAM_EnRd,
-    output reg [ `C_LOG_2(`LENPSUM)         - 1 : 0 ] PECRAM_AddrRd,
-    input  [ PSUM_WIDTH * `LENPSUM      - 1 : 0 ] RAMPEC_DatRd 
+    output                                                      PECRAM_EnWr,
+    output reg [ `C_LOG_2(`LENPSUM)                     -1 : 0] PECRAM_AddrWr,
+    output [  PSUM_WIDTH * `LENPSUM                     -1 : 0] PECRAM_DatWr,
+    output                                                      PECRAM_EnRd,
+    output reg [ `C_LOG_2(`LENPSUM)                     -1 : 0] PECRAM_AddrRd,
+    input  [ PSUM_WIDTH * `LENPSUM                      -1 : 0] RAMPEC_DatRd 
 
 );
 //=====================================================================================================================
@@ -72,8 +71,7 @@ wire                                MACPEC_Fnh6;
 wire                                MACPEC_Fnh7;
 wire                                MACPEC_Fnh8;
 
-reg [ `CHANNEL_DEPTH              - 1 : 0 ] PECMAC_FlgAct;
-reg [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ] PECMAC_Act;
+
 reg                                         PECMAC_Sta;
 
 wire                                PECCNV_PlsAcc;// level

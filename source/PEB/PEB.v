@@ -9,6 +9,7 @@
 //=======================================================
 // Description : Distribute SRAM For 3 PEC
 //========================================================
+`include "../include/dw_params_presim.vh"
 module PEB #(
     parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`CHANNEL_DEPTH) + 2 )
     )(
@@ -30,9 +31,7 @@ module PEB #(
     input [`DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE-1 : 0] DISWEIPEC_Wei,
     input [1 * `BLOCK_DEPTH * `KERNEL_SIZE          -1 : 0] DISWEIPEC_FlgWei,
     input [`C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE   -1 : 0] DISWEIPEC_ValNumWei,
-    input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   - 1 : 0 ] DISWEI_AddrBase0,
-    input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   - 1 : 0 ] DISWEI_AddrBase1,
-    input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   - 1 : 0 ] DISWEI_AddrBase2,
+    input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   - 1 : 0 ] DISWEI_AddrBase,
 
     input                                                   LSTPEC_FrtActRow0   ,// because read and write simultaneously
     input                                                   LSTPEC_LstActRow0   ,//
@@ -67,6 +66,22 @@ module PEB #(
 wire                                        PEBPEC_FnhFrm;
 
 reg                                         FlgRAM2;              
+wire                                        NXTPEC_FrtActRow0;
+wire                                        NXTPEC_LstActRow0;
+wire                                        NXTPEC_LstActBlk0;
+wire                                        NXTPEC_RdyAct0;
+wire                                        NXTPEC_GetAct0;
+wire                                        NXTPEC_FrtActRow1;
+wire                                        NXTPEC_LstActRow1;
+wire                                        NXTPEC_LstActBlk1;
+wire                                        NXTPEC_RdyAct1;
+wire                                        NXTPEC_GetAct1;
+
+wire [ `DATA_WIDTH * `CHANNEL_DEPTH           -1 : 0] PECMAC_Act0;
+wire [ `DATA_WIDTH * `CHANNEL_DEPTH           -1 : 0] PECMAC_Act1;
+wire [ `CHANNEL_DEPTH                         -1 : 0] NXTPEB_FlgAct0;
+wire [ `CHANNEL_DEPTH                         -1 : 0] NXTPEB_FlgAct1;
+
 
 wire                                        PECRAM_EnWr0;
 wire [ `C_LOG_2(`LENPSUM)         - 1 : 0 ] PECRAM_AddrWr0;
@@ -92,6 +107,9 @@ wire [ PSUM_WIDTH * `LENPSUM      - 1 : 0 ] RAMPEC_DatRd2;
 
 wire [  PSUM_WIDTH * `LENPSUM     - 1 : 0 ] PECRAM_DatWr3;
 wire [ PSUM_WIDTH * `LENPSUM      - 1 : 0 ] RAMPEC_DatRd3; 
+
+
+
 
 wire                                        EnWr0;
 wire [ `C_LOG_2(`LENPSUM)         - 1 : 0 ] AddrWr0;
@@ -140,14 +158,14 @@ assign AddrWr0       = CTRLPEB_FrtBlk ? 0 : PECRAM_AddrWr0   ;
 assign DatWr0        = CTRLPEB_FrtBlk ? 0 : PECRAM_DatWr0    ;
 assign EnRd0         = CTRLPEB_FrtBlk ? 0 : PECRAM_EnRd0     ;
 assign AddrRd0       = CTRLPEB_FrtBlk ? 0 : PECRAM_AddrRd0   ;
-assign RAMPEC_DatRd0 = CTRLPEB_FrtBlk ? 0 : RAMPEC_DatRd0    ;
+assign RAMPEC_DatRd0 = CTRLPEB_FrtBlk ? 0 : DatRd0    ;
 
 assign EnWr1         = CTRLPEB_FrtBlk ? PECRAM_EnWr0      : PECRAM_EnWr1     ;
 assign AddrWr1       = CTRLPEB_FrtBlk ? PECRAM_AddrWr0    : PECRAM_AddrWr1   ;
 assign DatWr1        = CTRLPEB_FrtBlk ? PECRAM_DatWr0     : PECRAM_DatWr1    ;
 assign EnRd1         = CTRLPEB_FrtBlk ? PECRAM_EnRd0      : PECRAM_EnRd1     ;
 assign AddrRd1       = CTRLPEB_FrtBlk ? PECRAM_AddrRd0    : PECRAM_AddrRd1   ;
-assign RAMPEC_DatRd1 = CTRLPEB_FrtBlk ? RAMPEC_DatRd0     : DatRd1           ;
+assign RAMPEC_DatRd1 = CTRLPEB_FrtBlk ? DatRd0     : DatRd1           ;
 
 // Ping   
 assign EnWr2         = FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_EnWr1      : PECRAM_EnWr2     ) : 0               ;
@@ -155,7 +173,8 @@ assign AddrWr2       = FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_AddrWr1    : PECRAM_A
 assign DatWr2        = FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_DatWr1     : PECRAM_DatWr2    ) : 0               ;
 assign EnRd2         = FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_EnRd1      : PECRAM_EnRd2     ) : POOLPEB_EnRd    ;
 assign AddrRd2       = FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_AddrRd1    : PECRAM_AddrRd2   ) : POOLPEB_AddrRd  ;
-assign RAMPEC_DatRd2 = FlgRAM2 ? ( CTRLPEB_FrtBlk ? DatRd1            : DatRd2           ) : PEBPOOL_Dat     ;
+
+assign RAMPEC_DatRd2 = CTRLPEB_FrtBlk ? DatRd1 : FlgRAM2 ? DatRd2  : DatRd3     ;
 
 // Pong
 assign EnWr3         =~FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_EnWr1      : PECRAM_EnWr2     ) : 0               ;
@@ -163,8 +182,8 @@ assign AddrWr3       =~FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_AddrWr1    : PECRAM_A
 assign DatWr3        =~FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_DatWr1     : PECRAM_DatWr2    ) : 0               ;
 assign EnRd3         =~FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_EnRd1      : PECRAM_EnRd2     ) : POOLPEB_EnRd    ;
 assign AddrRd3       =~FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_AddrRd1    : PECRAM_AddrRd2   ) : POOLPEB_AddrRd  ;
-assign RAMPEC_DatRd3 =~FlgRAM2 ? ( CTRLPEB_FrtBlk ? DatRd1            : DatRd2           ) : PEBPOOL_Dat     ;
 
+assign PEBPOOL_Dat   =~FlgRAM2 ? DatRd2 : DatRd3 ;
 
 //=====================================================================================================================
 // Sub-Module :
@@ -179,7 +198,7 @@ PEC PEC0
         .DISWEIPEC_Wei     (DISWEIPEC_Wei),
         .DISWEIPEC_FlgWei  (DISWEIPEC_FlgWei),
         .DISWEIPEC_ValNumWei(DISWEIPEC_ValNumWei),
-        .DISWEI_AddrBase  ( DISWEI_AddrBase0 ),
+        .DISWEI_AddrBase  ( DISWEI_AddrBase ),
         .LSTPEC_FrtActRow  (LSTPEC_FrtActRow0),
         .LSTPEC_LstActRow  (LSTPEC_LstActRow0),
         .LSTPEC_LstActBlk  (LSTPEC_LstActBlk0),
@@ -192,6 +211,8 @@ PEC PEC0
         .PEBPEC_Act        (LSTPEB_Act),
         .NXTPEC_RdyAct     (NXTPEC_RdyAct0),
         .NXTPEC_GetAct     (NXTPEC_GetAct0),
+        .PECMAC_Act        (PECMAC_Act0 ),
+        .PECMAC_FlgAct     (NXTPEB_FlgAct0),
         .PECRAM_EnWr       (PECRAM_EnWr0  ),
         .PECRAM_AddrWr     (PECRAM_AddrWr0),
         .PECRAM_DatWr      (PECRAM_DatWr0 ),
@@ -209,7 +230,7 @@ PEC PEC1
         .DISWEIPEC_Wei     (DISWEIPEC_Wei),
         .DISWEIPEC_FlgWei  (DISWEIPEC_FlgWei),
         .DISWEIPEC_ValNumWei(DISWEIPEC_ValNumWei),
-        .DISWEI_AddrBase ( DISWEI_AddrBase1),
+        .DISWEI_AddrBase ( DISWEI_AddrBase),
         .LSTPEC_FrtActRow  (NXTPEC_FrtActRow0),
         .LSTPEC_LstActRow  (NXTPEC_LstActRow0),
         .LSTPEC_LstActBlk  (NXTPEC_LstActBlk0),
@@ -218,10 +239,12 @@ PEC PEC1
         .NXTPEC_LstActBlk  (NXTPEC_LstActBlk1),
         .LSTPEC_RdyAct     (NXTPEC_RdyAct0),
         .LSTPEC_GetAct     (NXTPEC_GetAct0),
-        .PEBPEC_FlgAct     (PEBPEC_FlgAct),
-        .PEBPEC_Act        (PEBPEC_Act),
+        .PEBPEC_FlgAct     (NXTPEB_FlgAct0),
+        .PEBPEC_Act        (PECMAC_Act0),
         .NXTPEC_RdyAct     (NXTPEC_RdyAct1),
         .NXTPEC_GetAct     (NXTPEC_GetAct1),
+        .PECMAC_Act        (PECMAC_Act1 ),
+        .PECMAC_FlgAct     (NXTPEB_FlgAct1),
         .PECRAM_EnWr       (PECRAM_EnWr1),
         .PECRAM_AddrWr     (PECRAM_AddrWr1),
         .PECRAM_DatWr      (PECRAM_DatWr1),
@@ -239,7 +262,7 @@ PEC PEC2
         .DISWEIPEC_Wei     (DISWEIPEC_Wei),
         .DISWEIPEC_FlgWei  (DISWEIPEC_FlgWei),
         .DISWEIPEC_ValNumWei(DISWEIPEC_ValNumWei),
-        .DISWEI_AddrBase  (DISWEI_AddrBase2),
+        .DISWEI_AddrBase  (DISWEI_AddrBase),
         .LSTPEC_FrtActRow  (NXTPEC_FrtActRow1),
         .LSTPEC_LstActRow  (NXTPEC_LstActRow1),
         .LSTPEC_LstActBlk  (NXTPEC_LstActBlk1),
@@ -248,10 +271,12 @@ PEC PEC2
         .NXTPEC_LstActBlk  (NXTPEC_LstActBlk2),
         .LSTPEC_RdyAct     (NXTPEC_RdyAct1),
         .LSTPEC_GetAct     (NXTPEC_GetAct1),
-        .PEBPEC_FlgAct     (PEBPEC_FlgAct),
-        .PEBPEC_Act        (PEBPEC_Act),
+        .PEBPEC_FlgAct     (NXTPEB_FlgAct1),
+        .PEBPEC_Act        (PECMAC_Act1),
         .NXTPEC_RdyAct     (NXTPEB_RdyAct),
         .NXTPEC_GetAct     (NXTPEB_GetAct),
+        .PECMAC_FlgAct     (NXTPEB_FlgAct),
+        .PECMAC_Act        (NXTPEB_Act ),
         .PECRAM_EnWr       (PECRAM_EnWr2),
         .PECRAM_AddrWr     (PECRAM_AddrWr2),
         .PECRAM_DatWr      (PECRAM_DatWr2),
@@ -267,7 +292,7 @@ PEC PEC2
 
 SRAM_DUAL #(
         .SRAM_DEPTH_BIT(`C_LOG_2(`LENPSUM)),   
-        .SRAM_WIDTH(PSUM_WIDTH)
+        .SRAM_WIDTH(PSUM_WIDTH * `LENPSUM)
     ) RAM_PEC0 (
         .clk      ( clk         ),
         .addr_r   ( AddrRd0     ),
@@ -275,11 +300,11 @@ SRAM_DUAL #(
         .read_en  ( EnRd0       ),
         .write_en ( EnWr0       ),
         .data_in  ( PECRAM_DatWr0      ),
-        .data_out ( RAMPEC_DatRd0      )
+        .data_out ( DatRd0      )
     );
 SRAM_DUAL #(
         .SRAM_DEPTH_BIT(`C_LOG_2(`LENPSUM)),   
-        .SRAM_WIDTH(PSUM_WIDTH)
+        .SRAM_WIDTH(PSUM_WIDTH * `LENPSUM)
     ) RAM_PEC1 (
         .clk      ( clk         ),
         .addr_r   ( AddrRd1     ),
@@ -287,11 +312,11 @@ SRAM_DUAL #(
         .read_en  ( EnRd1       ),
         .write_en ( EnWr1       ),
         .data_in  ( PECRAM_DatWr1      ),
-        .data_out ( RAMPEC_DatRd1      )
+        .data_out ( DatRd1      )
     );
 SRAM_DUAL #(
          .SRAM_DEPTH_BIT(`C_LOG_2(`LENPSUM)),   
-        .SRAM_WIDTH(PSUM_WIDTH) 
+        .SRAM_WIDTH(PSUM_WIDTH * `LENPSUM) 
     ) RAM_PEC2 (
         .clk      ( clk         ),
         .addr_r   ( AddrRd2     ),
@@ -299,12 +324,12 @@ SRAM_DUAL #(
         .read_en  ( EnRd2       ),
         .write_en ( EnWr2       ),
         .data_in  ( PECRAM_DatWr2      ),
-        .data_out ( RAMPEC_DatRd2      )
+        .data_out ( DatRd2      )
     );
 
 SRAM_DUAL #(
         .SRAM_DEPTH_BIT(`C_LOG_2(`LENPSUM)),   
-        .SRAM_WIDTH(PSUM_WIDTH)
+        .SRAM_WIDTH(PSUM_WIDTH * `LENPSUM)
     ) RAM_PEC3 (
         .clk      ( clk         ),
         .addr_r   ( AddrRd3     ),
@@ -312,7 +337,7 @@ SRAM_DUAL #(
         .read_en  ( EnRd3       ),
         .write_en ( EnWr3       ),
         .data_in  ( PECRAM_DatWr3      ),
-        .data_out ( RAMPEC_DatRd3      )
+        .data_out ( DatRd3      )
     );
 
 endmodule

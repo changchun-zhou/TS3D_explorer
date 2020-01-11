@@ -9,6 +9,7 @@
 //=======================================================
 // Description :
 //========================================================
+`include "../include/dw_params_presim.vh"
 module  CONFIG (
     input                                              clk     ,
     input                                              rst_n   ,

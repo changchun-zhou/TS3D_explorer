@@ -9,33 +9,29 @@
 //=======================================================
 // Description :
 //========================================================
+`include "../include/dw_params_presim.vh"
 module DISACT (
-    input                                       clk     ,
-    input                                       rst_n   ,
+    input                                           clk     ,
+    input                                           rst_n   ,
 
-    input                                       CTRLACT_PlsFetch,
-    output                                      CTRLACT_GetAct,                    
-
-    output                                      DISACT_RdyAct,
-    input                                       DISACT_GetAct,
-    output[ `BLOCK_DEPTH                -1 : 0] DISACT_FlgAct,
-    input[ `DATA_WIDTH * `BLOCK_DEPTH   -1 : 0] DISACT_Act,    
-
-
-    input                                       GBFACT_Val, //valid 
-    output                                      GBFACT_EnRd,
-    output reg [ `GBFACT_ADDRWIDTH          -1 : 0] GBFACT_AddrRd,
-    input  [ `DATA_WIDTH                -1 : 0] GBFACT_DatRd,
-
-    input                                       GBFFLGACT_Val, //valid 
-    output                                      GBFFLGACT_EnRd,
-    output reg [ `GBFACT_ADDRWIDTH          -1 : 0] GBFFLGACT_AddrRd,
-    input  [ `BLOCK_DEPTH               -1 : 0] GBFFLGACT_DatRd,
-
-    input                                       GBFVNACT_Val, //valid num ACT
-    output                                      GBFVNACT_EnRd,
-    output reg [ `GBFACT_ADDRWIDTH          -1 : 0] GBFVNACT_AddrRd,
-    input  [ `C_LOG_2(`BLOCK_DEPTH)     -1 : 0] GBFVNACT_DatRd
+    input                                           CTRLACT_PlsFetch,
+    output                                          CTRLACT_GetAct,                    
+    output                                          DISACT_RdyAct,
+    input                                           DISACT_GetAct,
+    output      [ `BLOCK_DEPTH              -1 : 0] DISACT_FlgAct,
+    input       [ `DATA_WIDTH * `BLOCK_DEPTH-1 : 0] DISACT_Act,    
+    input                                           GBFACT_Val, //valid 
+    output                                          GBFACT_EnRd,
+    output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFACT_AddrRd,
+    input       [ `DATA_WIDTH               -1 : 0] GBFACT_DatRd,
+    input                                           GBFFLGACT_Val, //valid 
+    output                                          GBFFLGACT_EnRd,
+    output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFFLGACT_AddrRd,
+    input       [ `BLOCK_DEPTH              -1 : 0] GBFFLGACT_DatRd,
+    input                                           GBFVNACT_Val, //valid num ACT
+    output                                          GBFVNACT_EnRd,
+    output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFVNACT_AddrRd,
+    input       [ `C_LOG_2(`BLOCK_DEPTH)    -1 : 0] GBFVNACT_DatRd
                         
 );
 //=====================================================================================================================

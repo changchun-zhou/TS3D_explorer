@@ -9,6 +9,7 @@
 //=======================================================
 // Description :
 //========================================================
+`include "../include/dw_params_presim.vh"
 module MACAW(
     input                   clk     ,
     input                   rst_n   ,
@@ -133,7 +134,6 @@ always @ ( posedge clk or negedge rst_n ) begin
                                  * PECMAC_Wei[  ( AddrWei + PECMAC_AddrBaseWei ) << `C_LOG_2(`DATA_WIDTH) +: `DATA_WIDTH];
     end
 end
-
 
 // MACPEC_Fnh paulse
 always @ ( posedge clk or negedge rst_n ) begin

@@ -10,6 +10,7 @@
 // Description : Make sure ValDat delay 1 clk after ReqDat
 // 
 //========================================================
+`include "../include/dw_params_presim.vh"
 module  PACKER #(
     parameter NUM_DATA =  32,
     parameter DATA_WIDTH = 8

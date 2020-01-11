@@ -9,6 +9,7 @@
 //=======================================================
 // Description :
 //========================================================
+`include "../include/dw_params_presim.vh"
 module PEL #(
     parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`CHANNEL_DEPTH) + 2 )
 )(
@@ -16,8 +17,7 @@ module PEL #(
 	input                   										rst_n   ,
 	input [ `NUMPEB 										-1 : 0] POOLPEB_EnRd,
     input  [ `C_LOG_2(`LENPSUM)                     		-1 : 0] POOLPEB_AddrRd,
-    output [ PSUM_WIDTH * `LENPSUM                  		-1 : 0] PEBPOOL_Dat,
-
+    output [ PSUM_WIDTH * `LENPSUM                  		-1 : 0] PELPOOL_Dat,
     input 															CTRLACT_FrtBlk,
     input 															CTRLACT_FrtActRow,
     input 															CTRLACT_LstActRow,
@@ -26,14 +26,12 @@ module PEL #(
     input 															CTRLACT_GetAct,
     input[ `CHANNEL_DEPTH              						-1 : 0] CTRLACT_FlgAct,
     input[ `DATA_WIDTH * `CHANNEL_DEPTH						-1 : 0] CTRLACT_Act,    
-
     input [ `NUMPEC 										-1 : 0] CTRLWEIPEC_RdyWei,
     output[ `NUMPEC 										-1 : 0] PECCTRLWEI_GetWei,
     input [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE		-1 : 0] DISWEIPEC_Wei,
     input [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE          		-1 : 0] DISWEIPEC_FlgWei,
     input [ `C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE   		-1 : 0] DISWEIPEC_ValNumWei,
-
-		input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   - 1 : 0 ] DISWEI_AddrBase
+	input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   		-1 : 0] DISWEI_AddrBase
 		);
 //=====================================================================================================================
 // Constant Definition :
@@ -69,6 +67,7 @@ generate
 		wire 										LSTPEB_FrtBlk;
 		wire 										NXTPEB_FrtBlk;
 		wire 										POOLPEB_EnRd;
+		wire [ PSUM_WIDTH * `LENPSUM                  		-1 : 0] PEBPOOL_Dat;
 		wire 										CTRLWEIPEC_RdyWei0;
 		wire 										CTRLWEIPEC_RdyWei1;
 		wire 										CTRLWEIPEC_RdyWei2;
@@ -110,7 +109,7 @@ generate
 			.DISWEIPEC_Wei       (DISWEIPEC_Wei      ),
 			.DISWEIPEC_FlgWei    (DISWEIPEC_FlgWei   ),
 			.DISWEIPEC_ValNumWei (DISWEIPEC_ValNumWei),
-			.DISWEI_AddrBase0    (DISWEI_AddrBase),
+			.DISWEI_AddrBase    (DISWEI_AddrBase),
 			.LSTPEC_FrtActRow0   (LSTPEB_FrtActRow),
 			.LSTPEC_LstActRow0   (LSTPEB_LstActRow),
 			.LSTPEC_LstActBlk0   (LSTPEB_LstActBlk),
@@ -128,6 +127,23 @@ generate
 		);
 	end
 endgenerate
+
+assign PELPOOL_Dat = 	POOLPEB_EnRd[ 0] ? GENPEB[ 0].PEBPOOL_Dat :
+						POOLPEB_EnRd[ 1] ? GENPEB[ 1].PEBPOOL_Dat :
+						POOLPEB_EnRd[ 2] ? GENPEB[ 2].PEBPOOL_Dat :
+						POOLPEB_EnRd[ 3] ? GENPEB[ 3].PEBPOOL_Dat :
+						POOLPEB_EnRd[ 4] ? GENPEB[ 4].PEBPOOL_Dat :
+						POOLPEB_EnRd[ 5] ? GENPEB[ 5].PEBPOOL_Dat :
+						POOLPEB_EnRd[ 6] ? GENPEB[ 6].PEBPOOL_Dat :
+						POOLPEB_EnRd[ 7] ? GENPEB[ 7].PEBPOOL_Dat :
+						POOLPEB_EnRd[ 8] ? GENPEB[ 8].PEBPOOL_Dat :
+						POOLPEB_EnRd[ 9] ? GENPEB[ 9].PEBPOOL_Dat :
+						POOLPEB_EnRd[10] ? GENPEB[10].PEBPOOL_Dat :
+						POOLPEB_EnRd[11] ? GENPEB[11].PEBPOOL_Dat :
+						POOLPEB_EnRd[12] ? GENPEB[12].PEBPOOL_Dat :
+						POOLPEB_EnRd[13] ? GENPEB[13].PEBPOOL_Dat :
+						POOLPEB_EnRd[14] ? GENPEB[14].PEBPOOL_Dat :
+						POOLPEB_EnRd[15] ? GENPEB[15].PEBPOOL_Dat : 0;
 
 // Attention MSB and LSB related to hardware location 
 // Easy to Debug

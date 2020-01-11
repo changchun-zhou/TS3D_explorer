@@ -9,6 +9,7 @@
 //=======================================================
 // Description :
 //========================================================
+`include "../include/dw_params_presim.vh"
 module  CTRLACT (
     input                                       clk     ,
     input                                       rst_n   ,
@@ -22,7 +23,6 @@ module  CTRLACT (
     input [ `LAYER_WIDTH                - 1 : 0 ] CFG_NumLay,
     output                                       CTRLACT_PlsFetch,
     input                                        CTRLACT_GetAct,
-
     output                                       CTRLACT_FrtActRow,
     output                                       CTRLACT_LstActRow,
     output                                       CTRLACT_LstActBlk

@@ -9,6 +9,8 @@
 //=======================================================
 // Description :
 //========================================================
+`include "../include/dw_params_presim.vh"
+
 module CNVROW #(
     parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`CHANNEL_DEPTH) + 2 )
  
@@ -104,7 +106,7 @@ MACAW MACAW0
         .PECMAC_FlgWei (PECMAC_FlgWei0),
         .PECMAC_Wei    (PECMAC_Wei),
         .PECMAC_AddrBaseWei( PECMAC_AddrBaseWei0 ),
-        .MACMAC_Mac    ( 0),
+        .MACMAC_Mac    ( 15'd0),
         .MACCNV_Mac    (MACCNV_Mac0)
     );
 
