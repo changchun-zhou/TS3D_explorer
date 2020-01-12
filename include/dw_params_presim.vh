@@ -1,4 +1,46 @@
 
+// `define SYNTH_MINI // 2 PEB function
+`define SYNTH_FREQ 
+// `define SYNTH_AC
+
+`ifdef SYNTH_AC 
+  `define NUMPEB 16 //?
+  `define GBFWEI_ADDRWIDTH 10  //?< `BLOCK_DEPTH * `NUMPEC = 32 * 48 = 1536
+  `define GBFACT_ADDRWIDTH 2 //?
+`elsif SYNTH_FREQ
+  `define NUMPEB 16
+  `define GBFWEI_ADDRWIDTH 1  //?64 > 16*3
+  `define GBFACT_ADDRWIDTH 2 //?
+`elsif SYNTH_MINI
+  `define NUMPEB 2
+  `define GBFWEI_ADDRWIDTH 1  //?64 > 16*3
+  `define GBFACT_ADDRWIDTH 2 //?
+`endif
+
+`define BLOCK_DEPTH 32
+`define CHANNEL_DEPTH 32
+`define DATA_WIDTH 8
+
+`define NUMPEC 3*`NUMPEB 
+
+`define KERNEL_SIZE 9
+`define GBFWEI_DATAWIDTH `DATA_WIDTH * `KERNEL_SIZE
+`define GBFFLGWEI_DATAWIDTH `BLOCK_DEPTH * `KERNEL_SIZE
+
+// `define GBFFLGACT_ADDRWIDTH 8
+
+
+`define LENROW 16
+`define LENPSUM 14
+`define PSUM 
+
+// Config parameters
+`define FRAME_WIDTH 5
+`define PATCH_WIDTH 8
+`define BLK_WIDTH   1024/`BLOCK_DEPTH   //ONLY FOR CONV, FC?
+`define LAYER_WIDTH 8 //256 layers
+
+
 //-----------------------------------------------------------
 //Simple Log2 calculation function
 //-----------------------------------------------------------
@@ -21,29 +63,3 @@
 (n) <= (1<<28) ? 28 : (n) <= (1<<29) ? 29 :\
 (n) <= (1<<30) ? 30 : (n) <= (1<<31) ? 31 : 32)
 //-----------------------------------------------------------
-
-
-`define BLOCK_DEPTH 32
-`define CHANNEL_DEPTH 32
-`define DATA_WIDTH 8
-`define NUMPEB 16
-`define NUMPEC 3*`NUMPEB 
-
-`define GBFWEI_ADDRWIDTH 2  //64 > 16*3
-`define GBFACT_ADDRWIDTH 3
-`define KERNEL_SIZE 9
-`define GBFWEI_DATAWIDTH `DATA_WIDTH * `KERNEL_SIZE
-`define GBFFLGWEI_DATAWIDTH `BLOCK_DEPTH * `KERNEL_SIZE
-
-// `define GBFFLGACT_ADDRWIDTH 8
-
-
-`define LENROW 16
-`define LENPSUM 14
-`define PSUM 
-
-// Config parameters
-`define FRAME_WIDTH 5
-`define PATCH_WIDTH 8
-`define BLK_WIDTH   1024/`BLOCK_DEPTH   //ONLY FOR CONV, FC?
-`define LAYER_WIDTH 8 //256 layers

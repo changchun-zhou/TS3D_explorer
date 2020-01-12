@@ -3,8 +3,9 @@
 
 ###### global settings ######
 set DESIGN TS3D
+set CLK_FREQ 5000
+set EXECUTE ${CLK_FREQ}_FREQ ## folder name/file name
 set clk clk
-
 set rst rst_n
 
 ###### Libraries and technology files ######
@@ -44,7 +45,7 @@ elaborate $DESIGN
 
 
 ###### Setting constraints ######
-define_clock  -name $clk -period 5000 [find / -port $clk] -domain system
+define_clock  -name $clk -period ${CLK_FREQ} [find / -port $clk] -domain system
 
 
 # suspend
@@ -60,6 +61,7 @@ set_attribute avoid true [find / -libcell SDF*]
 
 
 ####### Output Load #########################
+external_delay -output 2500 -clock [find / -clock $clk] -edge_rise [find / -port PELPOOL_Dat*]
 
 
 ####### Input Drivern #########################
@@ -80,8 +82,8 @@ set_attribute remove_assigns true
 
 
 ####check design 
-check_design -all > ./rpt/${DESIGN}.design_check.rpt
-report timing -verbose -lint > ./rpt/${DESIGN}.timing_check.rpt
+check_design -all > ./rpt/${EXECUTE}/${DESIGN}_${EXECUTE}.design_check.rpt
+report timing -verbose -lint > ./rpt/${EXECUTE}/${DESIGN}.timing_check.rpt
 # suspend
 
 ###### Synthesis ######
@@ -126,7 +128,7 @@ report clock_gating > ./rpt/${DESIGN}.clkgating.rpt
 report summary      > ./rpt/${DESIGN}.summary.rpt
 report timing      > ./rpt/${DESIGN}.timing.rpt
 #### check design after synth
-check_design -all > ./rpt/${DESIGN}.check_post_synth.rpt
+# check_design -all > ./rpt/${DESIGN}.check_post_synth.rpt
 
 
 report timing -verbose -lint > ./rpt/${DESIGN}.timing_check_post_synth.rpt

@@ -47,8 +47,13 @@ always @ ( posedge clk or negedge rst_n ) begin
         CFG_NumFrm <= 8;
         CFG_NumPat <= 1;
         CFG_NumLay <= 8;
-    // end else if (  ) begin
-    //      <= ;
+     end else begin
+        CFG_LenRow <= 16;
+        CFG_DepBlk <= 32;
+        CFG_NumBlk <= 2;
+        CFG_NumFrm <= 8;
+        CFG_NumPat <= 1;
+        CFG_NumLay <= 8;
     end
 end
 

@@ -44,9 +44,11 @@ wire[ `C_LOG_2(`CHANNEL_DEPTH)      - 1 : 0 ] OffsetAct;
 wire[ `C_LOG_2(`CHANNEL_DEPTH)      - 1 : 0 ] OffsetWei;
 
 reg                                           ValAddr;
+reg                                           ValAddr_d;
 reg [ `C_LOG_2(`CHANNEL_DEPTH)       - 1 : 0 ] AddrAct;
+reg [ `C_LOG_2(`CHANNEL_DEPTH*`DATA_WIDTH)       - 1 : 0 ]ActIndex;
 reg [ `C_LOG_2(`CHANNEL_DEPTH)       - 1 : 0 ] AddrWei;
-
+reg [`C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE * `DATA_WIDTH)- 1 : 0 ]WeiIndex;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -71,8 +73,6 @@ end
 
 
 // Update Flg and ValFlg
-
-
 
 always @ ( posedge clk or negedge rst_n ) begin 
     if ( ~rst_n ) begin
@@ -125,15 +125,34 @@ end
 
 // MUL and Acc
 always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        ActIndex <= 0 ;
+        WeiIndex <= 0 ;
+    end else if ( ValAddr ) begin
+        ActIndex <= AddrAct << `C_LOG_2(`DATA_WIDTH);
+        WeiIndex <= ( AddrWei + PECMAC_AddrBaseWei ) << `C_LOG_2(`DATA_WIDTH) ;
+    end
+end
+
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        ValAddr_d <= 0;
+    end else begin
+        ValAddr_d <= ValAddr;
+    end
+end
+
+always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         MACCNV_Mac <= 0;
     end else if ( PECMAC_Sta ) begin
         MACCNV_Mac <= MACMAC_Mac;
-    end else if ( ValAddr ) begin
-        MACCNV_Mac <= MACCNV_Mac + PECMAC_Act[  AddrAct << `C_LOG_2(`DATA_WIDTH) +: `DATA_WIDTH] 
-                                 * PECMAC_Wei[  ( AddrWei + PECMAC_AddrBaseWei ) << `C_LOG_2(`DATA_WIDTH) +: `DATA_WIDTH];
+    end else if ( ValAddr_d ) begin
+        MACCNV_Mac <= MACCNV_Mac + PECMAC_Act[  ActIndex +: `DATA_WIDTH] 
+                                 * PECMAC_Wei[  WeiIndex +: `DATA_WIDTH];
     end
 end
+
 
 // MACPEC_Fnh paulse
 always @ ( posedge clk or negedge rst_n ) begin
@@ -143,8 +162,6 @@ always @ ( posedge clk or negedge rst_n ) begin
         MACPEC_Fnh <= ~(|(FlgAct & FlgWei)) && state;// FlgAct & FlgWei == 'b0 && state == COMP
     end
 end
-
-
 
 
 //=====================================================================================================================

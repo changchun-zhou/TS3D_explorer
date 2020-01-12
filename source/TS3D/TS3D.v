@@ -19,7 +19,7 @@ module TS3D #(
     input                                       clk     ,
     input                                       rst_n   ,
 
-    input  [ `NUMPEB                    -1 : 0] POOLPEB_EnRd,
+    input  [ `C_LOG_2 ( `NUMPEB)                    -1 : 0] POOLPEB_EnRd,// 4 bit ID of PEB
     input  [ `C_LOG_2(`LENPSUM)         -1 : 0] POOLPEB_AddrRd,
     output [ PSUM_WIDTH * `LENPSUM      -1 : 0] PELPOOL_Dat,
 
@@ -64,37 +64,31 @@ module TS3D #(
 // wire                                        POOLPEB_AddrRd = 0;
 // wire                                        PEBPOOL_Dat; 
 
-reg                                             TOP_Sta_reg;
-reg                                             TOP_Sta_reg_d;
-wire                                            TOP_Sta;
-
-wire    [ `C_LOG_2(`LENROW)           - 1 : 0 ] CFG_LenRow;
-wire    [ `BLK_WIDTH                  - 1 : 0 ] CFG_DepBlk;
-wire    [ `BLK_WIDTH                  - 1 : 0 ] CFG_NumBlk;
-wire    [ `FRAME_WIDTH                - 1 : 0 ] CFG_NumFrm;
-wire    [ `PATCH_WIDTH                - 1 : 0 ] CFG_NumPat;
-wire    [ `LAYER_WIDTH                - 1 : 0 ] CFG_NumLay;
-
-
-wire                                            CTRLACT_FrtBlk;
-wire                                            CTRLACT_FrtActRow;
-wire                                            CTRLACT_LstActRow;
-wire                                            CTRLACT_LstActBlk;
-
-wire                                        DISACT_RdyAct;
-wire                                        DISACT_GetAct;
-wire  [ `BLOCK_DEPTH                -1 : 0] DISACT_FlgAct;
-wire  [ `DATA_WIDTH * `BLOCK_DEPTH  -1 : 0] DISACT_Act;  
-
-wire  [ `NUMPEC                                       -1 : 0] CTRLWEIPEC_RdyWei;
-wire  [ `NUMPEC                                       -1 : 0] PECCTRLWEI_GetWei;
-wire  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE     -1 : 0] DISWEIPEC_Wei;
-wire  [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE               -1 : 0] DISWEIPEC_FlgWei;
-wire  [ `C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE        -1 : 0] DISWEIPEC_ValNumWei;
-
-wire                                        DISWEI_RdyWei;
-wire                                        CTRLWEI_PlsFetch;
-
+reg                                                         TOP_Sta_reg;
+reg                                                         TOP_Sta_reg_d;
+wire                                                        TOP_Sta;
+wire    [ `C_LOG_2(`LENROW)                         -1 : 0] CFG_LenRow;
+wire    [ `BLK_WIDTH                                -1 : 0] CFG_DepBlk;
+wire    [ `BLK_WIDTH                                -1 : 0] CFG_NumBlk;
+wire    [ `FRAME_WIDTH                              -1 : 0] CFG_NumFrm;
+wire    [ `PATCH_WIDTH                              -1 : 0] CFG_NumPat;
+wire    [ `LAYER_WIDTH                              -1 : 0] CFG_NumLay;
+wire                                                        CTRLACT_FrtBlk;
+wire                                                        CTRLACT_FrtActRow;
+wire                                                        CTRLACT_LstActRow;
+wire                                                        CTRLACT_LstActBlk;
+wire                                                        CTRLACT_FnhFrm;
+wire                                                        DISACT_RdyAct;
+wire                                                        DISACT_GetAct;
+wire  [ `BLOCK_DEPTH                                -1 : 0] DISACT_FlgAct;
+wire  [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] DISACT_Act;  
+wire  [ `NUMPEC                                     -1 : 0] CTRLWEIPEC_RdyWei;
+wire  [ `NUMPEC                                     -1 : 0] PECCTRLWEI_GetWei;
+wire  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE   -1 : 0] DISWEIPEC_Wei;
+wire  [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE             -1 : 0] DISWEIPEC_FlgWei;
+wire  [ `C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE      -1 : 0] DISWEIPEC_ValNumWei;
+wire                                                        DISWEI_RdyWei;
+wire                                                        CTRLWEI_PlsFetch;
 wire    [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)    -1 : 0] DISWEI_AddrBase ;
 wire                                                        GBFWEI_EnRd     ;
 wire    [ `GBFWEI_ADDRWIDTH                         -1 : 0] GBFWEI_AddrRd   ;
@@ -102,20 +96,17 @@ wire    [ `GBFWEI_DATAWIDTH                         -1 : 0] GBFWEI_DatRd    ;
 wire                                                        GBFFLGWEI_EnRd  ;
 wire    [ `GBFWEI_ADDRWIDTH                         -1 : 0] GBFFLGWEI_AddrRd;
 wire    [ `GBFFLGWEI_DATAWIDTH                      -1 : 0] GBFFLGWEI_DatRd ;
-
-
 wire                                                        CTRLACT_PlsFetch;
 wire                                                        CTRLACT_GetAct;
-
-wire                                        GBFACT_EnRd;
-wire    [ `GBFACT_ADDRWIDTH         -1 : 0] GBFACT_AddrRd;
-wire    [ `DATA_WIDTH               -1 : 0] GBFACT_DatRd;
-wire                                        GBFFLGACT_EnRd;
-wire    [ `GBFACT_ADDRWIDTH         -1 : 0] GBFFLGACT_AddrRd;
-wire    [ `BLOCK_DEPTH              -1 : 0] GBFFLGACT_DatRd;
-wire                                        GBFVNACT_EnRd;
-wire    [ `GBFACT_ADDRWIDTH         -1 : 0] GBFVNACT_AddrRd;
-wire    [ `C_LOG_2(`BLOCK_DEPTH)    -1 : 0] GBFVNACT_DatRd;
+wire                                                        GBFACT_EnRd;
+wire    [ `GBFACT_ADDRWIDTH                         -1 : 0] GBFACT_AddrRd;
+wire    [ `DATA_WIDTH                               -1 : 0] GBFACT_DatRd;
+wire                                                        GBFFLGACT_EnRd;
+wire    [ `GBFACT_ADDRWIDTH                         -1 : 0] GBFFLGACT_AddrRd;
+wire    [ `BLOCK_DEPTH                              -1 : 0] GBFFLGACT_DatRd;
+wire                                                        GBFVNACT_EnRd;
+wire    [ `GBFACT_ADDRWIDTH                         -1 : 0] GBFVNACT_AddrRd;
+wire    [ `C_LOG_2(`BLOCK_DEPTH)                    -1 : 0] GBFVNACT_DatRd;
 
 
 //=====================================================================================================================
@@ -125,14 +116,12 @@ always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         TOP_Sta_reg <= 0;
         TOP_Sta_reg_d<=0;
-    end else begin
+    end else begin // automatic
         TOP_Sta_reg <= 1;
         TOP_Sta_reg_d<=TOP_Sta_reg;
     end
 end
 assign TOP_Sta = TOP_Sta_reg && ~TOP_Sta_reg_d; // paulse
-
-
 
 
 //=====================================================================================================================
@@ -162,6 +151,7 @@ PEL inst_PEL
     .CTRLACT_FrtActRow   (CTRLACT_FrtActRow),
     .CTRLACT_LstActRow   (CTRLACT_LstActRow),
     .CTRLACT_LstActBlk   (CTRLACT_LstActBlk),
+    .CTRLPEB_FnhFrm      (CTRLACT_FnhFrm),
     .CTRLACT_RdyAct      (DISACT_RdyAct),
     .CTRLACT_GetAct      (DISACT_GetAct),
     .CTRLACT_FlgAct      (DISACT_FlgAct),
@@ -202,6 +192,8 @@ DISWEI inst_DISWEI
     .GBFFLGWEI_AddrRd (GBFFLGWEI_AddrRd),
     .GBFFLGWEI_DatRd  (GBFFLGWEI_DatRd)
   );
+
+// `ifdef SYNTH_MINI
 SRAM_DUAL #(
         .SRAM_DEPTH_BIT(`GBFWEI_ADDRWIDTH),   
         .SRAM_WIDTH(`GBFWEI_DATAWIDTH)
@@ -214,6 +206,10 @@ SRAM_DUAL #(
         .data_in  ( GBFWEI_DatWr      ),
         .data_out ( GBFWEI_DatRd      )
     );
+// `elsif SYNTH_AREA or 
+// MEM X MEM
+// `endif
+
 SRAM_DUAL #(
         .SRAM_DEPTH_BIT(`GBFWEI_ADDRWIDTH),   
         .SRAM_WIDTH(`GBFFLGWEI_DATAWIDTH)
@@ -242,7 +238,8 @@ CTRLACT inst_CTRLACT
     .CTRLACT_GetAct    (CTRLACT_GetAct),
     .CTRLACT_FrtActRow (CTRLACT_FrtActRow),
     .CTRLACT_LstActRow (CTRLACT_LstActRow),
-    .CTRLACT_LstActBlk (CTRLACT_LstActBlk)
+    .CTRLACT_LstActBlk (CTRLACT_LstActBlk),
+    .CTRLACT_FnhFrm    (CTRLACT_FnhFrm)
   );
 DISACT inst_DISACT
   (

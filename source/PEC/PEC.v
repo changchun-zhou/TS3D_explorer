@@ -60,6 +60,7 @@ module PEC #(
 //=====================================================================================================================
 wire                                CfgMac;
 wire                                CfgWei;
+reg                                 CfgWei_d;
 
 wire                                MACPEC_Fnh0;
 wire                                MACPEC_Fnh1;
@@ -87,7 +88,7 @@ wire [  PSUM_WIDTH * `LENPSUM       - 1 : 0 ] CNVOUT_Psum0;
 wire [  PSUM_WIDTH * `LENPSUM       - 1 : 0 ] CNVOUT_Psum1;
 wire [  PSUM_WIDTH * `LENPSUM       - 1 : 0 ] CNVOUT_Psum2;
 
-reg  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE- 1 : 0 ] PECMAC_Wei;
+reg  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE- 1 : 0 ] WeiArray;
 reg  [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE- 1 : 0 ] FlgWei;
 reg  [ `C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE   - 1 : 0 ] ValNumWei;
 wire [ `C_LOG_2( `BLOCK_DEPTH)                  - 1 : 0 ] ValNumWei0;
@@ -118,6 +119,15 @@ wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei6;
 wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei7;
 wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei8;
 
+reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei0;
+reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei1;
+reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei2;
+reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei3;
+reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei4;
+reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei5;
+reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei6;
+reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei7;
+reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei8;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -168,9 +178,11 @@ assign CfgMac = next_state == WAITGET && state == CFGACT;
 
 assign CfgWei = next_state == CFGACT && state == CFGWEI;
 assign PECCTRLWEI_GetWei = next_state == CFGACT && state == CFGWEI;//==CTRLWEIPEC_RdyWei
+
+// finished in DISWEI
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
-        PECMAC_Wei          <= 0;
+        WeiArray          <= 0;
         FlgWei              <= 0;
         ValNumWei           <= 0;
         PECMAC_AddrBaseWei0 <= 0;
@@ -183,7 +195,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         PECMAC_AddrBaseWei7 <= 0;
         PECMAC_AddrBaseWei8 <= 0;
     end else if ( CfgWei ) begin
-        PECMAC_Wei          <= DISWEIPEC_Wei;
+        WeiArray          <= DISWEIPEC_Wei;
         FlgWei              <= DISWEIPEC_FlgWei;
         // ValNumWei           <= DISWEIPEC_ValNumWei;
         PECMAC_AddrBaseWei0 <= DISWEI_AddrBase;//
@@ -195,8 +207,39 @@ always @ ( posedge clk or negedge rst_n ) begin
         PECMAC_AddrBaseWei6 <= DISWEI_AddrBase + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4 + ValNumWei5;
         PECMAC_AddrBaseWei7 <= DISWEI_AddrBase + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4 + ValNumWei5 + ValNumWei6;
         PECMAC_AddrBaseWei8 <= DISWEI_AddrBase + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4 + ValNumWei5 + ValNumWei6 + ValNumWei7;
+    end 
+end
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        CfgWei_d <= 0;
+    end else begin
+        CfgWei_d <= CfgWei;
     end
 end
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        PECMAC_Wei0 <= 0;
+        PECMAC_Wei1 <= 0;
+        PECMAC_Wei2 <= 0;
+        PECMAC_Wei3 <= 0;
+        PECMAC_Wei4 <= 0;
+        PECMAC_Wei5 <= 0;
+        PECMAC_Wei6 <= 0;
+        PECMAC_Wei7 <= 0;
+        PECMAC_Wei8 <= 0;
+    end else if (CfgWei_d)   begin
+        PECMAC_Wei0 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei0 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei1 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei1 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei2 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei2 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei3 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei3 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei4 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei4 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei5 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei5 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei6 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei6 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei7 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei7 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei8 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei8 +: `DATA_WIDTH * `BLOCK_DEPTH];
+    end
+end
+
 assign PECMAC_FlgWei0 = FlgWei[ `BLOCK_DEPTH * 0 +: `BLOCK_DEPTH];
 assign PECMAC_FlgWei1 = FlgWei[ `BLOCK_DEPTH * 1 +: `BLOCK_DEPTH];
 assign PECMAC_FlgWei2 = FlgWei[ `BLOCK_DEPTH * 2 +: `BLOCK_DEPTH];
@@ -313,9 +356,9 @@ CNVROW CNVROW0 (
         .PECMAC_FlgWei0 (PECMAC_FlgWei6),
         .PECMAC_FlgWei1 (PECMAC_FlgWei7),
         .PECMAC_FlgWei2 (PECMAC_FlgWei8),
-        .PECMAC_Wei     (PECMAC_Wei),
-        // .PECMAC_Wei1    (DISWEIMAC_Wei7),
-        // .PECMAC_Wei2    (DISWEIMAC_Wei8),
+        .PECMAC_Wei0     (PECMAC_Wei6),
+        .PECMAC_Wei1    (PECMAC_Wei7),
+        .PECMAC_Wei2    (PECMAC_Wei8),
         .PECMAC_AddrBaseWei0(PECMAC_AddrBaseWei6),
         .PECMAC_AddrBaseWei1(PECMAC_AddrBaseWei7),
         .PECMAC_AddrBaseWei2(PECMAC_AddrBaseWei8),
@@ -337,9 +380,9 @@ CNVROW CNVROW1 (
         .PECMAC_FlgWei0 (PECMAC_FlgWei3),
         .PECMAC_FlgWei1 (PECMAC_FlgWei4),
         .PECMAC_FlgWei2 (PECMAC_FlgWei5),
-        .PECMAC_Wei     (PECMAC_Wei),
-        // .PECMAC_Wei1    (DISWEIMAC_Wei4),
-        // .PECMAC_Wei2    (DISWEIMAC_Wei5),
+        .PECMAC_Wei0     (PECMAC_Wei3),
+        .PECMAC_Wei1    (PECMAC_Wei4),
+        .PECMAC_Wei2    (PECMAC_Wei5),
         .PECMAC_AddrBaseWei0(PECMAC_AddrBaseWei3),
         .PECMAC_AddrBaseWei1(PECMAC_AddrBaseWei4),
         .PECMAC_AddrBaseWei2(PECMAC_AddrBaseWei5),
@@ -361,9 +404,9 @@ CNVROW CNVROW2 (
         .PECMAC_FlgWei0 (PECMAC_FlgWei0),
         .PECMAC_FlgWei1 (PECMAC_FlgWei1),
         .PECMAC_FlgWei2 (PECMAC_FlgWei2),
-        .PECMAC_Wei    (PECMAC_Wei),
-        // .PECMAC_Wei1    (DISWEIMAC_Wei1),
-        // .PECMAC_Wei2    (DISWEIMAC_Wei2),
+        .PECMAC_Wei0    (PECMAC_Wei0),
+        .PECMAC_Wei1    (PECMAC_Wei1),
+        .PECMAC_Wei2    (PECMAC_Wei2),
         .PECMAC_AddrBaseWei0(PECMAC_AddrBaseWei0),
         .PECMAC_AddrBaseWei1(PECMAC_AddrBaseWei1),
         .PECMAC_AddrBaseWei2(PECMAC_AddrBaseWei2),

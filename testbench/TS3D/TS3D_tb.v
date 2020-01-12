@@ -1,3 +1,4 @@
+`include "../include/dw_params_presim.vh"
 module TS3D_tb;
 parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`CHANNEL_DEPTH) + 2 );
 
@@ -66,7 +67,7 @@ end
 TS3D  u_TS3D (
     .clk                     ( clk                                                     ),
     .rst_n                   ( rst_n                                                   ),
-    .POOLPEB_EnRd            ( POOLPEB_EnRd      [ `NUMPEB                    -1 : 0]  ),
+    .POOLPEB_EnRd            ( POOLPEB_EnRd      [ `C_LOG_2( `NUMPEB )                   -1 : 0]  ),
     .POOLPEB_AddrRd          ( POOLPEB_AddrRd    [ `C_LOG_2(`LENPSUM)         -1 : 0]  ),
     .GBFWEI_Val              ( GBFWEI_Val                                              ),
     .GBFWEI_EnWr             ( GBFWEI_EnWr                                             ),

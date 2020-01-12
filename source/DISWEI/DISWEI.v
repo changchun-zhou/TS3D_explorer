@@ -106,13 +106,13 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 // 3st stage Pipeline
-always @ ( posedge clk or negedge rst_n ) begin
-    if ( ~rst_n ) begin
-        DISWEIPEC_FlgWei <= 0;
-    end else if ( CTRLWEI_PlsFetch ) begin
-        DISWEIPEC_FlgWei <= GBFFLGWEI_DatRd_d;
-    end
-end
+// always @ ( posedge clk or negedge rst_n ) begin
+//     if ( ~rst_n ) begin
+//         DISWEIPEC_FlgWei <= 0;
+//     end else if ( CTRLWEI_PlsFetch ) begin
+//         DISWEIPEC_FlgWei <= GBFFLGWEI_DatRd_d;
+//     end
+// end
 
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin

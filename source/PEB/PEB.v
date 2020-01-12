@@ -16,7 +16,9 @@ module PEB #(
     input                                                   clk     ,
     input                                                   rst_n   ,
     input                                                   CTRLPEB_FrtBlk      ,
+    input                                                   CTRLPEB_FnhFrm,
     output                                                  NXTPEB_FrtBlk,
+
     input                                                   POOLPEB_EnRd,
     input  [ `C_LOG_2(`LENPSUM)                     -1 : 0] POOLPEB_AddrRd,
     output [ PSUM_WIDTH * `LENPSUM                  -1 : 0] PEBPOOL_Dat,
@@ -49,7 +51,6 @@ module PEB #(
     output[ `CHANNEL_DEPTH                          -1 : 0] NXTPEB_FlgAct,
     input[ `DATA_WIDTH * `CHANNEL_DEPTH             -1 : 0] NXTPEB_Act    
 
-    // input                                                   PEBPEC_FnhFrm
 );
 //=====================================================================================================================
 // Constant Definition :
@@ -63,7 +64,7 @@ module PEB #(
 // Variable Definition :
 //=====================================================================================================================
         
-wire                                        PEBPEC_FnhFrm;
+// wire                                        PEBPEC_FnhFrm;
 
 reg                                         FlgRAM2;              
 wire                                        NXTPEC_FrtActRow0;
@@ -108,9 +109,6 @@ wire [ PSUM_WIDTH * `LENPSUM      - 1 : 0 ] RAMPEC_DatRd2;
 wire [  PSUM_WIDTH * `LENPSUM     - 1 : 0 ] PECRAM_DatWr3;
 wire [ PSUM_WIDTH * `LENPSUM      - 1 : 0 ] RAMPEC_DatRd3; 
 
-
-
-
 wire                                        EnWr0;
 wire [ `C_LOG_2(`LENPSUM)         - 1 : 0 ] AddrWr0;
 wire [  PSUM_WIDTH * `LENPSUM     - 1 : 0 ] DatWr0;
@@ -145,7 +143,7 @@ wire [ PSUM_WIDTH * `LENPSUM      - 1 : 0 ] DatRd3;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         FlgRAM2 <= 1;
-    end else if ( PEBPEC_FnhFrm ) begin
+    end else if ( CTRLPEB_FnhFrm ) begin
         FlgRAM2 <= ~FlgRAM2;
     end
 end

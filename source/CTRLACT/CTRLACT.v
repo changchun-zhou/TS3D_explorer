@@ -25,11 +25,11 @@ module  CTRLACT (
     input                                        CTRLACT_GetAct,
     output                                       CTRLACT_FrtActRow,
     output                                       CTRLACT_LstActRow,
-    output                                       CTRLACT_LstActBlk
+    output                                       CTRLACT_LstActBlk,
 
     // output                                       CTRLACT_FnhPat,
     // output                                       CTRLACT_FnhIfm,
-    // output                                       CTRLACT_FnhFrm,
+    output                                       CTRLACT_FnhFrm
 
 );
 //=====================================================================================================================
@@ -47,12 +47,14 @@ reg  [ `C_LOG_2(`LENROW)           - 1 : 0 ] CntAct;
 reg  [ `C_LOG_2(`LENROW)           - 1 : 0 ] CntRow;
 wire                                                CTRLACT_FrtActBlk;
 wire                                                CTRLACT_FrtActFrm;
+reg                                                 CTRLACT_FrtActFrm_d;
 reg  [ `BLK_WIDTH                  - 1 : 0 ] CntBlk;
 reg  [ `FRAME_WIDTH                - 1 : 0 ] CntFrm;
 reg  [ `PATCH_WIDTH                - 1 : 0 ] CntPat;
 reg  [ `LAYER_WIDTH                - 1 : 0 ] CntLay;
 wire                                         FrtActPat;
 wire                                         FrtActFrm;
+
 wire                                         FrtActLay;
 wire                                         Restart = 0; ////////////////////////////////
 //=====================================================================================================================
@@ -111,12 +113,15 @@ end
 
 assign CTRLACT_FrtActFrm = CntBlk == 0 && CTRLACT_FrtActBlk;
 
+// paulse to exchange Pingpong SRAM_PEC2/3
+assign CTRLACT_FnhFrm = CTRLACT_FrtActFrm && ~CTRLACT_FrtActFrm_d;  
+
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         CntFrm <= 0;
     end else if ( FrtActPat ) begin
         CntFrm <= 0;
-    end else if ( FrtActFrm ) begin
+    end else if ( CTRLACT_FrtActFrm ) begin
         CntFrm <= CntFrm + 1;
     end
 end
