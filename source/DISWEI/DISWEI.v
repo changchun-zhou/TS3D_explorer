@@ -15,10 +15,10 @@ module DISWEI (
     input                                                           clk             ,
     input                                                           rst_n           ,
     input                                                           CTRLWEI_PlsFetch,
-    output                                                          DISWEI_RdyWei   ,
-    output reg  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE -1 : 0] DISWEIPEC_Wei   ,
+    output reg                                                         DISWEI_RdyWei   ,
+    output reg  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE -1 : 0] DISWEIPEC_Wei   ,// trans MSB and LSB
     output reg  [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE           -1 : 0] DISWEIPEC_FlgWei,
-    // output reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)    -1 : 0] DISWEI_AddrBase ,
+    // output reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)    -1 : 0] AddrBaseWei ,
     input                                                           GBFWEI_Val      , //valid 
     output                                                          GBFWEI_EnRd     ,
     output reg  [ `GBFWEI_ADDRWIDTH                         -1 : 0] GBFWEI_AddrRd   ,
@@ -41,6 +41,7 @@ module DISWEI (
 // Variable Definition :
 //=====================================================================================================================
 reg [ `C_LOG_2(`BLOCK_DEPTH)                    -1 : 0] ValNumWei   [ 0 : `KERNEL_SIZE - 1];
+reg [ `C_LOG_2(`BLOCK_DEPTH)                    -1 : 0] ValNumWei_d   [ 0 : `KERNEL_SIZE - 1];
 reg                                                     GBFWEI_EnRd_d;
 reg                                                     GBFWEI_EnRd_dd;
 reg                                                     GBFWEI_EnRd_ddd;
@@ -48,6 +49,7 @@ reg [ `C_LOG_2(`BLOCK_DEPTH * `KERNEL_SIZE )    -1 : 0] ValNumPEC;
 reg [ `GBFFLGWEI_DATAWIDTH                      -1 : 0] GBFFLGWEI_DatRd_d;
 reg [ `GBFFLGWEI_DATAWIDTH                      -1 : 0] GBFFLGWEI_DatRd_dd;
 reg                                                     ValFlgWei;
+reg  [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE           -1 : 0] FlgWei;
 reg [ `C_LOG_2(`KERNEL_SIZE)                    -1 : 0] ValNumRmn;
 reg  [ `C_LOG_2(`BLOCK_DEPTH * `KERNEL_SIZE )   -1 : 0] CntFetch;
 reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   -1 : 0] AddrBaseWei0;
@@ -59,7 +61,7 @@ reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   -1 : 0] AddrBaseWei5;
 reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   -1 : 0] AddrBaseWei6;
 reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   -1 : 0] AddrBaseWei7;
 reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   -1 : 0] AddrBaseWei8;
-reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   -1 : 0] DISWEI_AddrBase;
+reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   -1 : 0] AddrBaseWei;
 reg  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE-1 : 0] SeqWei;
 //=====================================================================================================================
 // Logic Design :
@@ -91,9 +93,9 @@ end
 // 2st stage Pipeline 
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
-        DISWEIPEC_FlgWei <= 0;
+        FlgWei <= 0;
     end else if ( CTRLWEI_PlsFetch && ValFlgWei) begin 
-        DISWEIPEC_FlgWei <= GBFFLGWEI_DatRd; //GBFFLGWEI_DatRd_d ??
+        FlgWei <= GBFFLGWEI_DatRd; //GBFFLGWEI_DatRd_d ??
     end
 end
 generate
@@ -103,14 +105,14 @@ generate
           if ( ~rst_n ) begin
               ValNumWei[i] <= 0;
           end else if ( CTRLWEI_PlsFetch &&ValFlgWei) begin
-              ValNumWei[i] <= GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+ 0] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+ 8] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+16] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+24] + 
-                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+ 1] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+ 9] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+17] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+25] +
-                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+ 2] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+10] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+18] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+26] +
-                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+ 3] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+11] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+19] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+27] +
-                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+ 4] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+12] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+20] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+28] +
-                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+ 5] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+13] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+21] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+29] +
-                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+ 6] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+14] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+22] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+30] +
-                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+ 7] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+15] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+23] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*(`KERNEL_SIZE-1-i)+31]  ;
+              ValNumWei[i] <= GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+ 0] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+ 8] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+16] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+24] + 
+                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+ 1] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+ 9] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+17] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+25] +
+                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+ 2] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+10] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+18] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+26] +
+                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+ 3] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+11] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+19] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+27] +
+                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+ 4] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+12] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+20] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+28] +
+                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+ 5] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+13] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+21] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+29] +
+                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+ 6] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+14] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+22] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+30] +
+                              GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+ 7] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+15] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+23] + GBFFLGWEI_DatRd[`BLOCK_DEPTH*i+31]  ;
           end
       end
   end
@@ -119,12 +121,27 @@ endgenerate
 
 // 3st stage Pipeline
 always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        DISWEIPEC_FlgWei <= 0;
+    end else if ( CTRLWEI_PlsFetch ) begin
+        DISWEIPEC_FlgWei <= FlgWei;
+    end
+end
+always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         ValNumPEC <= 0;
     end else if ( CTRLWEI_PlsFetch ) begin
         ValNumPEC <= ValNumWei[0] + ValNumWei[1] + ValNumWei[2] + ValNumWei[3] + ValNumWei[4] + 
                      ValNumWei[5] + ValNumWei[6] + ValNumWei[7] + ValNumWei[8] ;
-
+        ValNumWei_d[0] <= ValNumWei[0];// reserved 
+        ValNumWei_d[1] <= ValNumWei[1];
+        ValNumWei_d[2] <= ValNumWei[2];
+        ValNumWei_d[3] <= ValNumWei[3];
+        ValNumWei_d[4] <= ValNumWei[4];
+        ValNumWei_d[5] <= ValNumWei[5];
+        ValNumWei_d[6] <= ValNumWei[6];
+        ValNumWei_d[7] <= ValNumWei[7];
+        ValNumWei_d[8] <= ValNumWei[8];
         // DISWEIPEC_ValNumWei <= ValNumWei;
     end
 end
@@ -149,7 +166,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         ValNumRmn <= 0;
     end else if ( CTRLWEI_PlsFetch ) begin
-        ValNumRmn <= DISWEI_AddrBase;
+        ValNumRmn <= AddrBaseWei;
     end
 end                  
 always @ ( posedge clk or negedge rst_n ) begin
@@ -195,9 +212,10 @@ always @ ( posedge clk or negedge rst_n ) begin
 end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
-        DISWEI_AddrBase <= 0;
+        AddrBaseWei <= 0;
     end else if ( ~GBFWEI_EnRd && GBFWEI_EnRd_d ) begin
-        DISWEI_AddrBase <= ( CntFetch + ValNumRmn) - ValNumPEC;
+        AddrBaseWei <= ( CntFetch + ValNumRmn) - ValNumPEC;
+        // AddrBaseWei <= ( CntFetch + ValNumRmn);
     end
 end
 
@@ -214,19 +232,29 @@ always @ ( posedge clk or negedge rst_n ) begin
         AddrBaseWei7 <= 0;
         AddrBaseWei8 <= 0;
     end else if ( ~GBFWEI_EnRd_d && GBFWEI_EnRd_dd ) begin
-        AddrBaseWei0 <= DISWEI_AddrBase;//
-        AddrBaseWei1 <= DISWEI_AddrBase + ValNumWei[0];
-        AddrBaseWei2 <= DISWEI_AddrBase + ValNumWei[0] + ValNumWei[1];
-        AddrBaseWei3 <= DISWEI_AddrBase + ValNumWei[0] + ValNumWei[1] + ValNumWei[2];
-        AddrBaseWei4 <= DISWEI_AddrBase + ValNumWei[0] + ValNumWei[1] + ValNumWei[2] + ValNumWei[3];
-        AddrBaseWei5 <= DISWEI_AddrBase + ValNumWei[0] + ValNumWei[1] + ValNumWei[2] + ValNumWei[3] + ValNumWei[4];
-        AddrBaseWei6 <= DISWEI_AddrBase + ValNumWei[0] + ValNumWei[1] + ValNumWei[2] + ValNumWei[3] + ValNumWei[4] + ValNumWei[5];
-        AddrBaseWei7 <= DISWEI_AddrBase + ValNumWei[0] + ValNumWei[1] + ValNumWei[2] + ValNumWei[3] + ValNumWei[4] + ValNumWei[5] + ValNumWei[6];
-        AddrBaseWei8 <= DISWEI_AddrBase + ValNumWei[0] + ValNumWei[1] + ValNumWei[2] + ValNumWei[3] + ValNumWei[4] + ValNumWei[5] + ValNumWei[6] + ValNumWei[7];
+        AddrBaseWei0 <= AddrBaseWei;//
+        AddrBaseWei1 <= AddrBaseWei + ValNumWei_d[0];
+        AddrBaseWei2 <= AddrBaseWei + ValNumWei_d[0] + ValNumWei_d[1];
+        AddrBaseWei3 <= AddrBaseWei + ValNumWei_d[0] + ValNumWei_d[1] + ValNumWei_d[2];
+        AddrBaseWei4 <= AddrBaseWei + ValNumWei_d[0] + ValNumWei_d[1] + ValNumWei_d[2] + ValNumWei_d[3];
+        AddrBaseWei5 <= AddrBaseWei + ValNumWei_d[0] + ValNumWei_d[1] + ValNumWei_d[2] + ValNumWei_d[3] + ValNumWei_d[4];
+        AddrBaseWei6 <= AddrBaseWei + ValNumWei_d[0] + ValNumWei_d[1] + ValNumWei_d[2] + ValNumWei_d[3] + ValNumWei_d[4] + ValNumWei_d[5];
+        AddrBaseWei7 <= AddrBaseWei + ValNumWei_d[0] + ValNumWei_d[1] + ValNumWei_d[2] + ValNumWei_d[3] + ValNumWei_d[4] + ValNumWei_d[5] + ValNumWei_d[6];
+        AddrBaseWei8 <= AddrBaseWei + ValNumWei_d[0] + ValNumWei_d[1] + ValNumWei_d[2] + ValNumWei_d[3] + ValNumWei_d[4] + ValNumWei_d[5] + ValNumWei_d[6] + ValNumWei_d[7];
+        // AddrBaseWei0 <= AddrBaseWei - ValNumWei_d[8] - ValNumWei_d[7] - ValNumWei_d[6] - ValNumWei_d[5] - ValNumWei_d[4] - ValNumWei_d[3] - ValNumWei_d[2] - ValNumWei_d[1];
+        // AddrBaseWei1 <= AddrBaseWei - ValNumWei_d[8] - ValNumWei_d[7] - ValNumWei_d[6] - ValNumWei_d[5] - ValNumWei_d[4] - ValNumWei_d[3] - ValNumWei_d[2];
+        // AddrBaseWei2 <= AddrBaseWei - ValNumWei_d[8] - ValNumWei_d[7] - ValNumWei_d[6] - ValNumWei_d[5] - ValNumWei_d[4] - ValNumWei_d[3];
+        // AddrBaseWei3 <= AddrBaseWei - ValNumWei_d[8] - ValNumWei_d[7] - ValNumWei_d[6] - ValNumWei_d[5] - ValNumWei_d[4];
+        // AddrBaseWei4 <= AddrBaseWei - ValNumWei_d[8] - ValNumWei_d[7] - ValNumWei_d[6] - ValNumWei_d[5];
+        // AddrBaseWei5 <= AddrBaseWei - ValNumWei_d[8] - ValNumWei_d[7] - ValNumWei_d[6];
+        // AddrBaseWei6 <= AddrBaseWei - ValNumWei_d[8] - ValNumWei_d[7];
+        // AddrBaseWei7 <= AddrBaseWei - ValNumWei_d[8];
+        // AddrBaseWei8 <= AddrBaseWei ;
 
     end
 end
-
+reg [ `DATA_WIDTH * `BLOCK_DEPTH   - 1 : 0 ] SeqWei0;
+reg [ `DATA_WIDTH * `BLOCK_DEPTH   - 1 : 0 ] SeqWei8;
 //4st stage
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
@@ -241,10 +269,30 @@ always @ ( posedge clk or negedge rst_n ) begin
                             SeqWei[ `DATA_WIDTH * AddrBaseWei2 +: `DATA_WIDTH * `BLOCK_DEPTH],
                             SeqWei[ `DATA_WIDTH * AddrBaseWei1 +: `DATA_WIDTH * `BLOCK_DEPTH],
                             SeqWei[ `DATA_WIDTH * AddrBaseWei0 +: `DATA_WIDTH * `BLOCK_DEPTH] };
+        // DISWEIPEC_Wei <= {  SeqWei[ `DATA_WIDTH * AddrBaseWei8 - 1 -: `DATA_WIDTH * `BLOCK_DEPTH], 
+        //                     SeqWei[ `DATA_WIDTH * AddrBaseWei7 - 1 -: `DATA_WIDTH * `BLOCK_DEPTH],
+        //                     SeqWei[ `DATA_WIDTH * AddrBaseWei6 - 1 -: `DATA_WIDTH * `BLOCK_DEPTH],
+        //                     SeqWei[ `DATA_WIDTH * AddrBaseWei5 - 1 -: `DATA_WIDTH * `BLOCK_DEPTH],
+        //                     SeqWei[ `DATA_WIDTH * AddrBaseWei4 - 1 -: `DATA_WIDTH * `BLOCK_DEPTH],
+        //                     SeqWei[ `DATA_WIDTH * AddrBaseWei3 - 1 -: `DATA_WIDTH * `BLOCK_DEPTH],
+        //                     SeqWei[ `DATA_WIDTH * AddrBaseWei2 - 1 -: `DATA_WIDTH * `BLOCK_DEPTH],
+        //                     SeqWei[ `DATA_WIDTH * AddrBaseWei1 - 1 -: `DATA_WIDTH * `BLOCK_DEPTH],
+        //                     SeqWei[ `DATA_WIDTH * AddrBaseWei0 - 1 -: `DATA_WIDTH * `BLOCK_DEPTH] };
+        SeqWei0 <= SeqWei[ `DATA_WIDTH * AddrBaseWei0 - 1 ];
+        SeqWei8 <= SeqWei[ `DATA_WIDTH * AddrBaseWei8 - 1 -: `DATA_WIDTH * `BLOCK_DEPTH];
     end
 end
-assign DISWEI_RdyWei = ~GBFWEI_EnRd_dd; // ahead 1 clk <=> DISWEIPEC_Wei
 
+// assign DISWEI_RdyWei = ~GBFWEI_EnRd_dd; // ahead 1 clk <=> DISWEIPEC_Wei
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        DISWEI_RdyWei <= 0;
+    end else if ( CTRLWEI_PlsFetch ) begin
+        DISWEI_RdyWei <= 0;
+    end else if ( ~GBFWEI_EnRd_d && GBFWEI_EnRd_dd ) begin
+        DISWEI_RdyWei <= 1;
+    end
+end
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================

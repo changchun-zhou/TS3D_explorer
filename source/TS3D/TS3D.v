@@ -41,12 +41,12 @@ module TS3D #(
     input                                       GBFFLGACT_Val, //valid 
     input                                       GBFFLGACT_EnWr,
     input  [ `GBFACT_ADDRWIDTH          -1 : 0] GBFFLGACT_AddrWr,
-    input  [ `BLOCK_DEPTH               -1 : 0] GBFFLGACT_DatWr,
+    input  [ `BLOCK_DEPTH               -1 : 0] GBFFLGACT_DatWr
 
-    input                                       GBFVNACT_Val, //valid num ACT
-    input                                       GBFVNACT_EnWr,
-    input  [ `GBFACT_ADDRWIDTH          -1 : 0] GBFVNACT_AddrWr,
-    input  [ `C_LOG_2(`BLOCK_DEPTH)     -1 : 0] GBFVNACT_DatWr
+    // input                                       GBFVNACT_Val, //valid num ACT
+    // input                                       GBFVNACT_EnWr,
+    // input  [ `GBFACT_ADDRWIDTH          -1 : 0] GBFVNACT_AddrWr,
+    // input  [ `C_LOG_2(`BLOCK_DEPTH)     -1 : 0] GBFVNACT_DatWr
                         
 );
 //=====================================================================================================================
@@ -104,9 +104,9 @@ wire    [ `DATA_WIDTH                               -1 : 0] GBFACT_DatRd;
 wire                                                        GBFFLGACT_EnRd;
 wire    [ `GBFACT_ADDRWIDTH                         -1 : 0] GBFFLGACT_AddrRd;
 wire    [ `BLOCK_DEPTH                              -1 : 0] GBFFLGACT_DatRd;
-wire                                                        GBFVNACT_EnRd;
-wire    [ `GBFACT_ADDRWIDTH                         -1 : 0] GBFVNACT_AddrRd;
-wire    [ `C_LOG_2(`BLOCK_DEPTH)                    -1 : 0] GBFVNACT_DatRd;
+// wire                                                        GBFVNACT_EnRd;
+// wire    [ `GBFACT_ADDRWIDTH                         -1 : 0] GBFVNACT_AddrRd;
+// wire    [ `C_LOG_2(`BLOCK_DEPTH)                    -1 : 0] GBFVNACT_DatRd;
 
 
 //=====================================================================================================================
@@ -127,7 +127,7 @@ assign TOP_Sta = TOP_Sta_reg && ~TOP_Sta_reg_d; // paulse
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
-CONFIG inst_CONFIG
+CONFIG CONFIG
   (
     .clk        (clk),
     .rst_n      (rst_n),
@@ -140,7 +140,7 @@ CONFIG inst_CONFIG
   );
 
 
-PEL inst_PEL
+PEL PEL
   (
     .clk                 (clk),
     .rst_n               (rst_n),
@@ -165,7 +165,7 @@ PEL inst_PEL
   );
 
 // Weight global buffer
-CTRLWEI inst_CTRLWEI
+CTRLWEI CTRLWEI
   (
     .clk               (clk),
     .rst_n             (rst_n),
@@ -175,7 +175,7 @@ CTRLWEI inst_CTRLWEI
     .DISWEI_RdyWei     (DISWEI_RdyWei),
     .CTRLWEI_PlsFetch  (CTRLWEI_PlsFetch)
   );
-DISWEI inst_DISWEI
+DISWEI DISWEI
   (
     .clk              (clk),
     .rst_n            (rst_n),
@@ -228,7 +228,7 @@ SRAM_DUAL #(
         .data_out ( GBFFLGWEI_DatRd      )
     );
 // Activations global buffer
-CTRLACT inst_CTRLACT
+CTRLACT CTRLACT
   (
     .clk               (clk),
     .rst_n             (rst_n),
@@ -246,7 +246,7 @@ CTRLACT inst_CTRLACT
     .CTRLACT_LstActBlk (CTRLACT_LstActBlk),
     .CTRLACT_FnhFrm    (CTRLACT_FnhFrm)
   );
-DISACT inst_DISACT
+DISACT DISACT
   (
     .clk              (clk),
     .rst_n            (rst_n),
@@ -263,15 +263,17 @@ DISACT inst_DISACT
     .GBFFLGACT_Val    (GBFFLGACT_Val),
     .GBFFLGACT_EnRd   (GBFFLGACT_EnRd),
     .GBFFLGACT_AddrRd (GBFFLGACT_AddrRd),
-    .GBFFLGACT_DatRd  (GBFFLGACT_DatRd),
-    .GBFVNACT_Val     (GBFVNACT_Val),
-    .GBFVNACT_EnRd    (GBFVNACT_EnRd),
-    .GBFVNACT_AddrRd  (GBFVNACT_AddrRd),
-    .GBFVNACT_DatRd   (GBFVNACT_DatRd)
+    .GBFFLGACT_DatRd  (GBFFLGACT_DatRd)
+    // .GBFVNACT_Val     (GBFVNACT_Val),
+    // .GBFVNACT_EnRd    (GBFVNACT_EnRd),
+    // .GBFVNACT_AddrRd  (GBFVNACT_AddrRd),
+    // .GBFVNACT_DatRd   (GBFVNACT_DatRd)
   );
 SRAM_DUAL #(
         .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),   
-        .SRAM_WIDTH(`DATA_WIDTH)
+        .SRAM_WIDTH(`DATA_WIDTH),
+        .INIT_IF ("yes"),
+        .INIT_FILE ("../testbench/Data/RAM_GBFACT.dat")
     ) RAM_GBFACT (
         .clk      ( clk         ),
         .addr_r   ( GBFACT_AddrRd     ),
@@ -283,7 +285,9 @@ SRAM_DUAL #(
     );
 SRAM_DUAL #(
         .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),   
-        .SRAM_WIDTH(`BLOCK_DEPTH)
+        .SRAM_WIDTH(`BLOCK_DEPTH),
+        .INIT_IF ("yes"),
+        .INIT_FILE ("../testbench/Data/RAM_GBFFLGACT.dat")
     ) RAM_GBFFLGACT (
         .clk      ( clk         ),
         .addr_r   ( GBFFLGACT_AddrRd     ),
@@ -293,17 +297,17 @@ SRAM_DUAL #(
         .data_in  ( GBFFLGACT_DatWr      ),
         .data_out ( GBFFLGACT_DatRd      )
     );
-SRAM_DUAL #(
-        .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),   
-        .SRAM_WIDTH(`C_LOG_2(`BLOCK_DEPTH))
-    ) RAM_GBFVNACT (
-        .clk      ( clk         ),
-        .addr_r   ( GBFVNACT_AddrRd     ),
-        .addr_w   ( GBFVNACT_AddrWr     ),
-        .read_en  ( GBFVNACT_EnRd       ),
-        .write_en ( GBFVNACT_EnWr       ),
-        .data_in  ( GBFVNACT_DatWr      ),
-        .data_out ( GBFVNACT_DatRd      )
-    );
+// SRAM_DUAL #(
+//         .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),   
+//         .SRAM_WIDTH(`C_LOG_2(`BLOCK_DEPTH))
+//     ) RAM_GBFVNACT (
+//         .clk      ( clk         ),
+//         .addr_r   ( GBFVNACT_AddrRd     ),
+//         .addr_w   ( GBFVNACT_AddrWr     ),
+//         .read_en  ( GBFVNACT_EnRd       ),
+//         .write_en ( GBFVNACT_EnWr       ),
+//         .data_in  ( GBFVNACT_DatWr      ),
+//         .data_out ( GBFVNACT_DatRd      )
+//     );
 
 endmodule

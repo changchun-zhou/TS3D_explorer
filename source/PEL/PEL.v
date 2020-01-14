@@ -24,7 +24,7 @@ module PEL #(
     input 															CTRLACT_LstActBlk,
     input 															CTRLPEB_FnhFrm,
     input 															CTRLACT_RdyAct,
-    input 															CTRLACT_GetAct,
+    output 															CTRLACT_GetAct,
     input[ `BLOCK_DEPTH              						-1 : 0] CTRLACT_FlgAct,
     input[ `DATA_WIDTH * `BLOCK_DEPTH						-1 : 0] CTRLACT_Act,    
     input [ `NUMPEC 										-1 : 0] CTRLWEIPEC_RdyWei,
@@ -191,11 +191,11 @@ assign PELPOOL_Dat = PEBPOOL_Dat[POOLPEB_EnRd];
 generate
 	genvar j;
 	for(j=1; j<`NUMPEB; j=j+1) begin: GENTRANS
-	assign { GENPEB[ j].LSTPEB_FrtBlk, GENPEB[ j].LSTPEB_FrtActRow, GENPEB[ j].LSTPEB_LstActRow, GENPEB[ j].LSTPEB_LstActBlk, GENPEB[ j].LSTPEB_RdyAct, GENPEB[ j].LSTPEB_GetAct, GENPEB[ j].LSTPEB_FlgAct, GENPEB[ j].LSTPEB_Act} 
-		 = {GENPEB[ j-1].NXTPEB_FrtBlk, GENPEB[ j-1].NXTPEB_FrtActRow, GENPEB[ j-1].NXTPEB_LstActRow, GENPEB[ j-1].NXTPEB_LstActBlk, GENPEB[j-1].NXTPEB_RdyAct, GENPEB[ j-1].NXTPEB_GetAct, GENPEB[ j-1].NXTPEB_FlgAct, GENPEB[ j-1].NXTPEB_Act };
+	assign { GENPEB[ j].LSTPEB_FrtBlk, GENPEB[ j].LSTPEB_FrtActRow, GENPEB[ j].LSTPEB_LstActRow, GENPEB[ j].LSTPEB_LstActBlk, GENPEB[ j].LSTPEB_RdyAct, GENPEB[j-1].LSTPEB_GetAct, GENPEB[ j].LSTPEB_FlgAct, GENPEB[ j].LSTPEB_Act} 
+		 = {GENPEB[ j-1].NXTPEB_FrtBlk, GENPEB[ j-1].NXTPEB_FrtActRow, GENPEB[ j-1].NXTPEB_LstActRow, GENPEB[ j-1].NXTPEB_LstActBlk, GENPEB[j-1].NXTPEB_RdyAct, GENPEB[ j].NXTPEB_GetAct, GENPEB[ j-1].NXTPEB_FlgAct, GENPEB[ j-1].NXTPEB_Act };
 	end
 endgenerate
-assign { GENPEB[ 0].LSTPEB_FrtBlk, GENPEB[ 0].LSTPEB_FrtActRow, GENPEB[ 0].LSTPEB_LstActRow, GENPEB[ 0].LSTPEB_LstActBlk, GENPEB[ 0].LSTPEB_RdyAct, GENPEB[ 0].LSTPEB_GetAct, GENPEB[ 0].LSTPEB_FlgAct, GENPEB[ 0].LSTPEB_Act} = {           CTRLACT_FrtBlk,CTRLACT_FrtActRow,CTRLACT_LstActRow,CTRLACT_LstActBlk,CTRLACT_RdyAct,CTRLACT_GetAct,CTRLACT_FlgAct,CTRLACT_Act};
+assign { GENPEB[ 0].LSTPEB_FrtBlk, GENPEB[ 0].LSTPEB_FrtActRow, GENPEB[ 0].LSTPEB_LstActRow, GENPEB[ 0].LSTPEB_LstActBlk, GENPEB[ 0].LSTPEB_RdyAct, CTRLACT_GetAct, GENPEB[ 0].LSTPEB_FlgAct, GENPEB[ 0].LSTPEB_Act} = {           CTRLACT_FrtBlk,CTRLACT_FrtActRow,CTRLACT_LstActRow,CTRLACT_LstActBlk,CTRLACT_RdyAct,GENPEB[ 0].LSTPEB_GetAct,CTRLACT_FlgAct,CTRLACT_Act};
 // assign { GENPEB[ 1].LSTPEB_FrtBlk, GENPEB[ 1].LSTPEB_FrtActRow, GENPEB[ 1].LSTPEB_LstActRow, GENPEB[ 1].LSTPEB_LstActBlk, GENPEB[ 1].LSTPEB_RdyAct, GENPEB[ 1].LSTPEB_GetAct, GENPEB[ 1].LSTPEB_FlgAct, GENPEB[ 1].LSTPEB_Act} = {GENPEB[ 0].NXTPEB_FrtBlk, GENPEB[ 0].NXTPEB_FrtActRow, GENPEB[ 0].NXTPEB_LstActRow, GENPEB[ 0].NXTPEB_LstActBlk, GENPEB[ 0].NXTPEB_RdyAct, GENPEB[ 0].NXTPEB_GetAct, GENPEB[ 0].NXTPEB_FlgAct, GENPEB[ 0].NXTPEB_Act };
 // assign { GENPEB[ 2].LSTPEB_FrtBlk, GENPEB[ 2].LSTPEB_FrtActRow, GENPEB[ 2].LSTPEB_LstActRow, GENPEB[ 2].LSTPEB_LstActBlk, GENPEB[ 2].LSTPEB_RdyAct, GENPEB[ 2].LSTPEB_GetAct, GENPEB[ 2].LSTPEB_FlgAct, GENPEB[ 2].LSTPEB_Act} = {GENPEB[ 1].NXTPEB_FrtBlk, GENPEB[ 1].NXTPEB_FrtActRow, GENPEB[ 1].NXTPEB_LstActRow, GENPEB[ 1].NXTPEB_LstActBlk, GENPEB[ 1].NXTPEB_RdyAct, GENPEB[ 1].NXTPEB_GetAct, GENPEB[ 1].NXTPEB_FlgAct, GENPEB[ 1].NXTPEB_Act };
 // assign { GENPEB[ 3].LSTPEB_FrtBlk, GENPEB[ 3].LSTPEB_FrtActRow, GENPEB[ 3].LSTPEB_LstActRow, GENPEB[ 3].LSTPEB_LstActBlk, GENPEB[ 3].LSTPEB_RdyAct, GENPEB[ 3].LSTPEB_GetAct, GENPEB[ 3].LSTPEB_FlgAct, GENPEB[ 3].LSTPEB_Act} = {GENPEB[ 2].NXTPEB_FrtBlk, GENPEB[ 2].NXTPEB_FrtActRow, GENPEB[ 2].NXTPEB_LstActRow, GENPEB[ 2].NXTPEB_LstActBlk, GENPEB[ 2].NXTPEB_RdyAct, GENPEB[ 2].NXTPEB_GetAct, GENPEB[ 2].NXTPEB_FlgAct, GENPEB[ 2].NXTPEB_Act };

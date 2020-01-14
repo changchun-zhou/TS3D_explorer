@@ -4,8 +4,10 @@ import random
 import os
 import binascii
 BIT_WIDTH  = 1
-PATCH_LINE = 432 #number of row9 x 3 x 16
+PATCH_LINE = 1024 #number of row9 x 3 x 16
 PATCH_ROW  = 32 #number of every row
+file_name_bin = 'RAM_GBFFLGACT_bin.dat'
+file_name_hex = 'RAM_GBFFLGACT.dat'
 # param_type = 'WEI_/'
 # data_type = 'FLAG_/'
 
@@ -38,13 +40,13 @@ for folder_name in range(0,1):
         #     pass
         # else:
         #     os.mkdir(folder)
-        with open('RAM_GBFFLGWEI.dat', 'w') as file:
+        with open(file_name_bin, 'w') as file:
             file.write(a)
 #  Transfer to HEX
-fh = open(r'RAM_GBFFLGWEI.dat','rb')
-size = os.path.getsize('RAM_GBFFLGWEI.dat')
-for j in range (size/288):
-    for m in range (0,36): # \n
+fh = open(file_name_bin,'rb')
+# size = os.path.getsize('RAM_GBFFLGWEI.dat')
+for j in range (PATCH_LINE):
+    for m in range (0,PATCH_ROW/8): # \n
         accu = 0
         for i in range (0,8): # 8 bit to 0x
             a = fh.read(1)
@@ -64,9 +66,9 @@ for j in range (size/288):
         hexdis = strdat.lstrip('0x')
         hexdis = hexdis.rstrip('L')
         hexdis = hexdis.zfill(2)
-        with open('RAM_GBFFLGWEI_HEX.dat','a') as file:
+        with open(file_name_hex,'a') as file:
             file.write(str(hexdis))
-    with open('RAM_GBFFLGWEI_HEX.dat','a') as file:
+    with open(file_name_hex,'a') as file:
         file.write('\n')
 
 

@@ -30,7 +30,7 @@ module PEB #(
     output                                                  PECCTRLWEI_GetWei1  ,//=CTRLWEIPEC_RdyWei paulse
     output                                                  PECCTRLWEI_GetWei2  ,//=CTRLWEIPEC_RdyWei paulse
 
-    input [`DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE-1 : 0] DISWEIPEC_Wei,
+    input [`DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE -1 :0] DISWEIPEC_Wei,
     input [1 * `BLOCK_DEPTH * `KERNEL_SIZE          -1 : 0] DISWEIPEC_FlgWei,
     // input [`C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE   -1 : 0] DISWEIPEC_ValNumWei,
     // input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   - 1 : 0 ] DISWEI_AddrBase,

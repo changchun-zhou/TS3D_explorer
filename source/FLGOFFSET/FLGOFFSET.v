@@ -13,8 +13,11 @@ module FLGOFFSET # (
 	// output reg [ DATA_WIDTH   - 1 : 0 ] SetOut,
 	// output reg 					  ValOffset
 	);
-reg [ `CHANNEL_DEPTH                - 1 : 0 ] FlgAct;
-reg [ `CHANNEL_DEPTH                - 1 : 0 ] FlgWei;
+// reg [ 0 : `CHANNEL_DEPTH                - 1 ] FlgAct; // exchange MSB AND LSB
+// reg [ 0 : `CHANNEL_DEPTH                - 1 ] FlgWei; 
+reg [ `CHANNEL_DEPTH                - 1 : 0] FlgAct; // exchange MSB AND LSB
+reg [ `CHANNEL_DEPTH                - 1 : 0] FlgWei; 
+
 	// reg [ ADDR_WIDTH 	- 1 : 0 ] i;
 	wire [ DATA_WIDTH 	- 1 : 0 ] Up;
 	wire [ DATA_WIDTH 	- 1 : 0 ] Down;
@@ -29,10 +32,10 @@ always @ ( posedge clk or negedge rst_n ) begin
         FlgAct <= 0;
         FlgWei <= 0;
     end else if ( PECMAC_Sta ) begin
-        FlgAct <= PECMAC_FlgAct;
+        FlgAct <= PECMAC_FlgAct; // exchange MSB AND LSB
         FlgWei <= PECMAC_FlgWei;
     end else begin
-        FlgAct <= FlgAct & ~Set; // drop out ahead 1; not need cache 1 clk which halves speed
+        FlgAct <= FlgAct & ~Set; // drop out after 1; not need cache 1 clk which halves speed
         FlgWei <= FlgWei & ~Set;
     end
 end

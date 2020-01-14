@@ -64,7 +64,17 @@ begin
     #100 rst_n  =  1;
 end
 
-TS3D  u_TS3D (
+integer print_file1;
+initial begin
+    print_file1 = $fopen("./print_data/print_file1.txt");
+    repeat(500) begin
+        @(negedge clk);
+        $fdisplay(print_file1,"%t => DISWEIPEC_Wei = %h; SeqWei = %h; GBFWEI_DatRd = %h; ",
+          $time, TS3D.DISWEI.DISWEIPEC_Wei, TS3D.DISWEI.SeqWei, TS3D.DISWEI.GBFWEI_DatRd);
+    end
+end
+
+TS3D  TS3D (
     .clk                     ( clk                                                     ),
     .rst_n                   ( rst_n                                                   ),
     .POOLPEB_EnRd            ( POOLPEB_EnRd      [ `C_LOG_2( `NUMPEB )        -1 : 0]  ),
@@ -85,10 +95,10 @@ TS3D  u_TS3D (
     .GBFFLGACT_EnWr          ( GBFFLGACT_EnWr                                          ),
     .GBFFLGACT_AddrWr        ( GBFFLGACT_AddrWr  [ `GBFACT_ADDRWIDTH          -1 : 0]  ),
     .GBFFLGACT_DatWr         ( GBFFLGACT_DatWr   [ `BLOCK_DEPTH               -1 : 0]  ),
-    .GBFVNACT_Val            ( GBFVNACT_Val                                            ),
-    .GBFVNACT_EnWr           ( GBFVNACT_EnWr                                           ),
-    .GBFVNACT_AddrWr         ( GBFVNACT_AddrWr   [ `GBFACT_ADDRWIDTH          -1 : 0]  ),
-    .GBFVNACT_DatWr          ( GBFVNACT_DatWr    [ `C_LOG_2(`BLOCK_DEPTH)     -1 : 0]  ),
+    // .GBFVNACT_Val            ( GBFVNACT_Val                                            ),
+    // .GBFVNACT_EnWr           ( GBFVNACT_EnWr                                           ),
+    // .GBFVNACT_AddrWr         ( GBFVNACT_AddrWr   [ `GBFACT_ADDRWIDTH          -1 : 0]  ),
+    // .GBFVNACT_DatWr          ( GBFVNACT_DatWr    [ `C_LOG_2(`BLOCK_DEPTH)     -1 : 0]  ),
 
     .PELPOOL_Dat             ( PELPOOL_Dat       [ PSUM_WIDTH * `LENPSUM      -1 : 0]  )
 );

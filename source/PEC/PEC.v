@@ -195,15 +195,15 @@ always @ ( posedge clk or negedge rst_n ) begin
         // PECMAC_AddrBaseWei8 <= 0;
     end else if ( CfgWei ) begin
         // WeiArray          <= DISWEIPEC_Wei;
-        PECMAC_Wei0 <= DISWEIPEC_Wei[ `DATA_WIDTH * 0 +: `DATA_WIDTH * `BLOCK_DEPTH];
-        PECMAC_Wei1 <= DISWEIPEC_Wei[ `DATA_WIDTH * 1 +: `DATA_WIDTH * `BLOCK_DEPTH];
-        PECMAC_Wei2 <= DISWEIPEC_Wei[ `DATA_WIDTH * 2 +: `DATA_WIDTH * `BLOCK_DEPTH];
-        PECMAC_Wei3 <= DISWEIPEC_Wei[ `DATA_WIDTH * 3 +: `DATA_WIDTH * `BLOCK_DEPTH];
-        PECMAC_Wei4 <= DISWEIPEC_Wei[ `DATA_WIDTH * 4 +: `DATA_WIDTH * `BLOCK_DEPTH];
-        PECMAC_Wei5 <= DISWEIPEC_Wei[ `DATA_WIDTH * 5 +: `DATA_WIDTH * `BLOCK_DEPTH];
-        PECMAC_Wei6 <= DISWEIPEC_Wei[ `DATA_WIDTH * 6 +: `DATA_WIDTH * `BLOCK_DEPTH];
-        PECMAC_Wei7 <= DISWEIPEC_Wei[ `DATA_WIDTH * 7 +: `DATA_WIDTH * `BLOCK_DEPTH];
-        PECMAC_Wei8 <= DISWEIPEC_Wei[ `DATA_WIDTH * 8 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei0 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 0 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei1 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 1 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei2 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 2 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei3 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 3 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei4 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 4 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei5 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 5 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei6 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 6 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei7 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 7 +: `DATA_WIDTH * `BLOCK_DEPTH];
+        PECMAC_Wei8 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 8 +: `DATA_WIDTH * `BLOCK_DEPTH];
         FlgWei              <= DISWEIPEC_FlgWei;
         // ValNumWei           <= DISWEIPEC_ValNumWei;
         // PECMAC_AddrBaseWei0 <= DISWEI_AddrBase;//
@@ -256,6 +256,7 @@ assign PECMAC_FlgWei4 = FlgWei[ `BLOCK_DEPTH * 4 +: `BLOCK_DEPTH];
 assign PECMAC_FlgWei5 = FlgWei[ `BLOCK_DEPTH * 5 +: `BLOCK_DEPTH];
 assign PECMAC_FlgWei6 = FlgWei[ `BLOCK_DEPTH * 6 +: `BLOCK_DEPTH];
 assign PECMAC_FlgWei7 = FlgWei[ `BLOCK_DEPTH * 7 +: `BLOCK_DEPTH];
+assign PECMAC_FlgWei8 = FlgWei[ `BLOCK_DEPTH * 8 +: `BLOCK_DEPTH];
 
 // assign ValNumWei0 = DISWEIPEC_ValNumWei[`C_LOG_2( `BLOCK_DEPTH) * 0 +: `C_LOG_2( `BLOCK_DEPTH)];
 // assign ValNumWei1 = DISWEIPEC_ValNumWei[`C_LOG_2( `BLOCK_DEPTH) * 1 +: `C_LOG_2( `BLOCK_DEPTH)];

@@ -2,8 +2,9 @@ import numpy as np
 import random
 import os
 
-row_index = 1536 # 32 x 9 x 3 x 16 / 9
-line_index = 9 #  9 8bit
+row_index = 1024 # 32 x 9 x 3 x 16 / 9
+line_index = 1 #  9 X 8bit
+file_name = 'RAM_GBFACT.dat'
 # param_type = 'WEI_/'
 # flag_folder = 'FLAG_/'
 # data_folder = 'DATA_/'
@@ -59,7 +60,7 @@ for folder_name in range(0, 1):
         # else:
         #     os.mkdir(folder_data)
         # with open(folder_data + file_data, 'w') as file:
-        with open('RAM_GBFWEI.dat', 'w') as file:
+        with open(file_name, 'w') as file:
             for i in range(0, row_index):
                 for k in range(0, line_index):
                     # for k in range(0, 1):

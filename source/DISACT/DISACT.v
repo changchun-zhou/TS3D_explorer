@@ -27,11 +27,11 @@ module DISACT (
     input                                           GBFFLGACT_Val, //valid 
     output                                          GBFFLGACT_EnRd,
     output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFFLGACT_AddrRd,
-    input       [ `BLOCK_DEPTH              -1 : 0] GBFFLGACT_DatRd,
-    input                                           GBFVNACT_Val, //valid num ACT
-    output                                          GBFVNACT_EnRd,
-    output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFVNACT_AddrRd,
-    input       [ `C_LOG_2(`BLOCK_DEPTH)    -1 : 0] GBFVNACT_DatRd
+    input       [ `BLOCK_DEPTH              -1 : 0] GBFFLGACT_DatRd
+    // input                                           GBFVNACT_Val, //valid num ACT
+    // output                                          GBFVNACT_EnRd,
+    // output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFVNACT_AddrRd,
+    // input       [ `C_LOG_2(`BLOCK_DEPTH)    -1 : 0] GBFVNACT_DatRd
                         
 );
 //=====================================================================================================================
@@ -45,12 +45,15 @@ module DISACT (
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
-wire                                NearFnhPacker;
-wire                                PlsFetch;
-reg                                     PACKER_ValDat;
-wire                                PACKER_ReqDat;
+wire                                    NearFnhPacker;
+wire                                    PlsFetch;
 reg                                     PACKER_Sta;
-wire                                PACKER_Bypass;
+reg                                     GBFFLGACT_EnRd_d;
+reg [ `C_LOG_2(`BLOCK_DEPTH)    -1 : 0] PACKER_Num;
+reg                                     PACKER_ValDat;
+wire                                    PACKER_ReqDat;
+
+wire                                    PACKER_Bypass;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -71,7 +74,7 @@ always @(*) begin
                 else 
                     next_state <= IDLE;
 
-      CHECKDATA:if( GBFACT_Val && GBFFLGACT_Val && GBFVNACT_Val)
+      CHECKDATA:if( GBFACT_Val && GBFFLGACT_Val)
                     next_state <= CFGACT;
                 else 
                     next_state <= CHECKDATA;
@@ -104,13 +107,13 @@ assign PlsFetch = next_state == CFGACT && state == CHECKDATA;
 
 
 // Fetch valid num
-always @ ( posedge clk or negedge rst_n ) begin
-    if ( ~rst_n ) begin
-        GBFVNACT_AddrRd <= 0;
-    end else if ( PlsFetch ) begin
-        GBFVNACT_AddrRd <= GBFVNACT_AddrRd + 1;
-    end
-end
+// always @ ( posedge clk or negedge rst_n ) begin
+//     if ( ~rst_n ) begin
+//         GBFVNACT_AddrRd <= 0;
+//     end else if ( PlsFetch ) begin
+//         GBFVNACT_AddrRd <= GBFVNACT_AddrRd + 1;
+//     end
+// end
 
 assign GBFVNACT_EnRd = PlsFetch;
 
@@ -136,8 +139,10 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         PACKER_Sta <= 0;
+        GBFFLGACT_EnRd_d <= 0;
     end else begin
-        PACKER_Sta <= GBFVNACT_EnRd;
+        GBFFLGACT_EnRd_d <= GBFFLGACT_EnRd;
+        PACKER_Sta <= GBFFLGACT_EnRd_d;
     end
 end
 
@@ -145,15 +150,43 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         GBFFLGACT_AddrRd <= 0;
-    end else if ( 1'b1 ) begin ///////////////////////////////////
+    end else if ( 1'b0 ) begin ///////////////////////////////////
         GBFFLGACT_AddrRd <= 0;
     end else if ( GBFFLGACT_EnRd ) begin
         GBFFLGACT_AddrRd <= GBFFLGACT_AddrRd + 1;
     end
 end
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        PACKER_Num <= 0;
+    end else if ( GBFFLGACT_EnRd_d ) begin
+        PACKER_Num <=   GBFFLGACT_DatRd[0] + GBFFLGACT_DatRd[1] + GBFFLGACT_DatRd[2] + GBFFLGACT_DatRd[3] + GBFFLGACT_DatRd[4] + GBFFLGACT_DatRd[5] + GBFFLGACT_DatRd[6] + GBFFLGACT_DatRd[7] +
+                        GBFFLGACT_DatRd[8] + GBFFLGACT_DatRd[9] + GBFFLGACT_DatRd[10] + GBFFLGACT_DatRd[11] +
+GBFFLGACT_DatRd[12] +
+GBFFLGACT_DatRd[13] +
+GBFFLGACT_DatRd[14] +
+GBFFLGACT_DatRd[15] +
+GBFFLGACT_DatRd[16] +
+GBFFLGACT_DatRd[17] +
+GBFFLGACT_DatRd[18] +
+GBFFLGACT_DatRd[19] +
+GBFFLGACT_DatRd[20] +
+GBFFLGACT_DatRd[21] +
+GBFFLGACT_DatRd[22] +
+GBFFLGACT_DatRd[23] +
+GBFFLGACT_DatRd[24] +
+GBFFLGACT_DatRd[25] +
+GBFFLGACT_DatRd[26] +
+GBFFLGACT_DatRd[27] +
+GBFFLGACT_DatRd[28] +
+GBFFLGACT_DatRd[29] +
+GBFFLGACT_DatRd[30] +
+GBFFLGACT_DatRd[31] ;
+    end
+end
 
 assign GBFFLGACT_EnRd = PlsFetch;
-assign PACKER_Bypass = ~(|GBFFLGACT_DatRd); //flag == 0
+assign PACKER_Bypass = ~(|PACKER_Num); //flag == 0
 
 //=====================================================================================================================
 // Sub-Module :
@@ -164,7 +197,7 @@ PACKER #(
     ) PACKER_ACT (
         .clk           (clk),
         .rst_n         (rst_n),
-        .NumPacker     (GBFVNACT_DatRd),
+        .NumPacker     (PACKER_Num),
         .Sta           (PACKER_Sta),
         .Bypass        (PACKER_Bypass),
         .ReqDat        (PACKER_ReqDat),

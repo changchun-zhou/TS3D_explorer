@@ -18,7 +18,7 @@ module MACAW(
     input [ `BLOCK_DEPTH                                -1 : 0] PECMAC_FlgAct,
     input [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] PECMAC_Act,
     input [ `BLOCK_DEPTH                                -1 : 0] PECMAC_FlgWei,    
-    input [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] PECMAC_Wei,
+    input [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] PECMAC_Wei, // trans
     input [ `DATA_WIDTH + `C_LOG_2(`BLOCK_DEPTH*3)      -1 : 0] MACMAC_Mac,
     output reg[ `DATA_WIDTH + `C_LOG_2(`BLOCK_DEPTH*3)  -1 : 0] MACCNV_Mac
 
