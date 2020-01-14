@@ -11,8 +11,6 @@ entity PEC is
         PECCTRLWEI_GetWei: out    vl_logic;
         DISWEIPEC_Wei   : in     vl_logic_vector(2303 downto 0);
         DISWEIPEC_FlgWei: in     vl_logic_vector(287 downto 0);
-        DISWEIPEC_ValNumWei: in     vl_logic_vector(44 downto 0);
-        DISWEI_AddrBase : in     vl_logic_vector(8 downto 0);
         LSTPEC_FrtActRow: in     vl_logic;
         LSTPEC_LstActRow: in     vl_logic;
         LSTPEC_LstActBlk: in     vl_logic;
@@ -25,6 +23,8 @@ entity PEC is
         PEBPEC_Act      : in     vl_logic_vector(255 downto 0);
         NXTPEC_RdyAct   : out    vl_logic;
         NXTPEC_GetAct   : in     vl_logic;
+        PECMAC_FlgAct   : out    vl_logic_vector(31 downto 0);
+        PECMAC_Act      : out    vl_logic_vector(255 downto 0);
         PECRAM_EnWr     : out    vl_logic;
         PECRAM_AddrWr   : out    vl_logic_vector(3 downto 0);
         PECRAM_DatWr    : out    vl_logic_vector;

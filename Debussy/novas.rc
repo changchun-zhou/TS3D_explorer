@@ -85,6 +85,8 @@ FSDBDumpMem = "$novasDumpMemNow(${SimDmpObj}, ${SimDmpBegin}, ${SimDmpSize});"
 IfShowModule = {TRUE, FALSE}
 [DisabledMessages]
 version = 5.4v9
+184614991 = disabled
+151584789 = disabled
 [Editor]
 editorName = Vi
 [Emacs]
@@ -246,13 +248,15 @@ Comment-FontBold = FALSE
 Comment-FontItalic = FALSE
 Comment-FontOverride = FALSE
 [FSM_Dlg-Print]
-Orientation = Landscape        
+Orientation = Landscape      
 [Form]
 version = 5.4v9
-wave\getSignal.fm = 100,100,888,605
-wave\waveTopWin.fm = 54,237,960,332
-hb\hbTopWin.fm = 0,0,804,500
-propertyTable.fm = 100,100,496,676
+wave\getSignal.fm = 101,101,888,605
+wave\waveTopWin.fm = 133,495,960,332
+hb\hbTopWin.fm = 272,239,886,502
+propertyTable.fm = 101,73,496,676
+wave\sigType.fm = 101,101,480,379
+wave\laMain.fm = 100,100,644,492
 [General]
 version = 5.4v9
 SignalCaseInSensitive = FALSE
@@ -260,7 +264,7 @@ SignalCaseInSensitive = FALSE
 ErrWindow_Font = Helvetica_M_R_12
 [HB]
 ViewSchematic = FALSE
-windowLayout = 0 0 804 500 182 214 784 194
+windowLayout = 272 239 886 502 295 346 866 64
 import_filter = *.v; *.vc; *.f
 designTreeFont = -adobe-helvetica-medium-r-normal--14-*-75-75-*-*-iso8859-*
 import_filter_vhdl = *.vhd; *.vhdl; *.f
@@ -432,7 +436,7 @@ hdlPslComment = ID_GREEN2
 hdlSynopsysHead = ID_GREEN2
 hdlSynopsysComment = ID_GREEN2
 [Text.1]
-viewport = 0 0 804 500 45
+viewport = 272 239 886 502 45
 [TextPrinter]
 Orientation = Landscape
 Indicator = FALSE
@@ -518,7 +522,7 @@ ViFont = "Clean 14"
 ViBG = gray
 ViFG = black
 [Wave]
-viewPort = 54 237 960 332 100 65
+viewPort = 450 494 960 332 228 133
 signalSpacing = 3
 digitalSignalHeight = 15
 analogSignalHeight = 98
@@ -711,6 +715,7 @@ open_file_dir
 open_rc_file_dir
 showGroupTree = TRUE
 hierGroupDelim = /
+busXLayer = -c ID_RED5
 [eco]
 IsFreezeSilicon = FALSE
 ManageMode = INSTANCE_NAME
@@ -722,7 +727,7 @@ NameRule =
 RevisedComponentColor = ID_BLUE5
 SpareCellColor = ID_RED5
 UserName = DELL
-CommentFormat = Novas ECO updated by ${UserName} ${Date} ${Time}
+CommentFormat = Novas ECO updated by ${UserName} ${Date} ${Time} 
 PrefixN = eco_n
 PrefixP = eco_p
 PrefixI = eco_i
@@ -772,7 +777,7 @@ syncCursor = FALSE
 font = Fixed 14
 syncCursor = FALSE
 [schematics]
-viewport = 0 0 804 500
+viewport = 272 239 886 502
 schBackgroundColor = black lineSolid
 schBodyColor = orange6 lineSolid
 schAsmBodyColor = blue7 lineSolid
@@ -923,7 +928,7 @@ SigHeight = 20
 Spacing = 10
 SnapToTransitions = TRUE
 [turboSchema_Printer_Options]
-Orientation = Landscape        
+Orientation = Landscape      
 [verisity]
 TPLanguage = Verilog
 TPName = "Verisity SpeXsim"
@@ -933,7 +938,7 @@ AddImportArgument = FALSE
 LineBreakWithScope = TRUE
 StopAfterCompileOption = -s
 [wave.0]
-viewPort = 50 214 960 332 100 65
+viewPort = 450 494 960 332 228 133
 [wave.1]
 viewPort = 127 219 960 332 100 65
 [wave.2]

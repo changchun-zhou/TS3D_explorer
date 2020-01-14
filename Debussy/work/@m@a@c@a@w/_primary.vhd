@@ -9,8 +9,7 @@ entity MACAW is
         PECMAC_FlgAct   : in     vl_logic_vector(31 downto 0);
         PECMAC_Act      : in     vl_logic_vector(255 downto 0);
         PECMAC_FlgWei   : in     vl_logic_vector(31 downto 0);
-        PECMAC_Wei      : in     vl_logic_vector(2303 downto 0);
-        PECMAC_AddrBaseWei: in     vl_logic_vector(8 downto 0);
+        PECMAC_Wei      : in     vl_logic_vector(255 downto 0);
         MACMAC_Mac      : in     vl_logic_vector(14 downto 0);
         MACCNV_Mac      : out    vl_logic_vector(14 downto 0)
     );

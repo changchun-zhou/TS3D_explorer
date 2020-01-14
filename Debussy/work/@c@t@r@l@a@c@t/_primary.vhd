@@ -15,6 +15,7 @@ entity CTRLACT is
         CTRLACT_GetAct  : in     vl_logic;
         CTRLACT_FrtActRow: out    vl_logic;
         CTRLACT_LstActRow: out    vl_logic;
-        CTRLACT_LstActBlk: out    vl_logic
+        CTRLACT_LstActBlk: out    vl_logic;
+        CTRLACT_FnhFrm  : out    vl_logic
     );
 end CTRLACT;

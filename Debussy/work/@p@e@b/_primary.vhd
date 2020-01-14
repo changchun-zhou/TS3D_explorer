@@ -8,6 +8,8 @@ entity PEB is
         clk             : in     vl_logic;
         rst_n           : in     vl_logic;
         CTRLPEB_FrtBlk  : in     vl_logic;
+        CTRLPEB_FnhFrm  : in     vl_logic;
+        NXTPEB_FrtBlk   : out    vl_logic;
         POOLPEB_EnRd    : in     vl_logic;
         POOLPEB_AddrRd  : in     vl_logic_vector(3 downto 0);
         PEBPOOL_Dat     : out    vl_logic_vector;
@@ -19,10 +21,6 @@ entity PEB is
         PECCTRLWEI_GetWei2: out    vl_logic;
         DISWEIPEC_Wei   : in     vl_logic_vector(2303 downto 0);
         DISWEIPEC_FlgWei: in     vl_logic_vector(287 downto 0);
-        DISWEIPEC_ValNumWei: in     vl_logic_vector(44 downto 0);
-        DISWEI_AddrBase0: in     vl_logic_vector(8 downto 0);
-        DISWEI_AddrBase1: in     vl_logic_vector(8 downto 0);
-        DISWEI_AddrBase2: in     vl_logic_vector(8 downto 0);
         LSTPEC_FrtActRow0: in     vl_logic;
         LSTPEC_LstActRow0: in     vl_logic;
         LSTPEC_LstActBlk0: in     vl_logic;

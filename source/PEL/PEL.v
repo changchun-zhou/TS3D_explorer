@@ -11,7 +11,7 @@
 //========================================================
 `include "../include/dw_params_presim.vh"
 module PEL #(
-    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`CHANNEL_DEPTH) + 2 )
+    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`BLOCK_DEPTH) + 2 )
 )(
 	input                   										clk     ,
 	input                   										rst_n   ,
@@ -25,15 +25,13 @@ module PEL #(
     input 															CTRLPEB_FnhFrm,
     input 															CTRLACT_RdyAct,
     input 															CTRLACT_GetAct,
-    input[ `CHANNEL_DEPTH              						-1 : 0] CTRLACT_FlgAct,
-    input[ `DATA_WIDTH * `CHANNEL_DEPTH						-1 : 0] CTRLACT_Act,    
+    input[ `BLOCK_DEPTH              						-1 : 0] CTRLACT_FlgAct,
+    input[ `DATA_WIDTH * `BLOCK_DEPTH						-1 : 0] CTRLACT_Act,    
     input [ `NUMPEC 										-1 : 0] CTRLWEIPEC_RdyWei,
     output[ `NUMPEC 										-1 : 0] PECCTRLWEI_GetWei,
     input [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE		-1 : 0] DISWEIPEC_Wei,
-    input [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE          		-1 : 0] DISWEIPEC_FlgWei,
-    input [ `C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE   		-1 : 0] DISWEIPEC_ValNumWei,
-	input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   		-1 : 0] DISWEI_AddrBase
-		);
+    input [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE          		-1 : 0] DISWEIPEC_FlgWei
+);
 //=====================================================================================================================
 // Constant Definition :
 //=====================================================================================================================
@@ -85,14 +83,14 @@ generate
 		wire 										NXTPEB_LstActBlk;	
 		wire                                        LSTPEB_RdyAct;
 		wire                                        LSTPEB_GetAct;
-		wire [ `CHANNEL_DEPTH              - 1 : 0 ]LSTPEB_FlgAct;
-		wire [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ]LSTPEB_Act;
+		wire [ `BLOCK_DEPTH              - 1 : 0 ]LSTPEB_FlgAct;
+		wire [ `DATA_WIDTH * `BLOCK_DEPTH- 1 : 0 ]LSTPEB_Act;
 		wire                                        NXTPEB_RdyAct;
 		wire                                        NXTPEB_GetAct;
-		wire [ `CHANNEL_DEPTH              - 1 : 0 ]NXTPEB_FlgAct;
-		wire [ `DATA_WIDTH * `CHANNEL_DEPTH- 1 : 0 ]NXTPEB_Act;
+		wire [ `BLOCK_DEPTH              - 1 : 0 ]NXTPEB_FlgAct;
+		wire [ `DATA_WIDTH * `BLOCK_DEPTH- 1 : 0 ]NXTPEB_Act;
 		PEB #(
-			.PSUM_WIDTH((`DATA_WIDTH *2 + `C_LOG_2(`CHANNEL_DEPTH) + 2 ))
+			.PSUM_WIDTH((`DATA_WIDTH *2 + `C_LOG_2(`BLOCK_DEPTH) + 2 ))
 		) inst_PEB (
 			.clk                 (clk),
 			.rst_n               (rst_n),
@@ -110,8 +108,8 @@ generate
 			.PECCTRLWEI_GetWei2  (PECCTRLWEI_GetWei2),
 			.DISWEIPEC_Wei       (DISWEIPEC_Wei      ),
 			.DISWEIPEC_FlgWei    (DISWEIPEC_FlgWei   ),
-			.DISWEIPEC_ValNumWei (DISWEIPEC_ValNumWei),
-			.DISWEI_AddrBase     (DISWEI_AddrBase),
+			// .DISWEIPEC_ValNumWei (DISWEIPEC_ValNumWei),
+			// .DISWEI_AddrBase     (DISWEI_AddrBase),
 			.LSTPEC_FrtActRow0   (LSTPEB_FrtActRow),
 			.LSTPEC_LstActRow0   (LSTPEB_LstActRow),
 			.LSTPEC_LstActBlk0   (LSTPEB_LstActBlk),
@@ -128,7 +126,7 @@ generate
 			.NXTPEB_Act          (NXTPEB_Act)
 		);
 		assign {CTRLWEIPEC_RdyWei0, CTRLWEIPEC_RdyWei1, CTRLWEIPEC_RdyWei2} = CTRLWEIPEC_RdyWei[3*(`NUMPEB - i -1) +: 3];
-		assign {PECCTRLWEI_GetWei0, PECCTRLWEI_GetWei1, PECCTRLWEI_GetWei2} = PECCTRLWEI_GetWei[3*(`NUMPEB - i -1) +: 3];
+		assign PECCTRLWEI_GetWei[3*(`NUMPEB - i -1) +: 3] = {PECCTRLWEI_GetWei0, PECCTRLWEI_GetWei1, PECCTRLWEI_GetWei2};
 	end
 endgenerate
 

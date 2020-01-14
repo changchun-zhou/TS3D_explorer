@@ -1,19 +1,27 @@
 module SRAM_DUAL #(
     parameter SRAM_DEPTH_BIT = 6,
-parameter SRAM_DEPTH = 2 ** SRAM_DEPTH_BIT,
-parameter SRAM_WIDTH = 28
+    parameter SRAM_DEPTH = 2 ** SRAM_DEPTH_BIT,
+    parameter SRAM_WIDTH = 28,
+    parameter INIT_IF = "no",
+    parameter INIT_FILE = ""
 )(
-input clk,
-input [SRAM_DEPTH_BIT - 1 : 0]addr_r, addr_w,
-input read_en, write_en,
-input[SRAM_WIDTH  - 1 : 0]data_in,
-output reg [SRAM_WIDTH  - 1 : 0]data_out
-    );
-// parameter OUT_DATA_BIT_WIDTH= 28;
+    input clk,
+    input [SRAM_DEPTH_BIT - 1 : 0]addr_r, addr_w,
+    input read_en, write_en,
+    input[SRAM_WIDTH  - 1 : 0]data_in,
+    output reg [SRAM_WIDTH  - 1 : 0]data_out
+);
 
 reg [SRAM_WIDTH  - 1 : 0]mem[0 : SRAM_DEPTH - 1];
 
-// reg[SRAM_WIDTH  - 1 : 0]data_out;
+// ******************************************************************
+// INSTANTIATIONS
+// ******************************************************************
+initial begin
+  if (INIT_IF == "yes") begin
+    $readmemh(INIT_FILE, mem, 0, SRAM_DEPTH-1);
+  end
+end
 
 always @(posedge clk) begin
     if (read_en) begin

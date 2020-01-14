@@ -4,26 +4,122 @@ module FLGOFFSET # (
 	(
 	input 												clk,
 	input  												rst_n,
-	input [ DATA_WIDTH	- 1 : 0 ] Act,
-	input [ DATA_WIDTH  - 1 : 0 ] Wei,
-	input 						  ValFlg,
+	input 												PECMAC_Sta,
+	input [ DATA_WIDTH	- 1 : 0 ] PECMAC_FlgAct,
+	input [ DATA_WIDTH  - 1 : 0 ] PECMAC_FlgWei,
+	// input 						  ValFlg,
 	output  [ ADDR_WIDTH  - 1 : 0 ] OffsetAct,// ADDR_WIDTH + 1?? ///////////////////////
-	output[ ADDR_WIDTH  - 1 : 0 ] OffsetWei,
-	output reg [ DATA_WIDTH   - 1 : 0 ] SetOut,
-	output reg 					  ValOffset
-
+	output[ ADDR_WIDTH  - 1 : 0 ] OffsetWei
+	// output reg [ DATA_WIDTH   - 1 : 0 ] SetOut,
+	// output reg 					  ValOffset
 	);
+reg [ `CHANNEL_DEPTH                - 1 : 0 ] FlgAct;
+reg [ `CHANNEL_DEPTH                - 1 : 0 ] FlgWei;
 	// reg [ ADDR_WIDTH 	- 1 : 0 ] i;
 	wire [ DATA_WIDTH 	- 1 : 0 ] Up;
 	wire [ DATA_WIDTH 	- 1 : 0 ] Down;
 	wire [ DATA_WIDTH   - 1 : 0 ] Set;
 
+reg [DATA_WIDTH - 1 : 0 ] FlgCutAct;
+reg [DATA_WIDTH - 1 : 0 ] FlgCutWei;
+
+
+always @ ( posedge clk or negedge rst_n ) begin 
+    if ( ~rst_n ) begin
+        FlgAct <= 0;
+        FlgWei <= 0;
+    end else if ( PECMAC_Sta ) begin
+        FlgAct <= PECMAC_FlgAct;
+        FlgWei <= PECMAC_FlgWei;
+    end else begin
+        FlgAct <= FlgAct & ~Set; // drop out ahead 1; not need cache 1 clk which halves speed
+        FlgWei <= FlgWei & ~Set;
+    end
+end
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( ~rst_n ) begin
+        FlgCutAct <= 0;
+        FlgCutWei <= 0;
+    end else  begin
+        FlgCutAct <= FlgAct & Set;
+        FlgCutWei <= FlgWei & Set;
+    end
+end
+
+assign  OffsetAct = 
+		FlgCutAct[0] +
+		FlgCutAct[1] +
+		FlgCutAct[2] +
+		FlgCutAct[3] +
+		FlgCutAct[4] +
+		FlgCutAct[5] +
+		FlgCutAct[6] +
+		FlgCutAct[7] +
+		FlgCutAct[8] +
+		FlgCutAct[9] +
+		FlgCutAct[10] +
+		FlgCutAct[11] +
+		FlgCutAct[12] +
+		FlgCutAct[13] +
+		FlgCutAct[14] +
+		FlgCutAct[15] +
+		FlgCutAct[16] +
+		FlgCutAct[17] +
+		FlgCutAct[18] +
+		FlgCutAct[19] +
+		FlgCutAct[20] +
+		FlgCutAct[21] +
+		FlgCutAct[22] +
+		FlgCutAct[23] +
+		FlgCutAct[24] +
+		FlgCutAct[25] +
+		FlgCutAct[26] +
+		FlgCutAct[27] +
+		FlgCutAct[28] +
+		FlgCutAct[29] +
+		FlgCutAct[30] +
+		FlgCutAct[31] ;
+
+assign  OffsetWei = 
+		FlgCutWei[0] +
+		FlgCutWei[1] +
+		FlgCutWei[2] +
+		FlgCutWei[3] +
+		FlgCutWei[4] +
+		FlgCutWei[5] +
+		FlgCutWei[6] +
+		FlgCutWei[7] +
+		FlgCutWei[8] +
+		FlgCutWei[9] +
+		FlgCutWei[10] +
+		FlgCutWei[11] +
+		FlgCutWei[12] +
+		FlgCutWei[13] +
+		FlgCutWei[14] +
+		FlgCutWei[15] +
+		FlgCutWei[16] +
+		FlgCutWei[17] +
+		FlgCutWei[18] +
+		FlgCutWei[19] +
+		FlgCutWei[20] +
+		FlgCutWei[21] +
+		FlgCutWei[22] +
+		FlgCutWei[23] +
+		FlgCutWei[24] +
+		FlgCutWei[25] +
+		FlgCutWei[26] +
+		FlgCutWei[27] +
+		FlgCutWei[28] +
+		FlgCutWei[29] +
+		FlgCutWei[30] +
+		FlgCutWei[31] ;
+
 generate
 	genvar i;
 		for ( i=1; i < DATA_WIDTH -1; i=i+1) begin:Cell
 		Cell_FlgAddr Cell_FlgAddr(
-			.Act ( Act[i]),
-			.Wei ( Wei[i]),
+			.FlgAct ( FlgAct[i]),
+			.FlgWei ( FlgWei[i]),
 			.UpIn( Up [i-1]),
 			.DownIn( Down[i+1]),
 			.UpOut( Up[i]),
@@ -35,8 +131,8 @@ endgenerate
 
 
 Cell_FlgAddr Cell_FlgAddr0(
-	.Act ( Act[0]),
-	.Wei ( Wei[0]),
+	.FlgAct ( FlgAct[0]),
+	.FlgWei ( FlgWei[0]),
 	.UpIn( 1'b0),
 	.DownIn( Down[1]),
 	.UpOut( Up[0]),
@@ -44,8 +140,8 @@ Cell_FlgAddr Cell_FlgAddr0(
 	.Set ( Set[0])
 	);
 Cell_FlgAddr Cell_FlgAddr_1(
-	.Act ( Act[DATA_WIDTH - 1]),
-	.Wei ( Wei[DATA_WIDTH - 1]),
+	.FlgAct ( FlgAct[DATA_WIDTH - 1]),
+	.FlgWei ( FlgWei[DATA_WIDTH - 1]),
 	.UpIn( Up [DATA_WIDTH - 1-1]),
 	.DownIn( 1'b1),
 	.UpOut( Up[DATA_WIDTH - 1]),
@@ -53,110 +149,23 @@ Cell_FlgAddr Cell_FlgAddr_1(
 	.Set ( Set[DATA_WIDTH - 1])
 	);
 
-reg [DATA_WIDTH - 1 : 0 ] ActCut_F;
-reg [DATA_WIDTH - 1 : 0 ] WeiCut_F;
 
-always @ ( posedge clk or negedge rst_n ) begin
-    if ( ~rst_n ) begin
-        ActCut_F <= 0;
-        WeiCut_F <= 0;
-        ValOffset <= 0;
-        SetOut <= 'b0;
-    end else if ( ValFlg ) begin
-        ActCut_F <= Act & Set;
-        WeiCut_F <= Wei & Set;
-        ValOffset<= 1;
-        SetOut   <= Set;
-    end else begin
-    	ValOffset <= 0;
-    end
-end
-
-// assign ActCut_F = Act & Set;
-// assign WeiCut = Wei & Set;
-assign  OffsetAct = 
-		ActCut_F[0] +
-		ActCut_F[1] +
-		ActCut_F[2] +
-		ActCut_F[3] +
-		ActCut_F[4] +
-		ActCut_F[5] +
-		ActCut_F[6] +
-		ActCut_F[7] +
-		ActCut_F[8] +
-		ActCut_F[9] +
-		ActCut_F[10] +
-		ActCut_F[11] +
-		ActCut_F[12] +
-		ActCut_F[13] +
-		ActCut_F[14] +
-		ActCut_F[15] +
-		ActCut_F[16] +
-		ActCut_F[17] +
-		ActCut_F[18] +
-		ActCut_F[19] +
-		ActCut_F[20] +
-		ActCut_F[21] +
-		ActCut_F[22] +
-		ActCut_F[23] +
-		ActCut_F[24] +
-		ActCut_F[25] +
-		ActCut_F[26] +
-		ActCut_F[27] +
-		ActCut_F[28] +
-		ActCut_F[29] +
-		ActCut_F[30] +
-		ActCut_F[31] ;
-
-assign  OffsetWei = 
-		WeiCut_F[0] +
-		WeiCut_F[1] +
-		WeiCut_F[2] +
-		WeiCut_F[3] +
-		WeiCut_F[4] +
-		WeiCut_F[5] +
-		WeiCut_F[6] +
-		WeiCut_F[7] +
-		WeiCut_F[8] +
-		WeiCut_F[9] +
-		WeiCut_F[10] +
-		WeiCut_F[11] +
-		WeiCut_F[12] +
-		WeiCut_F[13] +
-		WeiCut_F[14] +
-		WeiCut_F[15] +
-		WeiCut_F[16] +
-		WeiCut_F[17] +
-		WeiCut_F[18] +
-		WeiCut_F[19] +
-		WeiCut_F[20] +
-		WeiCut_F[21] +
-		WeiCut_F[22] +
-		WeiCut_F[23] +
-		WeiCut_F[24] +
-		WeiCut_F[25] +
-		WeiCut_F[26] +
-		WeiCut_F[27] +
-		WeiCut_F[28] +
-		WeiCut_F[29] +
-		WeiCut_F[30] +
-		WeiCut_F[31] ;
 
 
 endmodule
 
 module Cell_FlgAddr(
-	input Act,
-	input Wei,
+	input FlgAct,
+	input FlgWei,
 	input UpIn,
 	input DownIn,
 	output UpOut,
 	output DownOut,
 	output Set
 );
-	assign UpOut 		= UpIn | ( Act & Wei)		;
+	assign UpOut 		= UpIn | ( FlgAct & FlgWei)		;
 	assign Set		= UpIn & DownIn				;
-	assign DownOut   	= ~(Act & Wei) & DownIn		;
+	assign DownOut   	= ~(FlgAct & FlgWei) & DownIn		;
 
 endmodule
 

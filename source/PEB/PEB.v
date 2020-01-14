@@ -11,7 +11,7 @@
 //========================================================
 `include "../include/dw_params_presim.vh"
 module PEB #(
-    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`CHANNEL_DEPTH) + 2 )
+    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`BLOCK_DEPTH) + 2 )
     )(
     input                                                   clk     ,
     input                                                   rst_n   ,
@@ -32,8 +32,8 @@ module PEB #(
 
     input [`DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE-1 : 0] DISWEIPEC_Wei,
     input [1 * `BLOCK_DEPTH * `KERNEL_SIZE          -1 : 0] DISWEIPEC_FlgWei,
-    input [`C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE   -1 : 0] DISWEIPEC_ValNumWei,
-    input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   - 1 : 0 ] DISWEI_AddrBase,
+    // input [`C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE   -1 : 0] DISWEIPEC_ValNumWei,
+    // input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)   - 1 : 0 ] DISWEI_AddrBase,
 
     input                                                   LSTPEC_FrtActRow0   ,// because read and write simultaneously
     input                                                   LSTPEC_LstActRow0   ,//
@@ -44,12 +44,12 @@ module PEB #(
 
     input                                                   LSTPEB_RdyAct,
     output                                                  LSTPEB_GetAct,
-    input[ `CHANNEL_DEPTH                           -1 : 0] LSTPEB_FlgAct,
-    input[ `DATA_WIDTH * `CHANNEL_DEPTH             -1 : 0] LSTPEB_Act,
+    input[ `BLOCK_DEPTH                             -1 : 0] LSTPEB_FlgAct,
+    input[ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] LSTPEB_Act,
     output                                                  NXTPEB_RdyAct,
     input                                                   NXTPEB_GetAct,
-    output[ `CHANNEL_DEPTH                          -1 : 0] NXTPEB_FlgAct,
-    input[ `DATA_WIDTH * `CHANNEL_DEPTH             -1 : 0] NXTPEB_Act    
+    output[ `BLOCK_DEPTH                            -1 : 0] NXTPEB_FlgAct,
+    input[ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] NXTPEB_Act    
 
 );
 //=====================================================================================================================
@@ -78,10 +78,10 @@ wire                                        NXTPEC_LstActBlk1;
 wire                                        NXTPEC_RdyAct1;
 wire                                        NXTPEC_GetAct1;
 
-wire [ `DATA_WIDTH * `CHANNEL_DEPTH           -1 : 0] PECMAC_Act0;
-wire [ `DATA_WIDTH * `CHANNEL_DEPTH           -1 : 0] PECMAC_Act1;
-wire [ `CHANNEL_DEPTH                         -1 : 0] NXTPEB_FlgAct0;
-wire [ `CHANNEL_DEPTH                         -1 : 0] NXTPEB_FlgAct1;
+wire [ `DATA_WIDTH * `BLOCK_DEPTH           -1 : 0] PECMAC_Act0;
+wire [ `DATA_WIDTH * `BLOCK_DEPTH           -1 : 0] PECMAC_Act1;
+wire [ `BLOCK_DEPTH                         -1 : 0] NXTPEB_FlgAct0;
+wire [ `BLOCK_DEPTH                         -1 : 0] NXTPEB_FlgAct1;
 
 
 wire                                        PECRAM_EnWr0;
@@ -195,8 +195,8 @@ PEC PEC0
         .PECCTRLWEI_GetWei (PECCTRLWEI_GetWei0),
         .DISWEIPEC_Wei     (DISWEIPEC_Wei),
         .DISWEIPEC_FlgWei  (DISWEIPEC_FlgWei),
-        .DISWEIPEC_ValNumWei(DISWEIPEC_ValNumWei),
-        .DISWEI_AddrBase  ( DISWEI_AddrBase ),
+        // .DISWEIPEC_ValNumWei(DISWEIPEC_ValNumWei),
+        // .DISWEI_AddrBase  ( DISWEI_AddrBase ),
         .LSTPEC_FrtActRow  (LSTPEC_FrtActRow0),
         .LSTPEC_LstActRow  (LSTPEC_LstActRow0),
         .LSTPEC_LstActBlk  (LSTPEC_LstActBlk0),
@@ -227,8 +227,8 @@ PEC PEC1
         .PECCTRLWEI_GetWei (PECCTRLWEI_GetWei1),
         .DISWEIPEC_Wei     (DISWEIPEC_Wei),
         .DISWEIPEC_FlgWei  (DISWEIPEC_FlgWei),
-        .DISWEIPEC_ValNumWei(DISWEIPEC_ValNumWei),
-        .DISWEI_AddrBase ( DISWEI_AddrBase),
+        // .DISWEIPEC_ValNumWei(DISWEIPEC_ValNumWei),
+        // .DISWEI_AddrBase ( DISWEI_AddrBase),
         .LSTPEC_FrtActRow  (NXTPEC_FrtActRow0),
         .LSTPEC_LstActRow  (NXTPEC_LstActRow0),
         .LSTPEC_LstActBlk  (NXTPEC_LstActBlk0),
@@ -259,8 +259,8 @@ PEC PEC2
         .PECCTRLWEI_GetWei (PECCTRLWEI_GetWei2),
         .DISWEIPEC_Wei     (DISWEIPEC_Wei),
         .DISWEIPEC_FlgWei  (DISWEIPEC_FlgWei),
-        .DISWEIPEC_ValNumWei(DISWEIPEC_ValNumWei),
-        .DISWEI_AddrBase  (DISWEI_AddrBase),
+        // .DISWEIPEC_ValNumWei(DISWEIPEC_ValNumWei),
+        // .DISWEI_AddrBase  (DISWEI_AddrBase),
         .LSTPEC_FrtActRow  (NXTPEC_FrtActRow1),
         .LSTPEC_LstActRow  (NXTPEC_LstActRow1),
         .LSTPEC_LstActBlk  (NXTPEC_LstActBlk1),

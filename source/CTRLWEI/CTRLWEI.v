@@ -19,12 +19,10 @@ module CTRLWEI (
     input                                           clk     ,
     input                                           rst_n   ,
     input                                           TOP_Sta,
-
-    output reg [ `NUMPEC                        -1 : 0] CTRLWEIPEC_RdyWei ,//48 b
+    output reg [ `NUMPEC                    -1 : 0] CTRLWEIPEC_RdyWei ,//48 b
     input  [ `NUMPEC                        -1 : 0] PECCTRLWEI_GetWei , 
-
-    input                                        DISWEI_RdyWei, 
-    output                                       CTRLWEI_PlsFetch
+    input                                           DISWEI_RdyWei, 
+    output                                          CTRLWEI_PlsFetch
 );
 //=====================================================================================================================
 // Constant Definition :
@@ -80,11 +78,11 @@ end
 //GBFWEI is scheduled ahead
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
-        IDPEC <= 0;
-    end else if ( CTRLWEI_PlsFetch && IDPEC==47 ) begin// automatic loop 0-47
-        IDPEC <= 0;
+        IDPEC <= `NUMPEC -1;
+    end else if ( CTRLWEI_PlsFetch && IDPEC==0 ) begin// automatic loop 0-47
+        IDPEC <= `NUMPEC -1;
     end else if ( CTRLWEI_PlsFetch && state == GETWEI) begin
-        IDPEC <= IDPEC + 1;
+        IDPEC <= IDPEC - 1; // MSB to LSB
     end
 end
 

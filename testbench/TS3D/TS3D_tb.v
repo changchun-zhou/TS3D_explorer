@@ -35,22 +35,22 @@ wire  [ PSUM_WIDTH * `LENPSUM      -1 : 0]  PELPOOL_Dat ;
 
 
 
-// initial
-// begin
-//     //$shm_open ("db_name", is_sequence_time, db_size, is_compression, incsize,incfiles);
-//     $shm_open ("dump.shm");
-//     $shm_probe( "AC");
-// end
-
-initial begin
-/*    $fsdbDumpfile("TS3D_tb.fsdb");
-    $fsdbDumpvars();
-    $dumpfile("TS3D_tb.vcd");
-    $dumpvars;*/
-    repeat(8000) @(posedge clk);
-    $finish;
+initial
+begin
+    //$shm_open ("db_name", is_sequence_time, db_size, is_compression, incsize,incfiles);
+    $shm_open ("shm_presim");
+    $shm_probe( "AC");
 end
-
+`ifdef SYNTH_MINI
+    initial begin
+        // $fsdbDumpfile("TS3D_tb.fsdb");
+        // $fsdbDumpvars();
+        // $dumpfile("TS3D_tb.vcd");
+        // $dumpvars;
+        repeat(800) @(posedge clk);
+        $finish;
+    end
+`endif
 initial
 begin
     clk= 1;
@@ -67,7 +67,7 @@ end
 TS3D  u_TS3D (
     .clk                     ( clk                                                     ),
     .rst_n                   ( rst_n                                                   ),
-    .POOLPEB_EnRd            ( POOLPEB_EnRd      [ `C_LOG_2( `NUMPEB )                   -1 : 0]  ),
+    .POOLPEB_EnRd            ( POOLPEB_EnRd      [ `C_LOG_2( `NUMPEB )        -1 : 0]  ),
     .POOLPEB_AddrRd          ( POOLPEB_AddrRd    [ `C_LOG_2(`LENPSUM)         -1 : 0]  ),
     .GBFWEI_Val              ( GBFWEI_Val                                              ),
     .GBFWEI_EnWr             ( GBFWEI_EnWr                                             ),
