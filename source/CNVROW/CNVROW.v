@@ -58,7 +58,7 @@ always @ ( posedge clk or negedge rst_n ) begin
      if ( ~rst_n ) begin
         CNVOUT_Psum  <= 0;
      end else if ( PECCNV_PlsAcc ) begin
-        CNVOUT_Psum  <= MACCNV_Mac2 + CNVIN_Psum[ PSUM_WIDTH*Addr +: PSUM_WIDTH ];
+        CNVOUT_Psum[ PSUM_WIDTH*Addr +: PSUM_WIDTH ]  <= MACCNV_Mac2 + CNVIN_Psum[ PSUM_WIDTH*Addr +: PSUM_WIDTH ];
      end
  end 
 

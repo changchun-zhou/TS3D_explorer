@@ -15,23 +15,19 @@ module DISACT (
     input                                           rst_n   ,
 
     input                                           CTRLACT_PlsFetch,
-    output                                          CTRLACT_GetAct,                    
+    // output                                          CTRLACT_GetAct,                    
     output                                          DISACT_RdyAct,
-    input                                           DISACT_GetAct,
+    // input                                           DISACT_GetAct,
     output      [ `BLOCK_DEPTH              -1 : 0] DISACT_FlgAct,
     input       [ `DATA_WIDTH * `BLOCK_DEPTH-1 : 0] DISACT_Act,    
     input                                           GBFACT_Val, //valid 
     output                                          GBFACT_EnRd,
     output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFACT_AddrRd,
-    input       [ `DATA_WIDTH               -1 : 0] GBFACT_DatRd,
+    input       [ `DATA_WIDTH               -1 : 0] GBFACT_DatRd,// 8 * `DATA_WIDTH meets bandwidth
     input                                           GBFFLGACT_Val, //valid 
     output                                          GBFFLGACT_EnRd,
     output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFFLGACT_AddrRd,
     input       [ `BLOCK_DEPTH              -1 : 0] GBFFLGACT_DatRd
-    // input                                           GBFVNACT_Val, //valid num ACT
-    // output                                          GBFVNACT_EnRd,
-    // output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFVNACT_AddrRd,
-    // input       [ `C_LOG_2(`BLOCK_DEPTH)    -1 : 0] GBFVNACT_DatRd
                         
 );
 //=====================================================================================================================
@@ -49,7 +45,7 @@ wire                                    NearFnhPacker;
 wire                                    PlsFetch;
 reg                                     PACKER_Sta;
 reg                                     GBFFLGACT_EnRd_d;
-reg [ `C_LOG_2(`BLOCK_DEPTH)    -1 : 0] PACKER_Num;
+reg [ `C_LOG_2(`BLOCK_DEPTH)      : 0] PACKER_Num;
 reg                                     PACKER_ValDat;
 wire                                    PACKER_ReqDat;
 
@@ -82,8 +78,8 @@ always @(*) begin
                     next_state <= WAITGET;
                 else 
                     next_state <= CFGACT;
-      WAITGET : if( DISACT_GetAct )
-                    next_state <= IDLE;
+      WAITGET : if( CTRLACT_PlsFetch )
+                    next_state <= CHECKDATA;
                 else 
                     next_state <= WAITGET;
 
@@ -100,7 +96,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
-assign CTRLACT_GetAct = DISACT_GetAct;
+// assign CTRLACT_GetAct = DISACT_GetAct;
 assign DISACT_RdyAct = state == WAITGET;
 
 assign PlsFetch = next_state == CFGACT && state == CHECKDATA;
@@ -121,7 +117,7 @@ assign GBFVNACT_EnRd = PlsFetch;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         GBFACT_AddrRd <= 0;
-    end else if( 1'b1 ) begin ////////////////////////////////////////
+    end else if( 1'b0 ) begin ////////////////////////////////////////
         GBFACT_AddrRd <= 0;
     end else if( GBFACT_EnRd) begin
         GBFACT_AddrRd <= GBFACT_AddrRd + 1;
@@ -156,6 +152,8 @@ always @ ( posedge clk or negedge rst_n ) begin
         GBFFLGACT_AddrRd <= GBFFLGACT_AddrRd + 1;
     end
 end
+
+assign DISACT_FlgAct = GBFFLGACT_DatRd;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         PACKER_Num <= 0;

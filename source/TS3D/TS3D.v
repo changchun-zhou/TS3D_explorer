@@ -151,9 +151,10 @@ PEL PEL
     .CTRLACT_FrtActRow   (CTRLACT_FrtActRow),
     .CTRLACT_LstActRow   (CTRLACT_LstActRow),
     .CTRLACT_LstActBlk   (CTRLACT_LstActBlk),
+    .CTRLACT_ValPsum     (CTRLACT_ValPsum),
     .CTRLPEB_FnhFrm      (CTRLACT_FnhFrm),
     .CTRLACT_RdyAct      (DISACT_RdyAct),
-    .CTRLACT_GetAct      (DISACT_GetAct),
+    .CTRLACT_GetAct      (CTRLACT_GetAct),
     .CTRLACT_FlgAct      (DISACT_FlgAct),
     .CTRLACT_Act         (DISACT_Act),
     .CTRLWEIPEC_RdyWei   (CTRLWEIPEC_RdyWei),
@@ -244,6 +245,8 @@ CTRLACT CTRLACT
     .CTRLACT_FrtActRow (CTRLACT_FrtActRow),
     .CTRLACT_LstActRow (CTRLACT_LstActRow),
     .CTRLACT_LstActBlk (CTRLACT_LstActBlk),
+    .CTRLACT_ValPsum   (CTRLACT_ValPsum),
+    .CTRLACT_FrtBlk    (CTRLACT_FrtBlk),
     .CTRLACT_FnhFrm    (CTRLACT_FnhFrm)
   );
 DISACT DISACT
@@ -251,9 +254,9 @@ DISACT DISACT
     .clk              (clk),
     .rst_n            (rst_n),
     .CTRLACT_PlsFetch (CTRLACT_PlsFetch),
-    .CTRLACT_GetAct   (CTRLACT_GetAct),
+    // .CTRLACT_GetAct   (CTRLACT_GetAct),
     .DISACT_RdyAct    (DISACT_RdyAct),
-    .DISACT_GetAct    (DISACT_GetAct),
+    // .DISACT_GetAct    (DISACT_GetAct),
     .DISACT_FlgAct    (DISACT_FlgAct),
     .DISACT_Act       (DISACT_Act),
     .GBFACT_Val       (GBFACT_Val),

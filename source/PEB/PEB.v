@@ -38,10 +38,11 @@ module PEB #(
     input                                                   LSTPEC_FrtActRow0   ,// because read and write simultaneously
     input                                                   LSTPEC_LstActRow0   ,//
     input                                                   LSTPEC_LstActBlk0   ,//
+    input                                                   LSTPEC_ValPsum0     ,
     output                                                  NXTPEC_FrtActRow2   ,
     output                                                  NXTPEC_LstActRow2   ,
     output                                                  NXTPEC_LstActBlk2   ,
-
+    output                                                  NXTPEC_ValPsum2     ,
     input                                                   LSTPEB_RdyAct,
     output                                                  LSTPEB_GetAct,
     input[ `BLOCK_DEPTH                             -1 : 0] LSTPEB_FlgAct,
@@ -150,34 +151,35 @@ end
 
 
 
-// Fetch LAST SRAM when new frame comes
-assign EnWr0         = CTRLPEB_FrtBlk ? 0 : PECRAM_EnWr0     ;
-assign AddrWr0       = CTRLPEB_FrtBlk ? 0 : PECRAM_AddrWr0   ;
-assign DatWr0        = CTRLPEB_FrtBlk ? 0 : PECRAM_DatWr0    ;
+// Fetch LAST SRAM when new frame comes ( frtblk of new frame)
+// only read 
+assign EnWr0         = PECRAM_EnWr0     ;
+assign AddrWr0       = PECRAM_AddrWr0   ;
+assign DatWr0        = PECRAM_DatWr0    ;
 assign EnRd0         = CTRLPEB_FrtBlk ? 0 : PECRAM_EnRd0     ;
 assign AddrRd0       = CTRLPEB_FrtBlk ? 0 : PECRAM_AddrRd0   ;
 assign RAMPEC_DatRd0 = CTRLPEB_FrtBlk ? 0 : DatRd0    ;
 
-assign EnWr1         = CTRLPEB_FrtBlk ? PECRAM_EnWr0      : PECRAM_EnWr1     ;
-assign AddrWr1       = CTRLPEB_FrtBlk ? PECRAM_AddrWr0    : PECRAM_AddrWr1   ;
-assign DatWr1        = CTRLPEB_FrtBlk ? PECRAM_DatWr0     : PECRAM_DatWr1    ;
+assign EnWr1         = PECRAM_EnWr1     ;
+assign AddrWr1       = PECRAM_AddrWr1   ;
+assign DatWr1        = PECRAM_DatWr1    ;
 assign EnRd1         = CTRLPEB_FrtBlk ? PECRAM_EnRd0      : PECRAM_EnRd1     ;
 assign AddrRd1       = CTRLPEB_FrtBlk ? PECRAM_AddrRd0    : PECRAM_AddrRd1   ;
 assign RAMPEC_DatRd1 = CTRLPEB_FrtBlk ? DatRd0     : DatRd1           ;
 
 // Ping   
-assign EnWr2         = FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_EnWr1      : PECRAM_EnWr2     ) : 0               ;
-assign AddrWr2       = FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_AddrWr1    : PECRAM_AddrWr2   ) : 0               ;
-assign DatWr2        = FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_DatWr1     : PECRAM_DatWr2    ) : 0               ;
+assign EnWr2         = FlgRAM2 ? ( PECRAM_EnWr2     ) : 0               ;
+assign AddrWr2       = FlgRAM2 ? ( PECRAM_AddrWr2   ) : 0               ;
+assign DatWr2        = FlgRAM2 ? ( PECRAM_DatWr2    ) : 0               ;
 assign EnRd2         = FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_EnRd1      : PECRAM_EnRd2     ) : POOLPEB_EnRd    ;
 assign AddrRd2       = FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_AddrRd1    : PECRAM_AddrRd2   ) : POOLPEB_AddrRd  ;
 
 assign RAMPEC_DatRd2 = CTRLPEB_FrtBlk ? DatRd1 : FlgRAM2 ? DatRd2  : DatRd3     ;
 
 // Pong
-assign EnWr3         =~FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_EnWr1      : PECRAM_EnWr2     ) : 0               ;
-assign AddrWr3       =~FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_AddrWr1    : PECRAM_AddrWr2   ) : 0               ;
-assign DatWr3        =~FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_DatWr1     : PECRAM_DatWr2    ) : 0               ;
+assign EnWr3         =~FlgRAM2 ? ( PECRAM_EnWr2     ) : 0               ;
+assign AddrWr3       =~FlgRAM2 ? ( PECRAM_AddrWr2   ) : 0               ;
+assign DatWr3        =~FlgRAM2 ? ( PECRAM_DatWr2    ) : 0               ;
 assign EnRd3         =~FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_EnRd1      : PECRAM_EnRd2     ) : POOLPEB_EnRd    ;
 assign AddrRd3       =~FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_AddrRd1    : PECRAM_AddrRd2   ) : POOLPEB_AddrRd  ;
 
@@ -200,9 +202,11 @@ PEC PEC0
         .LSTPEC_FrtActRow  (LSTPEC_FrtActRow0),
         .LSTPEC_LstActRow  (LSTPEC_LstActRow0),
         .LSTPEC_LstActBlk  (LSTPEC_LstActBlk0),
+        .LSTPEC_ValPsum    (LSTPEC_ValPsum0),
         .NXTPEC_FrtActRow  (NXTPEC_FrtActRow0),
         .NXTPEC_LstActRow  (NXTPEC_LstActRow0),
         .NXTPEC_LstActBlk  (NXTPEC_LstActBlk0),
+        .NXTPEC_ValPsum    (NXTPEC_ValPsum0),
         .LSTPEC_RdyAct     (LSTPEB_RdyAct),
         .LSTPEC_GetAct     (LSTPEB_GetAct),
         .PEBPEC_FlgAct     (LSTPEB_FlgAct),
@@ -232,9 +236,11 @@ PEC PEC1
         .LSTPEC_FrtActRow  (NXTPEC_FrtActRow0),
         .LSTPEC_LstActRow  (NXTPEC_LstActRow0),
         .LSTPEC_LstActBlk  (NXTPEC_LstActBlk0),
+        .LSTPEC_ValPsum    (NXTPEC_ValPsum0),
         .NXTPEC_FrtActRow  (NXTPEC_FrtActRow1),
         .NXTPEC_LstActRow  (NXTPEC_LstActRow1),
         .NXTPEC_LstActBlk  (NXTPEC_LstActBlk1),
+        .NXTPEC_ValPsum    (NXTPEC_ValPsum1),
         .LSTPEC_RdyAct     (NXTPEC_RdyAct0),
         .LSTPEC_GetAct     (NXTPEC_GetAct0),
         .PEBPEC_FlgAct     (NXTPEB_FlgAct0),
@@ -264,9 +270,11 @@ PEC PEC2
         .LSTPEC_FrtActRow  (NXTPEC_FrtActRow1),
         .LSTPEC_LstActRow  (NXTPEC_LstActRow1),
         .LSTPEC_LstActBlk  (NXTPEC_LstActBlk1),
+        .LSTPEC_ValPsum    (NXTPEC_ValPsum1),
         .NXTPEC_FrtActRow  (NXTPEC_FrtActRow2),
         .NXTPEC_LstActRow  (NXTPEC_LstActRow2),
         .NXTPEC_LstActBlk  (NXTPEC_LstActBlk2),
+        .NXTPEC_ValPsum    (NXTPEC_ValPsum2),
         .LSTPEC_RdyAct     (NXTPEC_RdyAct1),
         .LSTPEC_GetAct     (NXTPEC_GetAct1),
         .PEBPEC_FlgAct     (NXTPEB_FlgAct1),

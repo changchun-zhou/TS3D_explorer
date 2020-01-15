@@ -7,25 +7,18 @@ module FLGOFFSET # (
 	input 												PECMAC_Sta,
 	input [ DATA_WIDTH	- 1 : 0 ] PECMAC_FlgAct,
 	input [ DATA_WIDTH  - 1 : 0 ] PECMAC_FlgWei,
-	// input 						  ValFlg,
-	output  [ ADDR_WIDTH  - 1 : 0 ] OffsetAct,// ADDR_WIDTH + 1?? ///////////////////////
-	output[ ADDR_WIDTH  - 1 : 0 ] OffsetWei
-	// output reg [ DATA_WIDTH   - 1 : 0 ] SetOut,
-	// output reg 					  ValOffset
+	output  [ ADDR_WIDTH    : 0 ] OffsetAct,
+	output[ ADDR_WIDTH      : 0 ] OffsetWei
 	);
-// reg [ 0 : `CHANNEL_DEPTH                - 1 ] FlgAct; // exchange MSB AND LSB
-// reg [ 0 : `CHANNEL_DEPTH                - 1 ] FlgWei; 
 reg [ `CHANNEL_DEPTH                - 1 : 0] FlgAct; // exchange MSB AND LSB
 reg [ `CHANNEL_DEPTH                - 1 : 0] FlgWei; 
 
-	// reg [ ADDR_WIDTH 	- 1 : 0 ] i;
-	wire [ DATA_WIDTH 	- 1 : 0 ] Up;
-	wire [ DATA_WIDTH 	- 1 : 0 ] Down;
-	wire [ DATA_WIDTH   - 1 : 0 ] Set;
+wire [ DATA_WIDTH 	- 1 : 0 ] Up;
+wire [ DATA_WIDTH 	- 1 : 0 ] Down;
+wire [ DATA_WIDTH   - 1 : 0 ] Set;
 
 reg [DATA_WIDTH - 1 : 0 ] FlgCutAct;
 reg [DATA_WIDTH - 1 : 0 ] FlgCutWei;
-
 
 always @ ( posedge clk or negedge rst_n ) begin 
     if ( ~rst_n ) begin
@@ -167,7 +160,7 @@ module Cell_FlgAddr(
 	output Set
 );
 	assign UpOut 		= UpIn | ( FlgAct & FlgWei)		;
-	assign Set		= UpIn & DownIn				;
+	assign Set		= UpOut & DownIn				;
 	assign DownOut   	= ~(FlgAct & FlgWei) & DownIn		;
 
 endmodule

@@ -39,7 +39,7 @@ initial
 begin
     //$shm_open ("db_name", is_sequence_time, db_size, is_compression, incsize,incfiles);
     $shm_open ("shm_presim");
-    $shm_probe( "AC");
+    $shm_probe( "AS");
 end
 `ifdef SYNTH_MINI
     initial begin
@@ -47,7 +47,7 @@ end
         // $fsdbDumpvars();
         // $dumpfile("TS3D_tb.vcd");
         // $dumpvars;
-        repeat(800) @(posedge clk);
+        repeat(8000) @(posedge clk);
         $finish;
     end
 `endif
@@ -67,7 +67,7 @@ end
 integer print_file1;
 initial begin
     print_file1 = $fopen("./print_data/print_file1.txt");
-    repeat(500) begin
+    repeat(2500) begin
         @(negedge clk);
         $fdisplay(print_file1,"%t => DISWEIPEC_Wei = %h; SeqWei = %h; GBFWEI_DatRd = %h; ",
           $time, TS3D.DISWEI.DISWEIPEC_Wei, TS3D.DISWEI.SeqWei, TS3D.DISWEI.GBFWEI_DatRd);

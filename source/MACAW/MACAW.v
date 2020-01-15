@@ -14,7 +14,7 @@ module MACAW(
     input                                                       clk     ,
     input                                                       rst_n   ,
     input                                                       PECMAC_Sta      ,
-    output reg                                                  MACPEC_Fnh,//level; ahead 1 clk//////////////////////////////////////////
+    output reg                                                  MACPEC_Fnh,//level; same time
     input [ `BLOCK_DEPTH                                -1 : 0] PECMAC_FlgAct,
     input [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] PECMAC_Act,
     input [ `BLOCK_DEPTH                                -1 : 0] PECMAC_FlgWei,    
@@ -31,12 +31,14 @@ module MACAW(
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
-wire[ `C_LOG_2(`BLOCK_DEPTH)      -1 : 0] OffsetAct;
-reg [ `C_LOG_2(`BLOCK_DEPTH)      -1 : 0] OffsetAct_d;
-wire[ `C_LOG_2(`BLOCK_DEPTH)      -1 : 0] OffsetWei;
-wire                                        ValAddr;
+wire[ `C_LOG_2(`BLOCK_DEPTH)         : 0] OffsetAct;
+reg [ `C_LOG_2(`BLOCK_DEPTH)         : 0] OffsetAct_d;
+wire[ `C_LOG_2(`BLOCK_DEPTH)         : 0] OffsetWei;
+wire                                      ValAddr;
 reg [ `C_LOG_2(`BLOCK_DEPTH)      -1 : 0] AddrAct;
 reg [ `C_LOG_2(`BLOCK_DEPTH)      -1 : 0] AddrWei;
+reg                                       PECMAC_Sta_d;
+reg                                       PECMAC_Sta_dd;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -93,14 +95,26 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
+
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        PECMAC_Sta_d <= 0;
+        PECMAC_Sta_dd<=0;
+    end else begin
+        PECMAC_Sta_d <= PECMAC_Sta;
+        PECMAC_Sta_dd<=PECMAC_Sta_d;
+    end
+end
+
+
 // MACPEC_Fnh paulse
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
+        MACPEC_Fnh <= 1;
+    end else if( PECMAC_Sta || PECMAC_Sta_d || PECMAC_Sta_dd) begin // because OffsetAct_d delay 2 clk;
         MACPEC_Fnh <= 0;
-    end else if( PECMAC_Sta ) begin
-        MACPEC_Fnh <= 0;
-    end else begin
-        MACPEC_Fnh <= ~(|OffsetAct) && state;// && state == COMP
+    end else if( ~(|OffsetAct_d) && state )begin
+        MACPEC_Fnh <= 1;// && state == COMP
     end
 end
 

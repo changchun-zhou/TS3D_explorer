@@ -17,7 +17,7 @@ module  PACKER #(
 ) (
     input                                   clk     ,
     input                                   rst_n   ,
-    input  [ `C_LOG_2(NUM_DATA)    - 1 : 0 ] NumPacker, // 0-31 stands for 1-32 data
+    input  [ `C_LOG_2(NUM_DATA)       : 0 ] NumPacker, // 1-32 data
     input                                   Sta,//paulse
     input                                   Bypass ,// paulse 0 data
 
@@ -97,7 +97,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
-assign NearFnhPacker = Bypass || CntFetch == NumPacker;
+assign NearFnhPacker = Bypass || CntFetch == NumPacker -1;
 
 
 //=====================================================================================================================

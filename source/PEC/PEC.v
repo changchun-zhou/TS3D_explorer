@@ -24,9 +24,11 @@ module PEC #(
     input                                                       LSTPEC_FrtActRow   ,// because read and write simultaneously
     input                                                       LSTPEC_LstActRow   ,//
     input                                                       LSTPEC_LstActBlk   ,//
+    input                                                       LSTPEC_ValPsum     ,
     output reg                                                  NXTPEC_FrtActRow   ,
     output reg                                                  NXTPEC_LstActRow   ,
     output reg                                                  NXTPEC_LstActBlk   ,
+    output reg                                                  NXTPEC_ValPsum     ,
     // output                  PEC_FnhBlk,
     input                                                       LSTPEC_RdyAct,// level
     output                                                      LSTPEC_GetAct,// PAULSE
@@ -39,10 +41,10 @@ module PEC #(
 
     output                                                      PECRAM_EnWr,
     output reg [ `C_LOG_2(`LENPSUM)                     -1 : 0] PECRAM_AddrWr,
-    output [  PSUM_WIDTH * `LENPSUM                     -1 : 0] PECRAM_DatWr,
+    output [  PSUM_WIDTH *  ( `LENPSUM )                -1 : 0] PECRAM_DatWr,
     output                                                      PECRAM_EnRd,
     output reg [ `C_LOG_2(`LENPSUM)                     -1 : 0] PECRAM_AddrRd,
-    input  [ PSUM_WIDTH * `LENPSUM                      -1 : 0] RAMPEC_DatRd 
+    input  [ PSUM_WIDTH * ( `LENPSUM )                  -1 : 0] RAMPEC_DatRd 
 
 );
 //=====================================================================================================================
@@ -57,47 +59,45 @@ module PEC #(
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
-wire                                CfgMac;
-wire                                CfgWei;
-reg                                 CfgWei_d;
-
-wire                                MACPEC_Fnh0;
-wire                                MACPEC_Fnh1;
-wire                                MACPEC_Fnh2;
-wire                                MACPEC_Fnh3;
-wire                                MACPEC_Fnh4;
-wire                                MACPEC_Fnh5;
-wire                                MACPEC_Fnh6;
-wire                                MACPEC_Fnh7;
-wire                                MACPEC_Fnh8;
-
-
-reg                                         PECMAC_Sta;
-
-wire                                PECCNV_PlsAcc;// level
-reg                                 PECCNV_PlsAcc_d;// level
-wire                                PlsFnhAll;
-wire                                FnhRow;
-wire                                StaRow;
-wire                                FnhBlk;
-wire                                PECCNV_FnhRow;
-
-wire [  PSUM_WIDTH * `LENPSUM       - 1 : 0 ] PECCNV_Psum;
-wire [  PSUM_WIDTH * `LENPSUM       - 1 : 0 ] CNVOUT_Psum0;
-wire [  PSUM_WIDTH * `LENPSUM       - 1 : 0 ] CNVOUT_Psum1;
-wire [  PSUM_WIDTH * `LENPSUM       - 1 : 0 ] CNVOUT_Psum2;
-
-reg  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE- 1 : 0 ] WeiArray;
-reg  [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE- 1 : 0 ] FlgWei;
-reg  [ `C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE   - 1 : 0 ] ValNumWei;
-wire [ `C_LOG_2( `BLOCK_DEPTH)                  - 1 : 0 ] ValNumWei0;
-wire [ `C_LOG_2( `BLOCK_DEPTH)                  - 1 : 0 ] ValNumWei1;
-wire [ `C_LOG_2( `BLOCK_DEPTH)                  - 1 : 0 ] ValNumWei2;
-wire [ `C_LOG_2( `BLOCK_DEPTH)                  - 1 : 0 ] ValNumWei3;
-wire [ `C_LOG_2( `BLOCK_DEPTH)                  - 1 : 0 ] ValNumWei4;
-wire [ `C_LOG_2( `BLOCK_DEPTH)                  - 1 : 0 ] ValNumWei5;
-wire [ `C_LOG_2( `BLOCK_DEPTH)                  - 1 : 0 ] ValNumWei6;
-wire [ `C_LOG_2( `BLOCK_DEPTH)                  - 1 : 0 ] ValNumWei7;
+wire                                                    CfgMac;
+wire                                                    CfgWei;
+reg                                                     CfgWei_d;
+wire                                                    MACPEC_Fnh0;
+wire                                                    MACPEC_Fnh1;
+wire                                                    MACPEC_Fnh2;
+wire                                                    MACPEC_Fnh3;
+wire                                                    MACPEC_Fnh4;
+wire                                                    MACPEC_Fnh5;
+wire                                                    MACPEC_Fnh6;
+wire                                                    MACPEC_Fnh7;
+wire                                                    MACPEC_Fnh8;
+reg                                                     PECMAC_Sta;
+wire                                                    PECCNV_PlsAcc;// level
+reg                                                     PECCNV_PlsAcc_d;// level
+wire                                                    PlsFnhAll;
+wire                                                    FnhRow;
+wire                                                    StaRow;
+wire                                                    FnhBlk;
+wire                                                    PECCNV_FnhRow;
+wire [  PSUM_WIDTH * `LENPSUM                   -1 : 0] PECCNV_Psum;
+wire [  PSUM_WIDTH * `LENPSUM                   -1 : 0] CNVOUT_Psum0;
+wire [  PSUM_WIDTH * `LENPSUM                   -1 : 0] CNVOUT_Psum1;
+wire [  PSUM_WIDTH * `LENPSUM                   -1 : 0] CNVOUT_Psum2;
+reg  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE-1 : 0] WeiArray;
+reg  [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE          -1 : 0] FlgWei;
+reg                                                     ValPsum;
+reg                                                     FrtActRow;
+reg                                                     LstActRow;
+reg                                                     LstActBlk;
+reg  [ `C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE   -1 : 0] ValNumWei;
+wire [ `C_LOG_2( `BLOCK_DEPTH)                  -1 : 0] ValNumWei0;
+wire [ `C_LOG_2( `BLOCK_DEPTH)                  -1 : 0] ValNumWei1;
+wire [ `C_LOG_2( `BLOCK_DEPTH)                  -1 : 0] ValNumWei2;
+wire [ `C_LOG_2( `BLOCK_DEPTH)                  -1 : 0] ValNumWei3;
+wire [ `C_LOG_2( `BLOCK_DEPTH)                  -1 : 0] ValNumWei4;
+wire [ `C_LOG_2( `BLOCK_DEPTH)                  -1 : 0] ValNumWei5;
+wire [ `C_LOG_2( `BLOCK_DEPTH)                  -1 : 0] ValNumWei6;
+wire [ `C_LOG_2( `BLOCK_DEPTH)                  -1 : 0] ValNumWei7;
 // reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE) - 1 : 0 ] PECMAC_AddrBaseWei0;
 // reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE) - 1 : 0 ] PECMAC_AddrBaseWei1;
 // reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE) - 1 : 0 ] PECMAC_AddrBaseWei2;
@@ -107,17 +107,15 @@ wire [ `C_LOG_2( `BLOCK_DEPTH)                  - 1 : 0 ] ValNumWei7;
 // reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE) - 1 : 0 ] PECMAC_AddrBaseWei6;
 // reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE) - 1 : 0 ] PECMAC_AddrBaseWei7;
 // reg  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE) - 1 : 0 ] PECMAC_AddrBaseWei8;
-
-wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei0;
-wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei1;
-wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei2;
-wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei3;
-wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei4;
-wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei5;
-wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei6;
-wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei7;
-wire [ 1 * `BLOCK_DEPTH                         - 1 : 0 ] PECMAC_FlgWei8;
-
+wire [ 1 * `BLOCK_DEPTH                         -1 : 0] PECMAC_FlgWei0;
+wire [ 1 * `BLOCK_DEPTH                         -1 : 0] PECMAC_FlgWei1;
+wire [ 1 * `BLOCK_DEPTH                         -1 : 0] PECMAC_FlgWei2;
+wire [ 1 * `BLOCK_DEPTH                         -1 : 0] PECMAC_FlgWei3;
+wire [ 1 * `BLOCK_DEPTH                         -1 : 0] PECMAC_FlgWei4;
+wire [ 1 * `BLOCK_DEPTH                         -1 : 0] PECMAC_FlgWei5;
+wire [ 1 * `BLOCK_DEPTH                         -1 : 0] PECMAC_FlgWei6;
+wire [ 1 * `BLOCK_DEPTH                         -1 : 0] PECMAC_FlgWei7;
+wire [ 1 * `BLOCK_DEPTH                         -1 : 0] PECMAC_FlgWei8;
 reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei0;
 reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei1;
 reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei2;
@@ -204,7 +202,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         PECMAC_Wei6 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 6 +: `DATA_WIDTH * `BLOCK_DEPTH];
         PECMAC_Wei7 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 7 +: `DATA_WIDTH * `BLOCK_DEPTH];
         PECMAC_Wei8 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 8 +: `DATA_WIDTH * `BLOCK_DEPTH];
-        FlgWei              <= DISWEIPEC_FlgWei;
+
         // ValNumWei           <= DISWEIPEC_ValNumWei;
         // PECMAC_AddrBaseWei0 <= DISWEI_AddrBase;//
         // PECMAC_AddrBaseWei1 <= DISWEI_AddrBase + ValNumWei0;
@@ -267,9 +265,6 @@ assign PECMAC_FlgWei8 = FlgWei[ `BLOCK_DEPTH * 8 +: `BLOCK_DEPTH];
 // assign ValNumWei6 = DISWEIPEC_ValNumWei[`C_LOG_2( `BLOCK_DEPTH) * 6 +: `C_LOG_2( `BLOCK_DEPTH)];
 // assign ValNumWei7 = DISWEIPEC_ValNumWei[`C_LOG_2( `BLOCK_DEPTH) * 7 +: `C_LOG_2( `BLOCK_DEPTH)];
 
-
-
-
 // output Rdy/ Get
 assign NXTPEC_RdyAct = state == WAITGET;
 assign LSTPEC_GetAct = CfgMac;
@@ -290,9 +285,9 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 assign PlsFnhAll = PECCNV_PlsAcc && ~PECCNV_PlsAcc_d;
-assign StaRow = LSTPEC_FrtActRow && PlsFnhAll;
-assign FnhRow = LSTPEC_LstActRow && PlsFnhAll;
-assign FnhBlk = LSTPEC_LstActBlk && PlsFnhAll;
+assign StaRow = FrtActRow && PlsFnhAll;
+assign FnhRow = LstActRow && PlsFnhAll;
+assign FnhBlk = LstActBlk && PlsFnhAll;
 
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
@@ -302,11 +297,18 @@ always @ ( posedge clk or negedge rst_n ) begin
         NXTPEC_LstActBlk <= 0;
         NXTPEC_LstActRow <= 0;
     end else if ( CfgMac ) begin
-        PECMAC_FlgAct <= PEBPEC_FlgAct;
-        PECMAC_Act    <= PEBPEC_Act;
-        NXTPEC_FrtActRow <= LSTPEC_FrtActRow;
-        NXTPEC_LstActBlk <= LSTPEC_LstActBlk;
-        NXTPEC_LstActRow <= LSTPEC_LstActRow;
+        PECMAC_FlgAct    <= PEBPEC_FlgAct;
+        PECMAC_Act       <= PEBPEC_Act;
+        FlgWei           <= DISWEIPEC_FlgWei;
+        FrtActRow        <=LSTPEC_FrtActRow;
+        LstActRow        <=LSTPEC_LstActRow;
+        LstActBlk        <=LSTPEC_LstActBlk;
+        ValPsum          <= LSTPEC_ValPsum;
+
+        NXTPEC_FrtActRow <= FrtActRow;
+        NXTPEC_LstActBlk <= LstActBlk;
+        NXTPEC_LstActRow <= LstActRow;
+        NXTPEC_ValPsum   <= ValPsum;
     end
 end
 always @ ( posedge clk or negedge rst_n ) begin
@@ -325,11 +327,11 @@ always @ ( posedge clk or negedge rst_n ) begin
         PECRAM_AddrRd <= 0;
     end else if ( FnhBlk ) begin
         PECRAM_AddrRd <= 0;
-    end else if ( StaRow ) begin
+    end else if ( PECRAM_EnRd ) begin
         PECRAM_AddrRd <= PECRAM_AddrRd + 1;
     end
 end
-assign PECRAM_EnRd = StaRow ;
+assign PECRAM_EnRd = StaRow && ValPsum; // 14
 assign PECCNV_Psum = RAMPEC_DatRd ;
 
 // Write SRAM
@@ -338,12 +340,12 @@ always @ ( posedge clk or negedge rst_n ) begin
         PECRAM_AddrWr <= 0;
     end else if ( FnhBlk ) begin
         PECRAM_AddrWr <= 0;        
-    end else if ( FnhRow ) begin
+    end else if ( PECRAM_EnWr ) begin
         PECRAM_AddrWr <= PECRAM_AddrWr + 1;
     end
 end
-assign PECRAM_DatWr = CNVOUT_Psum2;
-assign PECRAM_EnWr  = FnhRow;
+assign PECRAM_DatWr = CNVOUT_Psum0[0 +: PSUM_WIDTH * (`LENPSUM - 2)]; // 14
+assign PECRAM_EnWr  = FnhRow && ValPsum;//output Row is 1-14 not -1, 0
 
 
 
@@ -371,7 +373,7 @@ CNVROW CNVROW0 (
         // .PECMAC_AddrBaseWei0(0),
         // .PECMAC_AddrBaseWei1(0),
         // .PECMAC_AddrBaseWei2(0),
-        .CNVIN_Psum     (PECCNV_Psum),
+        .CNVIN_Psum     (CNVOUT_Psum1),
         .CNVOUT_Psum    (CNVOUT_Psum0)
     );
 
@@ -395,7 +397,7 @@ CNVROW CNVROW1 (
         // .PECMAC_AddrBaseWei0(0),
         // .PECMAC_AddrBaseWei1(0),
         // .PECMAC_AddrBaseWei2(0),
-        .CNVIN_Psum     (CNVOUT_Psum0),
+        .CNVIN_Psum     (CNVOUT_Psum2),
         .CNVOUT_Psum    (CNVOUT_Psum1)
     );
 
@@ -419,7 +421,7 @@ CNVROW CNVROW2 (
         // .PECMAC_AddrBaseWei0(0),
         // .PECMAC_AddrBaseWei1(0),
         // .PECMAC_AddrBaseWei2(0),
-        .CNVIN_Psum     (CNVOUT_Psum1),
+        .CNVIN_Psum     (PECCNV_Psum),
         .CNVOUT_Psum    (CNVOUT_Psum2)
     );
 

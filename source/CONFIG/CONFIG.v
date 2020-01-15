@@ -41,19 +41,19 @@ module  CONFIG (
 //=====================================================================================================================
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
-        CFG_LenRow <= 16;
-        CFG_DepBlk <= 32;
-        CFG_NumBlk <= 2;
-        CFG_NumFrm <= 8;
-        CFG_NumPat <= 1;
-        CFG_NumLay <= 8;
+        CFG_LenRow <= 15;
+        CFG_DepBlk <= 31;
+        CFG_NumBlk <= 1;
+        CFG_NumFrm <= 7;
+        CFG_NumPat <= 0;
+        CFG_NumLay <= 7;
      end else begin
-        CFG_LenRow <= 16;
-        CFG_DepBlk <= 32;
-        CFG_NumBlk <= 2;
-        CFG_NumFrm <= 8;
-        CFG_NumPat <= 1;
-        CFG_NumLay <= 8;
+        CFG_LenRow <= 15;
+        CFG_DepBlk <= 31;
+        CFG_NumBlk <= 1;
+        CFG_NumFrm <= 7;
+        CFG_NumPat <= 0;
+        CFG_NumLay <= 7;
     end
 end
 
