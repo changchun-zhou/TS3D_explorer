@@ -14,9 +14,10 @@ entity PEL is
         CTRLACT_FrtActRow: in     vl_logic;
         CTRLACT_LstActRow: in     vl_logic;
         CTRLACT_LstActBlk: in     vl_logic;
+        CTRLACT_ValPsum : in     vl_logic;
         CTRLPEB_FnhFrm  : in     vl_logic;
         CTRLACT_RdyAct  : in     vl_logic;
-        CTRLACT_GetAct  : in     vl_logic;
+        CTRLACT_GetAct  : out    vl_logic;
         CTRLACT_FlgAct  : in     vl_logic_vector(31 downto 0);
         CTRLACT_Act     : in     vl_logic_vector(255 downto 0);
         CTRLWEIPEC_RdyWei: in     vl_logic_vector(5 downto 0);

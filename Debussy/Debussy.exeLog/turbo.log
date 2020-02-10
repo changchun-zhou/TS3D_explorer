@@ -1,6 +1,4 @@
 Command Line: debussy -2001 -f vf.v -ssf TS3D_tb.fsdb -sswr TS3D_tb.rc
 uname(WinNT DESKTOP-K4PJT3U 6.2.9200  Intel Pentium)
-hbReload time 4 0.0 0.0 delta 96600 348160 total 21034640 27357184
-Disabled AskUser2 Message (Response 0): Remember to save signals to a signal file.
-Do you want to continue?
-au time 41006 0.0 0.0 delta 35708336 34959360 total 36048896 36048896
+hbReload time 0 0.0 0.0 delta 96560 348160 total 21079696 26083328
+au time 9423 0.0 0.0 delta 27884976 27148288 total 28225536 28225536

@@ -45,9 +45,9 @@ module CNVROW #(
 // Variable Definition :
 //=====================================================================================================================
 reg [ `C_LOG_2( `LENPSUM)                       -1 : 0] Addr;
-wire [ `DATA_WIDTH + `C_LOG_2(`BLOCK_DEPTH*3)   -1 : 0] MACCNV_Mac0;
-wire [ `DATA_WIDTH + `C_LOG_2(`BLOCK_DEPTH*3)   -1 : 0] MACCNV_Mac1;
-wire [ `DATA_WIDTH + `C_LOG_2(`BLOCK_DEPTH*3)   -1 : 0] MACCNV_Mac2;
+wire [ `DATA_WIDTH * 2 + `C_LOG_2(`BLOCK_DEPTH*3)   -1 : 0] MACCNV_Mac0;
+wire [ `DATA_WIDTH * 2 + `C_LOG_2(`BLOCK_DEPTH*3)   -1 : 0] MACCNV_Mac1;
+wire [ `DATA_WIDTH * 2 + `C_LOG_2(`BLOCK_DEPTH*3)   -1 : 0] MACCNV_Mac2;
 
 
 //=====================================================================================================================
@@ -64,9 +64,9 @@ always @ ( posedge clk or negedge rst_n ) begin
 
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
-        Addr <= `LENPSUM; // correspond to real feature map position 
+        Addr <= `LENROW - 1; // correspond to real feature map position 
     end else if ( PECCNV_FnhRow ) begin
-        Addr <= `LENPSUM;
+        Addr <= `LENROW - 1;
     end else if ( PECCNV_PlsAcc ) begin
         Addr <= Addr - 1;
     end

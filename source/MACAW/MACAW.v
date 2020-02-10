@@ -19,8 +19,8 @@ module MACAW(
     input [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] PECMAC_Act,
     input [ `BLOCK_DEPTH                                -1 : 0] PECMAC_FlgWei,    
     input [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] PECMAC_Wei, // trans
-    input [ `DATA_WIDTH + `C_LOG_2(`BLOCK_DEPTH*3)      -1 : 0] MACMAC_Mac,
-    output reg[ `DATA_WIDTH + `C_LOG_2(`BLOCK_DEPTH*3)  -1 : 0] MACCNV_Mac
+    input [ `DATA_WIDTH * 2+ `C_LOG_2(`BLOCK_DEPTH*3)      -1 : 0] MACMAC_Mac,
+    output reg[ `DATA_WIDTH * 2 + `C_LOG_2(`BLOCK_DEPTH*3)  -1 : 0] MACCNV_Mac
 
 );
 //=====================================================================================================================
@@ -37,6 +37,10 @@ wire[ `C_LOG_2(`BLOCK_DEPTH)         : 0] OffsetWei;
 wire                                      ValAddr;
 reg [ `C_LOG_2(`BLOCK_DEPTH)      -1 : 0] AddrAct;
 reg [ `C_LOG_2(`BLOCK_DEPTH)      -1 : 0] AddrWei;
+wire [ `C_LOG_2(`BLOCK_DEPTH) + `C_LOG_2(`DATA_WIDTH)     -1 : 0] AddrBaseAct;
+wire [ `C_LOG_2(`BLOCK_DEPTH) + `C_LOG_2(`DATA_WIDTH)     -1 : 0] AddrBaseWei;
+
+
 reg                                       PECMAC_Sta_d;
 reg                                       PECMAC_Sta_dd;
 //=====================================================================================================================
@@ -84,14 +88,17 @@ always @ ( posedge clk or negedge rst_n ) begin
 end
 assign ValAddr = |OffsetAct_d;// reduce path delay from FlgCutAct to AddrAct;
 
+assign AddrBaseAct = AddrAct << `C_LOG_2(`DATA_WIDTH);
+assign AddrBaseWei = AddrWei << `C_LOG_2(`DATA_WIDTH);
+
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         MACCNV_Mac <= 0;
     end else if ( PECMAC_Sta ) begin
         MACCNV_Mac <= MACMAC_Mac;
     end else if ( ValAddr ) begin
-        MACCNV_Mac <= MACCNV_Mac + PECMAC_Act[  AddrAct << `C_LOG_2(`DATA_WIDTH) +: `DATA_WIDTH] 
-                                 * PECMAC_Wei[  AddrWei << `C_LOG_2(`DATA_WIDTH) +: `DATA_WIDTH];
+        MACCNV_Mac <= MACCNV_Mac + PECMAC_Act[  AddrBaseAct +: `DATA_WIDTH] 
+                                 * PECMAC_Wei[  AddrBaseWei +: `DATA_WIDTH];
     end
 end
 

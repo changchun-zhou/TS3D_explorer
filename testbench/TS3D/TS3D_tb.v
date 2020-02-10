@@ -39,7 +39,7 @@ initial
 begin
     //$shm_open ("db_name", is_sequence_time, db_size, is_compression, incsize,incfiles);
     $shm_open ("shm_presim");
-    $shm_probe( "AS");
+    $shm_probe(TS3D, "AS");
 end
 `ifdef SYNTH_MINI
     initial begin
@@ -47,7 +47,7 @@ end
         // $fsdbDumpvars();
         // $dumpfile("TS3D_tb.vcd");
         // $dumpvars;
-        repeat(8000) @(posedge clk);
+        repeat(16000) @(posedge clk);
         $finish;
     end
 `endif

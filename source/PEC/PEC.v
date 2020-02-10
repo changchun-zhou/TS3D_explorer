@@ -72,8 +72,8 @@ wire                                                    MACPEC_Fnh6;
 wire                                                    MACPEC_Fnh7;
 wire                                                    MACPEC_Fnh8;
 reg                                                     PECMAC_Sta;
-wire                                                    PECCNV_PlsAcc;// level
-reg                                                     PECCNV_PlsAcc_d;// level
+wire                                                    LevFnhAll;// level
+reg                                                     LevFnhAll_d,LevFnhAll_dd,LevFnhAll_ddd;// level
 wire                                                    PlsFnhAll;
 wire                                                    FnhRow;
 wire                                                    StaRow;
@@ -87,8 +87,8 @@ reg  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE-1 : 0] WeiArray;
 reg  [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE          -1 : 0] FlgWei;
 reg                                                     ValPsum;
 reg                                                     FrtActRow;
-reg                                                     LstActRow;
-reg                                                     LstActBlk;
+reg                                                     LstActRow, LstActRow_d, LstActRow_dd, LstActRow_ddd;
+reg                                                     LstActBlk,LstActBlk_d,LstActBlk_dd,LstActBlk_ddd;
 reg  [ `C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE   -1 : 0] ValNumWei;
 wire [ `C_LOG_2( `BLOCK_DEPTH)                  -1 : 0] ValNumWei0;
 wire [ `C_LOG_2( `BLOCK_DEPTH)                  -1 : 0] ValNumWei1;
@@ -129,15 +129,18 @@ reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei8;
 // Logic Design :
 //=====================================================================================================================
 // FSM : ACT is ever gotten or not
-localparam IDLE     = 2'b00;
-localparam CFGWEI   = 2'b01;
-localparam CFGACT   = 2'b11;
-localparam WAITGET  = 2'b10;
+localparam IDLE     = 3'b000;
+localparam CFGWEI   = 3'b001;
+localparam CFGACT   = 3'b011;
+localparam WAITGET  = 3'b010;
+localparam RDRAM    = 3'b100;
+localparam WRRAM    = 3'b101;
+
+reg [ 3 - 1 : 0  ] next_state;
+reg [ 3 - 1 : 0  ] state;
 
 
-reg [ 2 - 1 : 0  ] next_state;
-reg [ 2 - 1 : 0  ] state;
-
+/////////////////////////// shortest except compute time; short 1 clk => 20% speedup /////////////////////////////////
 always @(*) begin
     case (state)
       IDLE  :   if ( 1'b1 )
@@ -145,19 +148,24 @@ always @(*) begin
                 else 
                     next_state <= IDLE;  // avoid Latch
       CFGWEI:   if ( CTRLWEIPEC_RdyWei )
-                    next_state <= CFGACT;
+                    next_state <= RDRAM;
                 else 
                     next_state <= CFGWEI;
-      CFGACT:   if( LSTPEC_RdyAct && PECCNV_PlsAcc)
+      RDRAM:        next_state <= CFGACT;
+      CFGACT:   if( LSTPEC_RdyAct && LevFnhAll) // || ~EnPEC
                     next_state <= WAITGET;
                 else 
                     next_state <= CFGACT;
-      WAITGET  :if( FnhBlk )
+      WAITGET  :if( NXTPEC_GetAct ) // make sure is gotten by NXTPEC
+                    if( LstActRow )
+                        next_state <= WRRAM;
+                    else
+                        next_state <= CFGACT;
+                else 
+                    next_state <= WAITGET;
+      WRRAM :  if( LstActBlk)
                     next_state <= IDLE;// wait config new weights
-                else if( NXTPEC_GetAct )
-                    next_state <= CFGACT;
-                else 
-                    next_state <= WAITGET;
+                else next_state <= RDRAM;
 
       default: next_state <= IDLE;
     endcase
@@ -173,25 +181,16 @@ end
 
 assign CfgMac = next_state == WAITGET && state == CFGACT;
 
-assign CfgWei = next_state == CFGACT && state == CFGWEI;
-assign PECCTRLWEI_GetWei = next_state == CFGACT && state == CFGWEI;//==CTRLWEIPEC_RdyWei
+assign CfgWei = next_state == RDRAM && state ==  CFGWEI;
+assign PECCTRLWEI_GetWei = next_state == RDRAM && state ==  CFGWEI;//==CTRLWEIPEC_RdyWei
 
 // finished in DISWEI
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         WeiArray          <= 0;
         FlgWei              <= 0;
-        // ValNumWei           <= 0;
-        // PECMAC_AddrBaseWei0 <= 0;
-        // PECMAC_AddrBaseWei1 <= 0;
-        // PECMAC_AddrBaseWei2 <= 0;
-        // PECMAC_AddrBaseWei3 <= 0;
-        // PECMAC_AddrBaseWei4 <= 0;
-        // PECMAC_AddrBaseWei5 <= 0;
-        // PECMAC_AddrBaseWei6 <= 0;
-        // PECMAC_AddrBaseWei7 <= 0;
-        // PECMAC_AddrBaseWei8 <= 0;
     end else if ( CfgWei ) begin
+        FlgWei           <= DISWEIPEC_FlgWei;
         // WeiArray          <= DISWEIPEC_Wei;
         PECMAC_Wei0 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 0 +: `DATA_WIDTH * `BLOCK_DEPTH];
         PECMAC_Wei1 <= DISWEIPEC_Wei[ `DATA_WIDTH * `BLOCK_DEPTH * 1 +: `DATA_WIDTH * `BLOCK_DEPTH];
@@ -219,32 +218,10 @@ always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         CfgWei_d <= 0;
     end else begin
-        CfgWei_d <= CfgWei;
+        CfgWei_d <= CfgWei; 
     end
 end
-// always @ ( posedge clk or negedge rst_n ) begin
-//     if ( !rst_n ) begin
-//         PECMAC_Wei0 <= 0;
-//         PECMAC_Wei1 <= 0;
-//         PECMAC_Wei2 <= 0;
-//         PECMAC_Wei3 <= 0;
-//         PECMAC_Wei4 <= 0;
-//         PECMAC_Wei5 <= 0;
-//         PECMAC_Wei6 <= 0;
-//         PECMAC_Wei7 <= 0;
-//         PECMAC_Wei8 <= 0;
-//     end else if (CfgWei_d)   begin
-//         PECMAC_Wei0 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei0 +: `DATA_WIDTH * `BLOCK_DEPTH];
-//         PECMAC_Wei1 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei1 +: `DATA_WIDTH * `BLOCK_DEPTH];
-//         PECMAC_Wei2 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei2 +: `DATA_WIDTH * `BLOCK_DEPTH];
-//         PECMAC_Wei3 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei3 +: `DATA_WIDTH * `BLOCK_DEPTH];
-//         PECMAC_Wei4 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei4 +: `DATA_WIDTH * `BLOCK_DEPTH];
-//         PECMAC_Wei5 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei5 +: `DATA_WIDTH * `BLOCK_DEPTH];
-//         PECMAC_Wei6 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei6 +: `DATA_WIDTH * `BLOCK_DEPTH];
-//         PECMAC_Wei7 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei7 +: `DATA_WIDTH * `BLOCK_DEPTH];
-//         PECMAC_Wei8 <= WeiArray[ `DATA_WIDTH * PECMAC_AddrBaseWei8 +: `DATA_WIDTH * `BLOCK_DEPTH];
-//     end
-// end
+
 
 assign PECMAC_FlgWei0 = FlgWei[ `BLOCK_DEPTH * 0 +: `BLOCK_DEPTH];
 assign PECMAC_FlgWei1 = FlgWei[ `BLOCK_DEPTH * 1 +: `BLOCK_DEPTH];
@@ -272,22 +249,45 @@ assign LSTPEC_GetAct = CfgMac;
 // Connect CNV && MAC
 // update ACT and Start
 // Level
-assign PECCNV_PlsAcc =   MACPEC_Fnh6 && MACPEC_Fnh7 && MACPEC_Fnh8
+assign LevFnhAll =   MACPEC_Fnh6 && MACPEC_Fnh7 && MACPEC_Fnh8
                       && MACPEC_Fnh3 && MACPEC_Fnh4 && MACPEC_Fnh5
                       && MACPEC_Fnh0 && MACPEC_Fnh1 && MACPEC_Fnh2 ;
 
 
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
-        PECCNV_PlsAcc_d <= 0;
+        LevFnhAll_d <= 1;
     end else begin
-        PECCNV_PlsAcc_d <= PECCNV_PlsAcc;
+        LevFnhAll_d <= LevFnhAll;
+        LevFnhAll_dd<=LevFnhAll_d;
+        LevFnhAll_ddd<=LevFnhAll_dd;
     end
 end
-assign PlsFnhAll = PECCNV_PlsAcc && ~PECCNV_PlsAcc_d;
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        LstActRow_d <= 0;
+        LstActRow_dd <= 0;
+    end else begin
+         LstActRow_d<= LstActRow;
+         LstActRow_dd<= LstActRow_d;
+         LstActRow_ddd<=LstActRow_dd;
+    end
+end
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        LstActBlk_d <= 0;
+        LstActBlk_dd <= 0;
+        LstActBlk_ddd <= 0;
+    end else begin
+        LstActBlk_d <= LstActBlk;
+        LstActBlk_dd <= LstActBlk_d;
+        LstActBlk_ddd <= LstActBlk_dd;
+    end
+end
+assign PlsFnhAll = LevFnhAll && ~LevFnhAll_d;
 assign StaRow = FrtActRow && PlsFnhAll;
-assign FnhRow = LstActRow && PlsFnhAll;
-assign FnhBlk = LstActBlk && PlsFnhAll;
+assign FnhRow = LstActRow_dd && LevFnhAll_d && ~LevFnhAll_dd; // paulse
+assign FnhBlk = LstActBlk_ddd && LevFnhAll_dd && ~LevFnhAll_ddd;
 
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
@@ -299,7 +299,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     end else if ( CfgMac ) begin
         PECMAC_FlgAct    <= PEBPEC_FlgAct;
         PECMAC_Act       <= PEBPEC_Act;
-        FlgWei           <= DISWEIPEC_FlgWei;
+
         FrtActRow        <=LSTPEC_FrtActRow;
         LstActRow        <=LSTPEC_LstActRow;
         LstActBlk        <=LSTPEC_LstActBlk;
@@ -311,13 +311,24 @@ always @ ( posedge clk or negedge rst_n ) begin
         NXTPEC_ValPsum   <= ValPsum;
     end
 end
+
+/*    if ( !rst_n ) begin
+        RdyRAMDatRd <= 0;
+    end else if ( PECRAM_EnRd ) begin // make sure Dat is read firstly, then compute.
+        RdyRAMDatRd <= 1;
+    end else if ( FnhBlk) begin
+        RdyRAMDatRd <= 0;
+    end
+end
+*/
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         PECMAC_Sta <= 0;
     end else begin
-        PECMAC_Sta <= CfgMac;//paulse
+        PECMAC_Sta <= CfgMac ;//paulse  && EnPEC
     end
 end
+
 assign PECCNV_FnhRow = FnhRow;
 
 
@@ -331,7 +342,8 @@ always @ ( posedge clk or negedge rst_n ) begin
         PECRAM_AddrRd <= PECRAM_AddrRd + 1;
     end
 end
-assign PECRAM_EnRd = StaRow && ValPsum; // 14
+//assign PECRAM_EnRd = StaRow && ValPsum; // 14
+assign PECRAM_EnRd = state == RDRAM; // 14
 assign PECCNV_Psum = RAMPEC_DatRd ;
 
 // Write SRAM
@@ -345,7 +357,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 assign PECRAM_DatWr = CNVOUT_Psum0[0 +: PSUM_WIDTH * (`LENPSUM - 2)]; // 14
-assign PECRAM_EnWr  = FnhRow && ValPsum;//output Row is 1-14 not -1, 0
+assign PECRAM_EnWr  = state == WRRAM && ValPsum;//output Row is 1-14 not -1, 0
 
 
 
@@ -357,7 +369,7 @@ CNVROW CNVROW0 (
         .clk            (clk),
         .rst_n          (rst_n),
         .PECMAC_Sta     (PECMAC_Sta),
-        .PECCNV_PlsAcc  (PECCNV_PlsAcc),// WAITGETute Psum
+        .PECCNV_PlsAcc  (PlsFnhAll),// WAITGETute Psum
         .PECCNV_FnhRow  (PECCNV_FnhRow),
         .MACPEC_Fnh0    (MACPEC_Fnh6),
         .MACPEC_Fnh1    (MACPEC_Fnh7),
@@ -381,7 +393,7 @@ CNVROW CNVROW1 (
         .clk            (clk),
         .rst_n          (rst_n),
         .PECMAC_Sta     (PECMAC_Sta),
-        .PECCNV_PlsAcc  (PECCNV_PlsAcc),// WAITGETute Psum
+        .PECCNV_PlsAcc  (PlsFnhAll),// WAITGETute Psum
         .PECCNV_FnhRow  (PECCNV_FnhRow),
         .MACPEC_Fnh0    (MACPEC_Fnh3),
         .MACPEC_Fnh1    (MACPEC_Fnh4),
@@ -405,7 +417,7 @@ CNVROW CNVROW2 (
         .clk            (clk),
         .rst_n          (rst_n),
         .PECMAC_Sta     (PECMAC_Sta),
-        .PECCNV_PlsAcc  (PECCNV_PlsAcc),// WAITGETute Psum
+        .PECCNV_PlsAcc  (PlsFnhAll),// WAITGETute Psum
         .PECCNV_FnhRow  (PECCNV_FnhRow),
         .MACPEC_Fnh0    (MACPEC_Fnh0),
         .MACPEC_Fnh1    (MACPEC_Fnh1),

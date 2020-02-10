@@ -24,9 +24,11 @@ entity PEB is
         LSTPEC_FrtActRow0: in     vl_logic;
         LSTPEC_LstActRow0: in     vl_logic;
         LSTPEC_LstActBlk0: in     vl_logic;
+        LSTPEC_ValPsum0 : in     vl_logic;
         NXTPEC_FrtActRow2: out    vl_logic;
         NXTPEC_LstActRow2: out    vl_logic;
         NXTPEC_LstActBlk2: out    vl_logic;
+        NXTPEC_ValPsum2 : out    vl_logic;
         LSTPEB_RdyAct   : in     vl_logic;
         LSTPEB_GetAct   : out    vl_logic;
         LSTPEB_FlgAct   : in     vl_logic_vector(31 downto 0);

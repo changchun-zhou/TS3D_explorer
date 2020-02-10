@@ -23,7 +23,7 @@ module DISACT (
     input                                           GBFACT_Val, //valid 
     output                                          GBFACT_EnRd,
     output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFACT_AddrRd,
-    input       [ `DATA_WIDTH               -1 : 0] GBFACT_DatRd,// 8 * `DATA_WIDTH meets bandwidth
+    input       [ `DATA_WIDTH               -1 : 0] GBFACT_DatRd,// 8 * `DATA_WIDTH meets bandwidth; like WEI ////////////////////
     input                                           GBFFLGACT_Val, //valid 
     output                                          GBFFLGACT_EnRd,
     output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFFLGACT_AddrRd,
@@ -50,6 +50,7 @@ reg                                     PACKER_ValDat;
 wire                                    PACKER_ReqDat;
 
 wire                                    PACKER_Bypass;
+wire                                    GBFVNACT_EnRd;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================

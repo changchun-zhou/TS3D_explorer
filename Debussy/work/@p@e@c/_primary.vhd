@@ -14,9 +14,11 @@ entity PEC is
         LSTPEC_FrtActRow: in     vl_logic;
         LSTPEC_LstActRow: in     vl_logic;
         LSTPEC_LstActBlk: in     vl_logic;
+        LSTPEC_ValPsum  : in     vl_logic;
         NXTPEC_FrtActRow: out    vl_logic;
         NXTPEC_LstActRow: out    vl_logic;
         NXTPEC_LstActBlk: out    vl_logic;
+        NXTPEC_ValPsum  : out    vl_logic;
         LSTPEC_RdyAct   : in     vl_logic;
         LSTPEC_GetAct   : out    vl_logic;
         PEBPEC_FlgAct   : in     vl_logic_vector(31 downto 0);

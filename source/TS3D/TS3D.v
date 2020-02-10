@@ -107,6 +107,7 @@ wire    [ `BLOCK_DEPTH                              -1 : 0] GBFFLGACT_DatRd;
 // wire                                                        GBFVNACT_EnRd;
 // wire    [ `GBFACT_ADDRWIDTH                         -1 : 0] GBFVNACT_AddrRd;
 // wire    [ `C_LOG_2(`BLOCK_DEPTH)                    -1 : 0] GBFVNACT_DatRd;
+wire                                                        CTRLACT_ValPsum;
 
 
 //=====================================================================================================================

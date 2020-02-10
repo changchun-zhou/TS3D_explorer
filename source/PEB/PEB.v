@@ -138,6 +138,9 @@ wire                                        EnRd3;
 wire [ `C_LOG_2(`LENPSUM)         - 1 : 0 ] AddrRd3;
 wire [ PSUM_WIDTH * `LENPSUM      - 1 : 0 ] DatRd3;
 
+wire                                        NXTPEC_ValPsum0;
+wire                                        NXTPEC_ValPsum1;
+
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -158,7 +161,7 @@ assign AddrWr0       = PECRAM_AddrWr0   ;
 assign DatWr0        = PECRAM_DatWr0    ;
 assign EnRd0         = CTRLPEB_FrtBlk ? 0 : PECRAM_EnRd0     ;
 assign AddrRd0       = CTRLPEB_FrtBlk ? 0 : PECRAM_AddrRd0   ;
-assign RAMPEC_DatRd0 = CTRLPEB_FrtBlk ? 0 : DatRd0    ;
+assign RAMPEC_DatRd0 = CTRLPEB_FrtBlk ? 0 : DatRd0    ; //after first block, the first data is x because of EnRd is 0 before.
 
 assign EnWr1         = PECRAM_EnWr1     ;
 assign AddrWr1       = PECRAM_AddrWr1   ;
@@ -189,7 +192,10 @@ assign PEBPOOL_Dat   =~FlgRAM2 ? DatRd2 : DatRd3 ;
 // Sub-Module :
 //=====================================================================================================================
 
-PEC PEC0
+
+// open / close EnPEC
+// EnPEC == 1
+PEC PEC0 
     (
         .clk               (clk),
         .rst_n             (rst_n),
@@ -223,6 +229,7 @@ PEC PEC0
         .RAMPEC_DatRd      (RAMPEC_DatRd0 )
     );
 
+// EnPEC == 0 when frame0
 PEC PEC1
     (
         .clk               (clk),
@@ -256,7 +263,7 @@ PEC PEC1
         .PECRAM_AddrRd     (PECRAM_AddrRd1),
         .RAMPEC_DatRd      (RAMPEC_DatRd1)
     );
-
+// EnPEC == 0 when frame0/1
 PEC PEC2
     (
         .clk               (clk),
@@ -290,10 +297,6 @@ PEC PEC2
         .PECRAM_AddrRd     (PECRAM_AddrRd2),
         .RAMPEC_DatRd      (RAMPEC_DatRd2)
     );
-
-
-
-
 
 
 SRAM_DUAL #(

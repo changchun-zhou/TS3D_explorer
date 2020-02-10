@@ -2,7 +2,7 @@ import numpy as np
 import random
 import os
 
-row_index = 1024 # 32 x 9 x 3 x 16 / 9
+row_index = 10240 # 32 x 9 x 3 x 16 / 9
 line_index = 1 #  9 X 8bit
 file_name = 'RAM_GBFACT.dat'
 # param_type = 'WEI_/'

@@ -73,7 +73,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         CntAct <= 0;
     end else if ( CTRLACT_LstActRow && CTRLACT_GetAct) begin
         CntAct <= 0;
-    end else if( CTRLACT_PlsFetch) begin
+    end else if( CTRLACT_GetAct) begin // pls
         CntAct <= CntAct + 1;
     end
 end
@@ -88,6 +88,13 @@ end
 
 assign CTRLACT_PlsFetch = TOP_Sta || ( CTRLACT_GetAct && 1'b1);//////////////////
 
+// always @ ( posedge clk or negedge rst_n ) begin
+//     if ( !rst_n ) begin
+//         CTRLACT_LstActRow <= 0;
+//     end else if (  ) begin
+//         CTRLACT_LstActRow <= ;
+//     end
+// end
 assign CTRLACT_LstActRow = CntAct == CFG_LenRow;
 assign CTRLACT_FrtActRow = CntAct == 0;
 
@@ -111,6 +118,14 @@ always @ ( posedge clk or negedge rst_n ) begin
         CntBlk <= 0;
     end else if ( CTRLACT_LstActBlk && CTRLACT_GetAct ) begin
         CntBlk <= CntBlk + 1;
+    end
+end
+
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        CTRLACT_FrtActFrm_d <= 1;
+    end else begin
+        CTRLACT_FrtActFrm_d <= CTRLACT_FrtActFrm;
     end
 end
 
