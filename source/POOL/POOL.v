@@ -4,7 +4,7 @@
 //======================================================
 // Module : POOL
 // Author : CC zhou
-// Contact : 
+// Contact :
 // Date : 3 .2 .2019
 //=======================================================
 // Description :
@@ -13,11 +13,11 @@ module POOL(
     input                   clk     ,
     input                   rst_n   ,
     input [ 1+`POOL_KERNEL_WIDTH -1 : 0]                  CFG_POOL      ,
- //   input 						PEBPOOL_ValRow,
+ //   input 						PEBPOOL_ValRow
     output  [ 1			        -1 : 0] POOLPEL_EnRd,// 4 bit ID of PEB
     output  [ `C_LOG_2(`LENPSUM * `LENPSUM)         -1 : 0] POOLPEL_AddrRd,
     input [ PSUM_WIDTH * `BLOCK_DEPTH      -1 : 0] PELPOOL_Dat,
-               
+
 );
 //=====================================================================================================================
 // Constant Definition :
