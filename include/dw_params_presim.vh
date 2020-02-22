@@ -6,19 +6,19 @@
 `ifdef SYNTH_AC 
   `define NUMPEB 16 //?
   `define GBFWEI_ADDRWIDTH 10  //?< `BLOCK_DEPTH * `NUMPEC = 32 * 48 = 1536
-  `define GBFACT_ADDRWIDTH 2 //?
+  `define GBFACT_ADDRWIDTH 14 //?
 `elsif SYNTH_FREQ
   `define NUMPEB 16
   `define GBFWEI_ADDRWIDTH 1  //?64 > 16*3
   `define GBFACT_ADDRWIDTH 2 //?
 `elsif SYNTH_MINI
   `define NUMPEB 2
-  `define GBFWEI_ADDRWIDTH 6  //?64 > 16*3
-  `define GBFACT_ADDRWIDTH 10 //?
+  `define GBFWEI_ADDRWIDTH 12  //?64 > log2(BLOCK_DEPTH* KERNEL_SIZE * NumPEC * NumPEB * NumBlk) = 32x9x3x2x2 = 3456
+  `define GBFACT_ADDRWIDTH 17 // log2( 16x16x32x NumBlk x NumFrmx (1-sparsity) )= 2048x32
 `endif
 
 `define BLOCK_DEPTH 32
-`define CHANNEL_DEPTH 32
+`define CHANNEL_DEPTH 32  // not used
 `define DATA_WIDTH 8
 
 `define NUMPEC 3*`NUMPEB 

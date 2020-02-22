@@ -44,14 +44,14 @@ always @ ( posedge clk or negedge rst_n ) begin
         CFG_LenRow <= 15;
         CFG_DepBlk <= 31;
         CFG_NumBlk <= 1;
-        CFG_NumFrm <= 7;
+        CFG_NumFrm <= 3;
         CFG_NumPat <= 0;
         CFG_NumLay <= 7;
      end else begin
         CFG_LenRow <= 15;
         CFG_DepBlk <= 31;
         CFG_NumBlk <= 1;
-        CFG_NumFrm <= 7;
+        CFG_NumFrm <= 3;
         CFG_NumPat <= 0;
         CFG_NumLay <= 7;
     end

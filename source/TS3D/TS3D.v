@@ -175,7 +175,8 @@ CTRLWEI CTRLWEI
     .CTRLWEIPEC_RdyWei (CTRLWEIPEC_RdyWei),
     .PECCTRLWEI_GetWei (PECCTRLWEI_GetWei),
     .DISWEI_RdyWei     (DISWEI_RdyWei),
-    .CTRLWEI_PlsFetch  (CTRLWEI_PlsFetch)
+    .CTRLWEI_PlsFetch  (CTRLWEI_PlsFetch),
+    .CTRLACT_FnhFrm    (CTRLACT_FnhFrm)
   );
 DISWEI DISWEI
   (
@@ -193,7 +194,8 @@ DISWEI DISWEI
     .GBFFLGWEI_Val    (GBFFLGWEI_Val),
     .GBFFLGWEI_EnRd   (GBFFLGWEI_EnRd),
     .GBFFLGWEI_AddrRd (GBFFLGWEI_AddrRd),
-    .GBFFLGWEI_DatRd  (GBFFLGWEI_DatRd)
+    .GBFFLGWEI_DatRd  (GBFFLGWEI_DatRd),
+    .CTRLACT_FnhFrm   (CTRLACT_FnhFrm)
   );
 
 // `ifdef SYNTH_MINI

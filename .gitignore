@@ -2,4 +2,3 @@ Debussy
 sim
 synth
 testbench/Data/*.dat
-testbench/Data/GenTest/*.dat

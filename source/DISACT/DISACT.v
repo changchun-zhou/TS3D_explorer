@@ -19,7 +19,7 @@ module DISACT (
     output                                          DISACT_RdyAct,
     // input                                           DISACT_GetAct,
     output      [ `BLOCK_DEPTH              -1 : 0] DISACT_FlgAct,
-    input       [ `DATA_WIDTH * `BLOCK_DEPTH-1 : 0] DISACT_Act,    
+    output       [ `DATA_WIDTH * `BLOCK_DEPTH-1 : 0] DISACT_Act,    
     input                                           GBFACT_Val, //valid 
     output                                          GBFACT_EnRd,
     output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFACT_AddrRd,

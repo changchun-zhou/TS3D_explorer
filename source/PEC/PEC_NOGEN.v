@@ -11,8 +11,7 @@
 //========================================================
 `include "../include/dw_params_presim.vh"
 module PEC #(
-    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`BLOCK_DEPTH) + 2 ),
-    parameter BUSPEC_WIDTH =  5 + `BLOCK_DEPTH + `DATA_WIDTH * `BLOCK_DEPTH
+    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`BLOCK_DEPTH) + 2 )
     )(
     input                                                       clk     ,
     input                                                       rst_n   ,
@@ -20,10 +19,25 @@ module PEC #(
     output                                                      PECCTRLWEI_GetWei  ,//=CTRLWEIPEC_RdyWei paulse
     input [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE   -1 : 0] DISWEIPEC_Wei,
     input [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE             -1 : 0] DISWEIPEC_FlgWei,
-    input [ BUSPEC_WIDTH                                -1 : 0] INBUS_LSTPEC,
-    input                                                       INBUS_NXTPEC,
-    output [ BUSPEC_WIDTH                                -1 : 0] OUTBUS_NXTPEC,
-    output                                                      OUTBUS_LSTPEC,
+    // input [ `C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE      -1 : 0] DISWEIPEC_ValNumWei,
+    // input [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)      -1 : 0] DISWEI_AddrBase,
+    input                                                       LSTPEC_FrtActRow   ,// because read and write simultaneously
+    input                                                       LSTPEC_LstActRow   ,//
+    input                                                       LSTPEC_LstActBlk   ,//
+    input                                                       LSTPEC_ValPsum     ,// only for write RAM valid
+    output reg                                                  NXTPEC_FrtActRow   ,
+    output reg                                                  NXTPEC_LstActRow   ,
+    output reg                                                  NXTPEC_LstActBlk   ,
+    output reg                                                  NXTPEC_ValPsum     ,
+    // output                  PEC_FnhBlk,
+    input                                                       LSTPEC_RdyAct,// level
+    output                                                      LSTPEC_GetAct,// PAULSE
+    input [ `BLOCK_DEPTH                                -1 : 0] PEBPEC_FlgAct,
+    input [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] PEBPEC_Act,
+    output                                                      NXTPEC_RdyAct,// To Next PEC: THIS PEC's ACT is NOT ever gotten
+    input                                                       NXTPEC_GetAct,// THIS PEC's ACT is gotten
+    output reg [ `BLOCK_DEPTH                           -1 : 0] PECMAC_FlgAct,
+    output reg [ `DATA_WIDTH * `BLOCK_DEPTH             -1 : 0] PECMAC_Act,
 
     output                                                      PECRAM_EnWr,
     output reg [ `C_LOG_2(`LENPSUM)                     -1 : 0] PECRAM_AddrWr,
@@ -45,25 +59,6 @@ module PEC #(
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
-
-    wire                                                       LSTPEC_FrtActRow   ;// because read and write simultaneously
-    wire                                                       LSTPEC_LstActRow   ;//
-    wire                                                       LSTPEC_LstActBlk   ;//
-    wire                                                       LSTPEC_ValPsum     ;// only for write RAM valid
-    reg                                                    NXTPEC_FrtActRow   ;
-    reg                                                    NXTPEC_LstActRow   ;
-    reg                                                    NXTPEC_LstActBlk   ;
-    reg                                                    NXTPEC_ValPsum     ;
-    wire                                                       LSTPEC_RdyAct;// level
-    wire                                                       LSTPEC_GetAct;// PAULSE
-    wire [ `BLOCK_DEPTH                                -1 : 0] PEBPEC_FlgAct;
-    wire [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] PEBPEC_Act;
-    wire                                                       NXTPEC_RdyAct;// To Next PEC: THIS PEC's ACT is NOT ever gotten
-    wire                                                       NXTPEC_GetAct;// THIS PEC's ACT is gotten
-    reg   [ `BLOCK_DEPTH                           -1 : 0] PECMAC_FlgAct;
-    reg   [ `DATA_WIDTH * `BLOCK_DEPTH             -1 : 0] PECMAC_Act;
-
-
 wire                                                    CfgMac;
 wire                                                    CfgWei;
 reg                                                     CfgWei_d;
@@ -133,28 +128,6 @@ reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei8;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
-assign  {
-LSTPEC_FrtActRow   ,
-LSTPEC_LstActRow   ,
-LSTPEC_LstActBlk   ,
-LSTPEC_ValPsum     ,
-LSTPEC_RdyAct,
-PEBPEC_FlgAct,
-PEBPEC_Act}=INBUS_LSTPEC;
-assign NXTPEC_GetAct = INBUS_NXTPEC;
-assign OUTBUS_NXTPEC = {
-NXTPEC_FrtActRow   ,
-NXTPEC_LstActRow   ,
-NXTPEC_LstActBlk   ,
-NXTPEC_ValPsum     ,
-NXTPEC_RdyAct,
-PECMAC_FlgAct,
-PECMAC_Act    
-} ;
-assign OUTBUS_LSTPEC = LSTPEC_GetAct;
-
-
-
 // FSM : ACT is ever gotten or not
 localparam IDLE     = 3'b000;
 localparam CFGWEI   = 3'b001;

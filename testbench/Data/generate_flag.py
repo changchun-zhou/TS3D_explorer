@@ -3,8 +3,9 @@ from scipy import sparse
 import random
 import os
 import binascii
+NumBlk = 2
 BIT_WIDTH  = 1
-PATCH_LINE = 1024 #number of row9 x 3 x 16
+PATCH_LINE = 432 * NumBlk # one Blk's number of row 9 x 3 x 16  * NumBlk
 PATCH_ROW  = 32 #number of every row
 file_name_bin = 'RAM_GBFFLGACT_bin.dat'
 file_name_hex = 'RAM_GBFFLGACT.dat'

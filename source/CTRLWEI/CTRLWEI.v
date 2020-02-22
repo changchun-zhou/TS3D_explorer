@@ -22,7 +22,8 @@ module CTRLWEI (
     output reg [ `NUMPEC                    -1 : 0] CTRLWEIPEC_RdyWei ,//48 b
     input  [ `NUMPEC                        -1 : 0] PECCTRLWEI_GetWei , 
     input                                           DISWEI_RdyWei, 
-    output                                          CTRLWEI_PlsFetch
+    output                                          CTRLWEI_PlsFetch,
+    input                                           CTRLACT_FnhFrm
 );
 //=====================================================================================================================
 // Constant Definition :
@@ -62,6 +63,8 @@ always @(*) begin
       PREPIPE3: next_state <= GETWEI;
       GETWEI  : if( 1'b0) //config finish
                     next_state <= IDLE;
+                else if(CTRLACT_FnhFrm) //New frame reset address of weights
+                    next_state <= PREPIPE1;
                 else 
                     next_state <= GETWEI;
       default: next_state <= IDLE;
@@ -89,7 +92,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         CTRLWEIPEC_RdyWei <= 0;
-    end else if ( |PECCTRLWEI_GetWei ) begin
+    end else if ( |PECCTRLWEI_GetWei || CTRLACT_FnhFrm ) begin
         CTRLWEIPEC_RdyWei <= 0;
     end else if ( DISWEI_RdyWei && state == GETWEI ) begin
         CTRLWEIPEC_RdyWei[IDPEC] <= 1;

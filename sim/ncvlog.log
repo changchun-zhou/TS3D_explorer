@@ -1,1 +1,2 @@
 ncvlog: 15.10-s002: (c) Copyright 1995-2015 Cadence Design Systems, Inc.
+ncvlog: *N,DLWTLK: Pausing until a exclusive lock can be established on library 'work'.  Another process may be accessing the library.  Process will resume when the lock is established.

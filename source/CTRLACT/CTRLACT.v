@@ -107,7 +107,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         CntRow <= CntRow + 1;
     end
 end
-assign CTRLACT_ValPsum   = CntRow >= 2; // drop out first two rows;
+assign CTRLACT_ValPsum   = CntRow >= 2 ; // drop out first two rows; After config act10, it's waiting for writing RAM
 assign CTRLACT_FrtActBlk = CntRow == 0 && CTRLACT_FrtActRow;
 assign CTRLACT_LstActBlk = CntRow == CFG_LenRow && CTRLACT_LstActRow;
 

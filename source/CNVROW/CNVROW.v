@@ -89,7 +89,7 @@ MACAW MACAW0
         .PECMAC_FlgWei (PECMAC_FlgWei0),
         .PECMAC_Wei    (PECMAC_Wei0),
         // .PECMAC_AddrBaseWei( PECMAC_AddrBaseWei0 ),
-        .MACMAC_Mac    ( 15'd0),
+        .MACMAC_Mac    ('b0),
         .MACCNV_Mac    (MACCNV_Mac0)
     );
 
