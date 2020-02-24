@@ -1,9 +1,9 @@
 
 `define SYNTH_MINI // 2 PEB function
-// `define SYNTH_FREQ 
+// `define SYNTH_FREQ
 // `define SYNTH_AC
 
-`ifdef SYNTH_AC 
+`ifdef SYNTH_AC
   `define NUMPEB 16 //?
   `define GBFWEI_ADDRWIDTH 10  //?< `BLOCK_DEPTH * `NUMPEC = 32 * 48 = 1536
   `define GBFACT_ADDRWIDTH 14 //?
@@ -21,19 +21,19 @@
 `define CHANNEL_DEPTH 32  // not used
 `define DATA_WIDTH 8
 
-`define NUMPEC 3*`NUMPEB 
+`define NUMPEC 3*`NUMPEB
 
 `define KERNEL_SIZE 9
 `define GBFWEI_DATAWIDTH `DATA_WIDTH * `KERNEL_SIZE // avoid * 9
 `define GBFFLGWEI_DATAWIDTH `BLOCK_DEPTH * `KERNEL_SIZE
-
+`define PORT_DATAWIDTH `DATA_WIDTH * 12
 // `define GBFFLGACT_ADDRWIDTH 8
 
 
 `define LENROW 16
 `define LENPSUM 14
-`define PSUM 
-
+`define PSUM
+`define POOL_WIDTH
 // Config parameters
 `define FRAME_WIDTH 5
 `define PATCH_WIDTH 8

@@ -22,22 +22,22 @@ module TS3D #(
     input  [ `C_LOG_2(`LENPSUM)         -1 : 0] POOLPEB_AddrRd,
     output [ PSUM_WIDTH * `LENPSUM      -1 : 0] PELPOOL_Dat,
 
-    input                                       GBFWEI_Val, //valid 
+    input                                       GBFWEI_Val, //valid
     input                                       GBFWEI_EnWr,
     input [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFWEI_AddrWr,
     input [ `GBFWEI_DATAWIDTH           -1 : 0] GBFWEI_DatWr,
 
-    input                                       GBFFLGWEI_Val, //valid 
+    input                                       GBFFLGWEI_Val, //valid
     input                                       GBFFLGWEI_EnWr,
     input [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrWr,
     input [ `GBFFLGWEI_DATAWIDTH        -1 : 0] GBFFLGWEI_DatWr,
 
-    input                                       GBFACT_Val, //valid 
+    input                                       GBFACT_Val, //valid
     input                                       GBFACT_EnWr,
     input  [ `GBFACT_ADDRWIDTH          -1 : 0] GBFACT_AddrWr,
     input  [ `DATA_WIDTH                -1 : 0] GBFACT_DatWr,
 
-    input                                       GBFFLGACT_Val, //valid 
+    input                                       GBFFLGACT_Val, //valid
     input                                       GBFFLGACT_EnWr,
     input  [ `GBFACT_ADDRWIDTH          -1 : 0] GBFFLGACT_AddrWr,
     input  [ `BLOCK_DEPTH               -1 : 0] GBFFLGACT_DatWr
@@ -46,7 +46,7 @@ module TS3D #(
     // input                                       GBFVNACT_EnWr,
     // input  [ `GBFACT_ADDRWIDTH          -1 : 0] GBFVNACT_AddrWr,
     // input  [ `C_LOG_2(`BLOCK_DEPTH)     -1 : 0] GBFVNACT_DatWr
-                        
+
 );
 //=====================================================================================================================
 // Constant Definition :
@@ -61,7 +61,7 @@ module TS3D #(
 //=====================================================================================================================
 // wire [ `NUMPEB                      -1 : 0] POOLPEB_EnRd = 0;
 // wire                                        POOLPEB_AddrRd = 0;
-// wire                                        PEBPOOL_Dat; 
+// wire                                        PEBPOOL_Dat;
 
 reg                                                         TOP_Sta_reg;
 reg                                                         TOP_Sta_reg_d;
@@ -80,7 +80,7 @@ wire                                                        CTRLACT_FnhFrm;
 wire                                                        DISACT_RdyAct;
 wire                                                        DISACT_GetAct;
 wire  [ `BLOCK_DEPTH                                -1 : 0] DISACT_FlgAct;
-wire  [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] DISACT_Act;  
+wire  [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] DISACT_Act;
 wire  [ `NUMPEC                                     -1 : 0] CTRLWEIPEC_RdyWei;
 wire  [ `NUMPEC                                     -1 : 0] PECCTRLWEI_GetWei;
 wire  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE   -1 : 0] DISWEIPEC_Wei;
@@ -199,7 +199,7 @@ DISWEI DISWEI
 
 // `ifdef SYNTH_MINI
 SRAM_DUAL #(
-        .SRAM_DEPTH_BIT(`GBFWEI_ADDRWIDTH),   
+        .SRAM_DEPTH_BIT(`GBFWEI_ADDRWIDTH),
         .SRAM_WIDTH(`GBFWEI_DATAWIDTH),
         .INIT_IF ("yes"),
         .INIT_FILE ("../testbench/Data/RAM_GBFWEI.dat")
@@ -212,12 +212,12 @@ SRAM_DUAL #(
         .data_in  ( GBFWEI_DatWr      ),
         .data_out ( GBFWEI_DatRd      )
     );
-// `elsif SYNTH_AREA or 
+// `elsif SYNTH_AREA or
 // MEM X MEM
 // `endif
 
 SRAM_DUAL #(
-        .SRAM_DEPTH_BIT(`GBFWEI_ADDRWIDTH),   
+        .SRAM_DEPTH_BIT(`GBFWEI_ADDRWIDTH),
         .SRAM_WIDTH(`GBFFLGWEI_DATAWIDTH),
         .INIT_IF ("yes"),
         .INIT_FILE ("../testbench/Data/RAM_GBFFLGWEI_HEX.dat")
@@ -274,8 +274,11 @@ DISACT DISACT
     // .GBFVNACT_AddrRd  (GBFVNACT_AddrRd),
     // .GBFVNACT_DatRd   (GBFVNACT_DatRd)
   );
+POOL #(
+    ) POOL(
+    );
 SRAM_DUAL #(
-        .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),   
+        .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),
         .SRAM_WIDTH(`DATA_WIDTH),
         .INIT_IF ("yes"),
         .INIT_FILE ("../testbench/Data/RAM_GBFACT.dat")
@@ -289,7 +292,7 @@ SRAM_DUAL #(
         .data_out ( GBFACT_DatRd      )
     );
 SRAM_DUAL #(
-        .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),   
+        .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),
         .SRAM_WIDTH(`BLOCK_DEPTH),
         .INIT_IF ("yes"),
         .INIT_FILE ("../testbench/Data/RAM_GBFFLGACT.dat")
@@ -303,7 +306,7 @@ SRAM_DUAL #(
         .data_out ( GBFFLGACT_DatRd      )
     );
 // SRAM_DUAL #(
-//         .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),   
+//         .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),
 //         .SRAM_WIDTH(`C_LOG_2(`BLOCK_DEPTH))
 //     ) RAM_GBFVNACT (
 //         .clk      ( clk         ),
