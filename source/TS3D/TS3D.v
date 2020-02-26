@@ -12,15 +12,9 @@
 // `ifdef SYNTH
 `include "../include/dw_params_presim.vh"
 // `endif
-module TS3D #(
-    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`BLOCK_DEPTH) + 2 )
-)(
+module TS3D (
     input                                       clk     ,
     input                                       rst_n   ,
-
-    input  [ `C_LOG_2 ( `NUMPEB)        -1 : 0] POOLPEB_EnRd,// 4 bit ID of PEB
-    input  [ `C_LOG_2(`LENPSUM)         -1 : 0] POOLPEB_AddrRd,
-    output [ PSUM_WIDTH * `LENPSUM      -1 : 0] PELPOOL_Dat,
 
     input                                       GBFWEI_Val, //valid
     input                                       GBFWEI_EnWr,
@@ -40,13 +34,14 @@ module TS3D #(
     input                                       GBFFLGACT_Val, //valid
     input                                       GBFFLGACT_EnWr,
     input  [ `GBFACT_ADDRWIDTH          -1 : 0] GBFFLGACT_AddrWr,
-    input  [ `BLOCK_DEPTH               -1 : 0] GBFFLGACT_DatWr
+    input  [ `BLOCK_DEPTH               -1 : 0] GBFFLGACT_DatWr,
 
-    // input                                       GBFVNACT_Val, //valid num ACT
-    // input                                       GBFVNACT_EnWr,
-    // input  [ `GBFACT_ADDRWIDTH          -1 : 0] GBFVNACT_AddrWr,
-    // input  [ `C_LOG_2(`BLOCK_DEPTH)     -1 : 0] GBFVNACT_DatWr
-
+    input                                                                    GBFOFM_EnRd,
+    input  [ `GBFOFM_ADDRWIDTH                  -1 : 0] GBFOFM_AddrRd,
+    output [ `PORT_DATAWIDTH                      -1 : 0] GBFOFM_DatRd,
+    input                                                                    GBFFLGOFM_EnRd,
+    input   [ `GBFFLGOFM_ADDRWIDTH           - 1 :0 ] GBFFLGOFM_AddrRd,
+    output  [ `PORT_DATAWIDTH                    - 1 : 0 ] GBFFLGOFM_DatRd
 );
 //=====================================================================================================================
 // Constant Definition :
@@ -72,6 +67,7 @@ wire    [ `BLK_WIDTH                                -1 : 0] CFG_NumBlk;
 wire    [ `FRAME_WIDTH                              -1 : 0] CFG_NumFrm;
 wire    [ `PATCH_WIDTH                              -1 : 0] CFG_NumPat;
 wire    [ `LAYER_WIDTH                              -1 : 0] CFG_NumLay;
+wire [ 5 + 1+`POOL_KERNEL_WIDTH                -1 : 0] CFG_POOL;
 wire                                                        CTRLACT_FrtBlk;
 wire                                                        CTRLACT_FrtActRow;
 wire                                                        CTRLACT_LstActRow;
@@ -107,8 +103,17 @@ wire    [ `BLOCK_DEPTH                              -1 : 0] GBFFLGACT_DatRd;
 // wire    [ `GBFACT_ADDRWIDTH                         -1 : 0] GBFVNACT_AddrRd;
 // wire    [ `C_LOG_2(`BLOCK_DEPTH)                    -1 : 0] GBFVNACT_DatRd;
 wire                                                        CTRLACT_ValPsum;
+wire                                                        CTRLACT_ValCol;
 
-
+    wire  [ 1       -1 : 0] POOLPEL_EnRd;// 4 bit ID of PEB
+    wire  [ `C_LOG_2(`LENPSUM*`LENPSUM)         -1 : 0] POOLPEL_AddrRd;
+    wire [ `PSUM_WIDTH * `NUMPEB      -1 : 0] PELPOOL_Dat;
+    wire                                                                    GBFOFM_EnWr;
+    wire  [ `GBFOFM_ADDRWIDTH                 -1 : 0] GBFOFM_AddrWr;
+    wire [ `PORT_DATAWIDTH                        -1 : 0] GBFOFM_DatWr;
+    wire                                                                    GBFFLGOFM_EnWr;
+    wire   [ `GBFFLGOFM_ADDRWIDTH         - 1 :0 ] GBFFLGOFM_AddrWr;
+    wire  [ `PORT_DATAWIDTH                     - 1 : 0 ] GBFFLGOFM_DatWr;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -136,7 +141,8 @@ CONFIG CONFIG
     .CFG_NumBlk (CFG_NumBlk),
     .CFG_NumFrm (CFG_NumFrm),
     .CFG_NumPat (CFG_NumPat),
-    .CFG_NumLay (CFG_NumLay)
+    .CFG_NumLay (CFG_NumLay),
+    .CFG_POOL       ( CFG_POOL)
   );
 
 
@@ -144,14 +150,15 @@ PEL PEL
   (
     .clk                 (clk),
     .rst_n               (rst_n),
-    .POOLPEB_EnRd        (POOLPEB_EnRd),
-    .POOLPEB_AddrRd      (POOLPEB_AddrRd),
+    .POOLPEB_EnRd        (POOLPEL_EnRd),
+    .POOLPEB_AddrRd      (POOLPEL_AddrRd),
     .PELPOOL_Dat         (PELPOOL_Dat),
-    .CTRLACT_FrtBlk      (CTRLACT_FrtBlk),
+    .CTRLACT_FrtBlk      (CTRLACT_FrtBlk), // Modify to pass FrtBlk for every PEC
     .CTRLACT_FrtActRow   (CTRLACT_FrtActRow),
     .CTRLACT_LstActRow   (CTRLACT_LstActRow),
     .CTRLACT_LstActBlk   (CTRLACT_LstActBlk),
     .CTRLACT_ValPsum     (CTRLACT_ValPsum),
+    .CTRLACT_ValCol         ( CTRLACT_ValCol),
     .CTRLPEB_FnhFrm      (CTRLACT_FnhFrm),
     .CTRLACT_RdyAct      (DISACT_RdyAct),
     .CTRLACT_GetAct      (CTRLACT_GetAct),
@@ -248,8 +255,10 @@ CTRLACT CTRLACT
     .CTRLACT_LstActRow (CTRLACT_LstActRow),
     .CTRLACT_LstActBlk (CTRLACT_LstActBlk),
     .CTRLACT_ValPsum   (CTRLACT_ValPsum),
+    .CTRLACT_ValCol     ( CTRLACT_ValCol),
     .CTRLACT_FrtBlk    (CTRLACT_FrtBlk),
-    .CTRLACT_FnhFrm    (CTRLACT_FnhFrm)
+    .CTRLACT_FnhFrm    (CTRLACT_FnhFrm),
+    .POOL_Val                   ( )
   );
 DISACT DISACT
   (
@@ -274,9 +283,7 @@ DISACT DISACT
     // .GBFVNACT_AddrRd  (GBFVNACT_AddrRd),
     // .GBFVNACT_DatRd   (GBFVNACT_DatRd)
   );
-POOL #(
-    ) POOL(
-    );
+
 SRAM_DUAL #(
         .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),
         .SRAM_WIDTH(`DATA_WIDTH),
@@ -305,17 +312,43 @@ SRAM_DUAL #(
         .data_in  ( GBFFLGACT_DatWr      ),
         .data_out ( GBFFLGACT_DatRd      )
     );
-// SRAM_DUAL #(
-//         .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),
-//         .SRAM_WIDTH(`C_LOG_2(`BLOCK_DEPTH))
-//     ) RAM_GBFVNACT (
-//         .clk      ( clk         ),
-//         .addr_r   ( GBFVNACT_AddrRd     ),
-//         .addr_w   ( GBFVNACT_AddrWr     ),
-//         .read_en  ( GBFVNACT_EnRd       ),
-//         .write_en ( GBFVNACT_EnWr       ),
-//         .data_in  ( GBFVNACT_DatWr      ),
-//         .data_out ( GBFVNACT_DatRd      )
-//     );
-
+POOL POOL(
+    . clk     (clk),
+    . rst_n (rst_n)  ,
+    .CFG_POOL(CFG_POOL)      ,
+    . POOL_Val(CTRLACT_FnhFrm),  // level
+    .POOLPEL_EnRd(POOLPEL_EnRd),// 4 bit ID of PEB
+    .POOLPEL_AddrRd(POOLPEL_AddrRd),
+    .PELPOOL_Dat(PELPOOL_Dat),
+    .GBFOFM_EnWr(GBFOFM_EnWr),
+    .GBFOFM_AddrWr(GBFOFM_AddrWr),
+    . GBFOFM_DatWr(GBFOFM_DatWr),
+    .GBFFLGOFM_EnWr(GBFFLGOFM_EnWr),
+    .GBFFLGOFM_AddrWr(GBFFLGOFM_AddrWr),
+    . GBFFLGOFM_DatWr(GBFFLGOFM_DatWr)
+);
+ SRAM_DUAL #(
+         .SRAM_DEPTH_BIT(`GBFOFM_ADDRWIDTH),
+         .SRAM_WIDTH(`PORT_DATAWIDTH)
+     ) RAM_GBFOFM (
+         .clk      ( clk         ),
+         .addr_r   ( GBFOFM_AddrRd     ),
+         .addr_w   ( GBFOFM_AddrWr     ),
+         .read_en  ( GBFOFM_EnRd       ),
+         .write_en ( GBFOFM_EnWr       ),
+         .data_in  ( GBFOFM_DatWr      ),
+         .data_out ( GBFOFM_DatRd      )
+     );
+ SRAM_DUAL #(
+         .SRAM_DEPTH_BIT(`GBFFLGOFM_ADDRWIDTH),
+         .SRAM_WIDTH(`PORT_DATAWIDTH)
+     ) RAM_GBFFLGOFM (
+         .clk      ( clk         ),
+         .addr_r   ( GBFFLGOFM_AddrRd     ),
+         .addr_w   ( GBFFLGOFM_AddrWr     ),
+         .read_en  ( GBFFLGOFM_EnRd       ),
+         .write_en ( GBFFLGOFM_EnWr       ),
+         .data_in  ( GBFFLGOFM_DatWr      ),
+         .data_out ( GBFFLGOFM_DatRd      )
+     );
 endmodule

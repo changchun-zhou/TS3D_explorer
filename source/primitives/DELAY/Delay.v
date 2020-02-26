@@ -11,11 +11,11 @@ module Delay #(
 
 genvar i;
 generate
-if (NUM_STAGES == 0) 
+if (NUM_STAGES == 0)
 begin
     assign DOUT = DIN;
-end 
-else if (NUM_STAGES > 0) 
+end
+else if (NUM_STAGES > 0)
 begin
     reg [NUM_STAGES*DATA_WIDTH-1:0] din_delay;
     always @(posedge CLK or negedge RESET_N)
@@ -28,7 +28,7 @@ begin
             din_delay[DATA_WIDTH-1:0] <= DIN;
         end
     end
-    for (i=1; i<NUM_STAGES; i=i+1) 
+    for (i=1; i<NUM_STAGES; i=i+1)
 	 begin : REGISTER_STAGES
         always @(posedge CLK or negedge RESET_N )
         begin

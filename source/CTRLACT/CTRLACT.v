@@ -4,7 +4,7 @@
 //======================================================
 // Module : CTRLACT
 // Author : CC zhou
-// Contact : 
+// Contact :
 // Date :   6 . 1 .2019
 //=======================================================
 // Description :
@@ -14,7 +14,7 @@ module  CTRLACT (
     input                                       clk     ,
     input                                       rst_n   ,
     input                                       TOP_Sta,
-    
+
     input [ `C_LOG_2(`LENROW)           - 1 : 0 ] CFG_LenRow, // +1 is real value
     input [ `BLK_WIDTH                  - 1 : 0 ] CFG_DepBlk,// +1 is real value
     input [ `BLK_WIDTH                  - 1 : 0 ] CFG_NumBlk,
@@ -27,10 +27,12 @@ module  CTRLACT (
     output                                       CTRLACT_LstActRow,
     output                                       CTRLACT_LstActBlk,
     output                                       CTRLACT_ValPsum,
+    output                                      CTRLACT_ValCol,
     output                                       CTRLACT_FrtBlk, /// glitch: PEC0 -> PEC2 second BLK -> first Blk
     // output                                       CTRLACT_FnhPat,
     // output                                       CTRLACT_FnhIfm,
-    output                                       CTRLACT_FnhFrm
+    output                                       CTRLACT_FnhFrm,
+    output                                          POOL_Val
 
 );
 //=====================================================================================================================
@@ -97,7 +99,7 @@ assign CTRLACT_PlsFetch = TOP_Sta || ( CTRLACT_GetAct && 1'b1);/////////////////
 // end
 assign CTRLACT_LstActRow = CntAct == CFG_LenRow;
 assign CTRLACT_FrtActRow = CntAct == 0;
-
+assign CTRLACT_ValCol = CntAct >= 2;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         CntRow <= 0;
@@ -133,7 +135,7 @@ assign CTRLACT_FrtBlk = ~(|CntBlk);// CntBlk == 0;
 assign CTRLACT_FrtActFrm = CntBlk == 0 && CTRLACT_FrtActBlk;
 assign CTRLACT_LstActFrm = CntBlk == CFG_NumBlk && CTRLACT_LstActBlk;
 // paulse to exchange Pingpong SRAM_PEC2/3
-assign CTRLACT_FnhFrm = CTRLACT_FrtActFrm && ~CTRLACT_FrtActFrm_d;  
+assign CTRLACT_FnhFrm = CTRLACT_FrtActFrm && ~CTRLACT_FrtActFrm_d;
 
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
@@ -152,7 +154,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         CntPat <= 0;
     end else if ( CTRLACT_FrtActLay && CTRLACT_GetAct ) begin
-        CntPat <= 0; 
+        CntPat <= 0;
     end else if( CTRLACT_FrtActPat && CTRLACT_GetAct ) begin
         CntPat <= CntPat + 1;
     end

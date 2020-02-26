@@ -4,7 +4,7 @@
 //======================================================
 // Module : CONFIG
 // Author : CC zhou
-// Contact : 
+// Contact :
 // Date :   8 . 1 .2019
 //=======================================================
 // Description :
@@ -18,7 +18,8 @@ module  CONFIG (
     output reg [ `BLK_WIDTH                  - 1 : 0 ] CFG_NumBlk,
     output reg [ `FRAME_WIDTH                - 1 : 0 ] CFG_NumFrm,
     output reg [ `PATCH_WIDTH                - 1 : 0 ] CFG_NumPat,
-    output reg [ `LAYER_WIDTH                - 1 : 0 ] CFG_NumLay                      
+    output reg [ `LAYER_WIDTH                - 1 : 0 ] CFG_NumLay,
+    output reg [ 5 + 1+`POOL_KERNEL_WIDTH                -1 : 0] CFG_POOL
 );
 //=====================================================================================================================
 // Constant Definition :
@@ -47,6 +48,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         CFG_NumFrm <= 3;
         CFG_NumPat <= 0;
         CFG_NumLay <= 7;
+        CFG_POOL   <={5'd8,1'd1,3'd2};
      end else begin
         CFG_LenRow <= 15;
         CFG_DepBlk <= 31;
@@ -54,6 +56,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         CFG_NumFrm <= 3;
         CFG_NumPat <= 0;
         CFG_NumLay <= 7;
+        CFG_POOL   <={5'd8,1'd1,3'd2};
     end
 end
 

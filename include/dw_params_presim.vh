@@ -32,8 +32,17 @@
 
 `define LENROW 16
 `define LENPSUM 14
-`define PSUM
-`define POOL_WIDTH
+//`define PSUM
+
+// POOL parameters
+`define POOL_WIDTH 2//Stride
+`define POOL_KERNEL_WIDTH 3 // 2 3 7
+`define GBFOFM_ADDRWIDTH  `C_LOG_2(`LENPSUM*`LENPSUM*`NUMPEB/12)
+`define GBFFLGOFM_ADDRWIDTH  `C_LOG_2(`LENPSUM*`LENPSUM*`NUMPEB/`PORT_DATAWIDTH)
+
+`define BUSPEC_WIDTH (6 + `BLOCK_DEPTH + `DATA_WIDTH * `BLOCK_DEPTH)
+`define BUSPEB_WIDTH `BUSPEC_WIDTH
+`define PSUM_WIDTH (`DATA_WIDTH *2 + `C_LOG_2(`BLOCK_DEPTH) + 2 )
 // Config parameters
 `define FRAME_WIDTH 5
 `define PATCH_WIDTH 8

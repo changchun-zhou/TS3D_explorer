@@ -1,12 +1,12 @@
 `timescale 1ns/1ps
-`include "common.vh"
+`include "../include/dw_params_presim.vh"
 module sipo
 #( // INPUT PARAMETERS
     parameter  DATA_IN_WIDTH  = 16,
     parameter  DATA_OUT_WIDTH = 64
 )( // PORTS
     input  wire                         clk,
-    input  wire                         reset,
+    input  wire                         rst_n,
     input  wire                         enable,
     input  wire [DATA_IN_WIDTH -1 : 0]  data_in,
     output wire                         ready,
@@ -28,15 +28,15 @@ module sipo
   reg  [ SHIFT_COUNT_WIDTH    -1 : 0 ]        shift_count;
   reg  [ DATA_OUT_WIDTH       -1 : 0 ]        shift;
 // ******************************************************************
-
+wire   parallel_load_d;
     assign parallel_load = shift_count == NUM_SHIFTS;
     assign ready = 1'b1;
     assign out_valid = !parallel_load_d && parallel_load;
     assign data_out = shift;
 
-    always @(posedge clk)
+    always @(posedge clk or negedge rst_n)
     begin: SHIFTER_COUNT
-      if (reset)
+      if (!rst_n)
         shift_count <= 0;
       else
       begin
@@ -49,9 +49,9 @@ module sipo
       end
     end
 
-    always @(posedge clk)
+    always @(posedge clk or negedge rst_n)
     begin: DATA_SHIFT
-      if (reset)
+      if (!rst_n)
         shift <= 0;
       else if (enable) begin
         if (DATA_OUT_WIDTH == DATA_IN_WIDTH)
@@ -61,11 +61,11 @@ module sipo
       end
     end
 
-    register #(
+    Delay #(
     .NUM_STAGES               ( 1                        )
     ) push_delay (
     .CLK                      ( clk                      ),
-    .RESET                    ( reset                    ),
+    .RESET_N                    ( rst_n                 ),
     .DIN                      ( parallel_load            ),
     .DOUT                     ( parallel_load_d          )
     );

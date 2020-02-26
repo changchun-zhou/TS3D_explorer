@@ -9,20 +9,20 @@
 //=======================================================
 // Description :
 //========================================================
+`include "../include/dw_params_presim.vh"
 module POOL(
     input                                                                       clk     ,
     input                                                                       rst_n   ,
     input [ 5 + 1+`POOL_KERNEL_WIDTH                -1 : 0] CFG_POOL      ,
-    input                                                                       POOL_Val,  // level
-    input                                                                       POOL_ValFrm,
+    input                                                                       POOL_Val,  // paulse
     output [ 1			                       -1 : 0] POOLPEL_EnRd,// 4 bit ID of PEB
     output [ `C_LOG_2(`LENPSUM * `LENPSUM)-1 : 0] POOLPEL_AddrRd,
-    input  [ PSUM_WIDTH * `BLOCK_DEPTH       -1 : 0] PELPOOL_Dat,
+    input  [ `PSUM_WIDTH * `NUMPEB                   -1 : 0] PELPOOL_Dat,
     output                                                                    GBFOFM_EnWr,
-    output  [ `GBFOFM_ADDRWIDTH                 -1 : 0] GBFOFM_AddrWr,
+    output  reg[ `GBFOFM_ADDRWIDTH                 -1 : 0] GBFOFM_AddrWr,
     output [ `PORT_DATAWIDTH                        -1 : 0] GBFOFM_DatWr,
     output                                                                    GBFFLGOFM_EnWr,
-    output   [ `GBFFLGOFM_ADDRWIDTH         - 1 :0 ] GBFFLGOFM_AddrWr,
+    output reg  [ `GBFFLGOFM_ADDRWIDTH         - 1 :0 ] GBFFLGOFM_AddrWr,
     output  [ `PORT_DATAWIDTH                     - 1 : 0 ] GBFFLGOFM_DatWr
 
 );
@@ -35,28 +35,48 @@ module POOL(
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
-wire  [ `DATA_WIDTH                           -1 : 0 ] PELPOOL_MEM  [ 0 : `NUMPEB];
-wire  [ `DATA_WIDTH                           -1 : 0 ] FRMPOOL_MEM [ 0 : `NUMPEB];
-wire  [ `DATA_WIDTH                           -1 : 0 ] POOL_MEM [ 0 : `NUMPEB];
+reg  [ `DATA_WIDTH                           -1 : 0 ] POOL_MEM [0:`NUMPEB -1]; // modify to 2D array
 wire  [  5                                              -1     : 0 ] FL;
 wire  [  5                                              -1     : 0 ] fl;
 
 reg     [ 3                                              -1 : 0 ] cnt_poolx;
 reg     [ 3                                              -1 : 0 ] cnt_pooly;
-reg     [ `C_LOG_2(`LENPSUM * `LENPSUM) -1 : 0] AddrBasePEL;
+wire     [ `C_LOG_2(`LENPSUM * `LENPSUM) -1 : 0] AddrBasePEL;
 wire                                                                        POOL_ValFrm;
 wire    [ `C_LOG_2(`POOL_WIDTH)         -1 : 0 ] Stride;
-reg     [ `C_LOG_2(`LENSPUM)                -1 : 0 ] AddrCol;
-reg     [ `C_LOG_2(`LENSPUM*`LENSPUM)                -1 : 0 ] AddrBaseRow;
-reg     [ `C_LOG_2(`LENSPUM*`LENSPUM)                -1 : 0 ] AddrBasePEL;
+reg     [ `C_LOG_2(`LENPSUM)                -1 : 0 ] AddrCol;
+reg     [ `C_LOG_2(`LENPSUM*`LENPSUM)                -1 : 0 ] AddrBaseRow;
 wire                                                                    FnhPoolRow;
 wire                                                                    FnhPoolPat;
+wire   [ `NUMPEB            -1 : 0] FLAG_PSUM;
+wire [ `PSUM_WIDTH       - 1 : 0] ReLU [0: `NUMPEB -1];
+wire                                              POOLPEL_EnRd_d;
+wire [ `DATA_WIDTH * `NUMPEB - 1:0] FRMPOOL_DatWr;
+wire [ `DATA_WIDTH * `NUMPEB - 1:0] FRMPOOL_DatRd;
+wire [ `DATA_WIDTH * `NUMPEB - 1:0] DELTA_DatWr;
+wire [ `DATA_WIDTH * `NUMPEB - 1:0] DELTA_DatRd;
+reg [ `DATA_WIDTH                    - 1:0] SPRS_MEM [0 : `NUMPEB -1];
+wire [ `NUMPEB                          - 1 :0] FLAG_MEM;
 
+wire SIPOOFM_En;
+wire SIPOFLGOFM_En;
+
+wire DELTA_EnRd;
+wire DELTA_EnWr;
+reg [ `C_LOG_2(`LENPSUM*`LENPSUM)  -1:0] DELTA_AddrRd;
+reg [ `C_LOG_2(`LENPSUM*`LENPSUM)  -1:0] DELTA_AddrWr;
+
+wire FRMPOOL_EnRd;
+wire FRMPOOL_EnWr;
+reg [`C_LOG_2(`LENPSUM/2*`LENPSUM/2)      - 1:0]FRMPOOL_AddrRd;
+reg [`C_LOG_2(`LENPSUM/2*`LENPSUM/2)      - 1:0]FRMPOOL_AddrWr;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
 // FSM : ACT is ever gotten or not
-localparam IDLE     = 3'b000;
+
+localparam IDLE0     = 3'b000;
+localparam IDLE     = 3'b100;
 localparam RDPEL   = 3'b001;
 localparam FRMPOOLDELTA   = 3'b011;
 localparam DELTA  = 3'b010;
@@ -70,21 +90,24 @@ wire [ 3 - 1 : 0  ] state_dd;
 
 always @(*) begin
     case (state)
-      IDLE  :   if ( POOL_Val )
-                    next_state <= RDPEL;
+      IDLE0  :   if ( POOL_Val )
+                    next_state <= IDLE;
                 else
-                    next_state <= IDLE;  // avoid Latch
-      RDPEL:   if (  cnt_poolx==Stride && cnt_pooly==Stride)
+                    next_state <= IDLE0;  // avoid Latch
+    IDLE: next_state <= RDPEL;
+      RDPEL: if(FnhPoolPat)
+                        next_state <= IDLE0;
+                 else  if (  cnt_poolx==Stride && cnt_pooly==Stride)
                          if(POOL_ValFrm)
-                            next_state <= FRMPOOL
+                            next_state <= FRMPOOLDELTA;
                         else
-                            next_state <= DELTA
+                            next_state <= DELTA;
                 else
                     next_state <= RDPEL;
       FRMPOOLDELTA: if( 1'b1)
                     next_state <= IDLE;
                     else
-                           next_state <= FRMPOOL;
+                           next_state <= FRMPOOLDELTA;
 
       default: next_state <= IDLE;
     endcase
@@ -125,8 +148,8 @@ end
 
 assign  POOLPEL_AddrRd = AddrBasePEL + cnt_poolx + `LENPSUM * cnt_pooly;
 
-always @ ( posedge clk or negedge  ) begin
-    if ( ! ) begin
+always @ ( posedge clk or negedge rst_n  ) begin
+    if ( ! rst_n) begin
         cnt_poolx <= 0;
     end else if (  cnt_poolx == Stride - 1 ) begin
         cnt_poolx <= 0;
@@ -135,8 +158,8 @@ always @ ( posedge clk or negedge  ) begin
     end
 end
 
-always @ ( posedge clk or negedge  ) begin
-    if ( ! ) begin
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
         cnt_pooly <= 0;
     end else if ( cnt_pooly == Stride- 1 ) begin
         cnt_pooly <= 0;
@@ -144,43 +167,36 @@ always @ ( posedge clk or negedge  ) begin
         cnt_pooly <= cnt_pooly + 1;
     end
 end
-wire   [ `NUMPEB            -1 : 0] FLAG_PSUM;
-wire [ PSUM_WIDTH       - 1 : 0] ReLU [0: `NUMPEB -1];
-wire                                              POOLPEL_EnRd_d;
-wire [ `DATA_WIDTH * `NUMPEB - 1:0] FRMPOOL_DatWr;
-wire [ `DATA_WIDTH * `NUMPEB - 1:0] DELTA_DatWr;
-wire [ `DATA_WIDTH * `NUMPEB - 1:0] SPRS_MEM;
-wire [ `NUMPEB                          - 1 :0] FLAG_MEM;
+
 assign FL = (fl > 5'd21)? 5'd21 : fl;
 generate
   genvar i;
-  for(i=0;i<`NUMPEC; i=i+1) begin:POOL_PEC
+  for(i=0;i<`NUMPEB; i=i+1) begin:POOL_PEB
 // ReLU
-        assign FLAG_PSUM[i] = PELPOOL_Dat[PSUM_WIDTH * (i+1)  - 1];
-        assign ReLU[i]  =  FLAG_PSUM[i] ?  'b0 : PELPOOL_Dat[ PSUM_WIDTH *  i  +: PSUM_WIDTH];
-        assign PELPOOL_MEM[i] = { 1'b0 , ReLU[FL + 6 -: 7] };
+        assign FLAG_PSUM[i] = PELPOOL_Dat[`PSUM_WIDTH * (i+1)  - 1];
+        assign ReLU[i]  =  FLAG_PSUM[i] ?  'b0 : PELPOOL_Dat[ `PSUM_WIDTH *  i  +: `PSUM_WIDTH];
 //
 
   // Pooling 1x2x2
         always @ ( posedge clk or negedge rst_n ) begin
           if ( !rst_n ) begin
-             POOL_MEM [i] <= 0;
+             POOL_MEM[i] <= 0;
           end else if ( state == IDLE ) begin
              POOL_MEM[i] <= 0;
          end else if(  POOLPEL_EnRd_d)begin
-             POOL_MEM [i]   <= POOL_MEM [i]  >  PELPOOL_Dat ? POOL_MEM [i] :PELPOOL_MEM[i] ;
+             POOL_MEM[i]   <= (POOL_MEM[i]  >  PELPOOL_Dat[ `PSUM_WIDTH *  i  +: `PSUM_WIDTH] )? POOL_MEM[i] :{ 1'b0 , ReLU[i][FL + 6 -: 7] } ;
           end
         end
-    assign FRMPOOL_DatWr[i] = ( POOL_MEM[i] > FRMPOOL_DatRd || ~POOL_ValFrm)? POOL_MEM [i] :FRMPOOL_DatRd[i];
-    assign DELTA_DatWr[i] = FRMPOOL_DatWr[i] - DELTA_DatRd[ `DATA_WIDTH * (`NUMPEB - i -1) -: `DATA_WIDTH];
+    assign FRMPOOL_DatWr[`DATA_WIDTH*i +: `DATA_WIDTH] = ( POOL_MEM[i] > FRMPOOL_DatRd[`DATA_WIDTH*i +: `DATA_WIDTH] || ~POOL_ValFrm)? POOL_MEM[i] :FRMPOOL_DatRd[`DATA_WIDTH*i +: `DATA_WIDTH];
+    assign DELTA_DatWr[`DATA_WIDTH*i +: `DATA_WIDTH] = FRMPOOL_DatWr[`DATA_WIDTH*i +: `DATA_WIDTH] - DELTA_DatRd[ `DATA_WIDTH * (`NUMPEB - i )  -1 -: `DATA_WIDTH];
         always @ ( posedge clk or negedge rst_n ) begin
             if ( !rst_n ) begin
-                SPRS_MEM[`DATA_WIDTH*i +: `DATA_WIDTH] <= 0;
+                SPRS_MEM[i] <= 0;
             end else if ( state_d ==FRMPOOLDELTA ) begin
-                SPRS_MEM[`DATA_WIDTH*i +: `DATA_WIDTH] <= DELTA_DatWr[i] ;
+                SPRS_MEM[i] <= DELTA_DatWr[`DATA_WIDTH*i +: `DATA_WIDTH] ;
             end
         end
-        assign FLAG_MEM[i] = |SPRS_MEM[`DATA_WIDTH*(`NUMPEB-1-i) +: `DATA_WIDTH]
+        assign FLAG_MEM[i] = |SPRS_MEM[`NUMPEB-1-i];
       end
 endgenerate
 reg     [ `C_LOG_2(`NUMPEB)   - 1:0]SPRS_Addr;
@@ -208,11 +224,8 @@ always @ ( posedge clk or negedge rst_n ) begin
         GBFFLGOFM_AddrWr <= GBFFLGOFM_AddrWr + 1;
     end
 end
-wire FRMPOOL_EnWr;
-wire SIPOOFM_En;
-wire SIPOFLGOFM_En;
 
-assign FRMPOOL_EnWr = state = FRMPOOL;
+assign FRMPOOL_EnWr = state == FRMPOOLDELTA;
 assign SIPOOFM_En = FLAG_MEM[SPRS_Addr];
 assign SIPOFLGOFM_En = state_dd==FRMPOOLDELTA;
 //=====================================================================================================================
@@ -223,24 +236,24 @@ assign SIPOFLGOFM_En = state_dd==FRMPOOLDELTA;
 
 sipo
 #( // INPUT PARAMETERS
-    DATA_IN_WIDTH(`DATA_WIDTH),
-   DATA_OUT_WIDTH (`PORT_DATAWIDTH) // 12*
+    .DATA_IN_WIDTH(`DATA_WIDTH),
+   .DATA_OUT_WIDTH (`PORT_DATAWIDTH) // 12*
 )SIPO_OFM( // PORTS
     .clk(clk),
-    .reset(!rst_n),
+    .rst_n(rst_n),
     .enable(SIPOOFM_En),
-    .data_in(SPRS_MEM[i]),
+    .data_in(SPRS_MEM[SPRS_Addr]),
     .ready( ),
     .data_out(GBFOFM_DatWr),
     .out_valid(GBFOFM_EnWr)   // output must be gotten immediately
 );
 sipo
 #( // INPUT PARAMETERS
-    DATA_IN_WIDTH(`NUMPEB),
-   DATA_OUT_WIDTH (`PORT_DATAWIDTH) // 12*
+    .DATA_IN_WIDTH(`NUMPEB),
+   .DATA_OUT_WIDTH (`PORT_DATAWIDTH) // 12*
 )SIPO_FLGOFM( // PORTS
     .clk(clk),
-    .reset(!rst_n),
+    .rst_n(rst_n),
     .enable(SIPOFLGOFM_En),
     .data_in(FLAG_MEM),
     .ready( ),
@@ -248,10 +261,7 @@ sipo
     .out_valid(GBFFLGOFM_EnWr)   // output must be gotten immediately
 );
 // ==================================================================
-wire FRMPOOL_EnRd;
-wire FRMPOOL_EnWr;
-reg [`C_LOG_2(`LENPSUM/2*`LENPSUM/2)      - 1:0]FRMPOOL_AddrRd;
-reg [`C_LOG_2(`LENPSUM/2*`LENPSUM/2)      - 1:0]FRMPOOL_AddrWr;
+
 assign FRMPOOL_EnRd = state == FRMPOOLDELTA && POOL_ValFrm;
 assign FRMPOOL_EnWr = state_d == FRMPOOLDELTA && ~POOL_ValFrm;
 always @ ( posedge clk or negedge rst_n ) begin
@@ -287,10 +297,7 @@ SRAM_DUAL #(
         .data_in  ( FRMPOOL_DatWr      ),
         .data_out ( FRMPOOL_DatRd     )
     );
-wire DELTA_EnRd;
-wire DELTA_EnWr;
-reg [ `C_LOG_2(`LENPSUM*`LENPSUM)  -1:0] DELTA_AddrRd;
-reg [ `C_LOG_2(`LENPSUM*`LENPSUM)  -1:0] DELTA_AddrWr;
+
 assign DELTA_EnRd = state == FRMPOOLDELTA;
 assign DELTA_EnWr = state_d == FRMPOOLDELTA;
 always @ ( posedge clk or negedge rst_n ) begin

@@ -4,17 +4,14 @@
 //======================================================
 // Module : CNVROW
 // Author : CC zhou
-// Contact : 
+// Contact :
 // Date : 3 .1 .2019
 //=======================================================
 // Description :
 //========================================================
 `include "../include/dw_params_presim.vh"
 
-module CNVROW #(
-    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`BLOCK_DEPTH) + 2 )
- 
-) (
+module CNVROW  (
     input                                       clk     ,
     input                                       rst_n   ,
     input                                       PECMAC_Sta      ,
@@ -31,8 +28,8 @@ module CNVROW #(
     input [ `DATA_WIDTH * `BLOCK_DEPTH  -1 : 0] PECMAC_Wei0,
     input [ `DATA_WIDTH * `BLOCK_DEPTH  -1 : 0] PECMAC_Wei1,
     input [ `DATA_WIDTH * `BLOCK_DEPTH  -1 : 0] PECMAC_Wei2,
-    input [  PSUM_WIDTH * `LENPSUM      -1 : 0] CNVIN_Psum,
-    output reg [  PSUM_WIDTH * `LENPSUM -1 : 0] CNVOUT_Psum                         
+    input [  `PSUM_WIDTH       -1 : 0] CNVIN_Psum,
+    output  [  `PSUM_WIDTH  -1 : 0] CNVOUT_Psum
 );
 //=====================================================================================================================
 // Constant Definition :
@@ -44,40 +41,43 @@ module CNVROW #(
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
-reg [ `C_LOG_2( `LENPSUM)                       -1 : 0] Addr;
+reg [ `C_LOG_2( `LENROW)                       -1 : 0] Addr;
+wire [ `DATA_WIDTH * 2 + `C_LOG_2(`BLOCK_DEPTH*3)   -1 : 0] MACCNV_Mac_0;
 wire [ `DATA_WIDTH * 2 + `C_LOG_2(`BLOCK_DEPTH*3)   -1 : 0] MACCNV_Mac0;
 wire [ `DATA_WIDTH * 2 + `C_LOG_2(`BLOCK_DEPTH*3)   -1 : 0] MACCNV_Mac1;
 wire [ `DATA_WIDTH * 2 + `C_LOG_2(`BLOCK_DEPTH*3)   -1 : 0] MACCNV_Mac2;
 
+reg [ `PSUM_WIDTH * `LENROW      - 1 : 0 ] CNVOUT_Psum_Array;
 
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
-
+assign         CNVOUT_Psum  = CNVOUT_Psum_Array[ `PSUM_WIDTH * (`LENROW - 1) +: `PSUM_WIDTH];
 always @ ( posedge clk or negedge rst_n ) begin
      if ( ~rst_n ) begin
-        CNVOUT_Psum  <= 0;
+        CNVOUT_Psum_Array  <= 0;
      end else if ( PECCNV_PlsAcc ) begin
-        CNVOUT_Psum[ PSUM_WIDTH*Addr +: PSUM_WIDTH ]  <= MACCNV_Mac2 + CNVIN_Psum[ PSUM_WIDTH*Addr +: PSUM_WIDTH ];
+        CNVOUT_Psum_Array <= { CNVOUT_Psum_Array, MACCNV_Mac2 + CNVIN_Psum};// shift
      end
- end 
-
+ end
+/*
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
-        Addr <= `LENROW - 1; // correspond to real feature map position 
+        Addr <= `LENROW - 1; // correspond to real feature map position
     end else if ( PECCNV_FnhRow ) begin
         Addr <= `LENROW - 1;
     end else if ( PECCNV_PlsAcc ) begin
         Addr <= Addr - 1;
     end
 end
+*/
 
 
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
 
-
+assign MACCNV_Mac_0 = 0;
 MACAW MACAW0
     (
         .clk           (clk),
@@ -89,7 +89,7 @@ MACAW MACAW0
         .PECMAC_FlgWei (PECMAC_FlgWei0),
         .PECMAC_Wei    (PECMAC_Wei0),
         // .PECMAC_AddrBaseWei( PECMAC_AddrBaseWei0 ),
-        .MACMAC_Mac    ('b0),
+        .MACMAC_Mac    (MACCNV_Mac_0),
         .MACCNV_Mac    (MACCNV_Mac0)
     );
 

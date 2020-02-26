@@ -4,33 +4,30 @@
 //======================================================
 // Module : PEC
 // Author : CC zhou
-// Contact : 
+// Contact :
 // Date : 4 .1 .2019
 //=======================================================
 // Description :
 //========================================================
 `include "../include/dw_params_presim.vh"
-module PEC #(
-    parameter PSUM_WIDTH = (`DATA_WIDTH *2 + `C_LOG_2(`BLOCK_DEPTH) + 2 ),
-    parameter BUSPEC_WIDTH =  5 + `BLOCK_DEPTH + `DATA_WIDTH * `BLOCK_DEPTH
-    )(
+module PEC (
     input                                                       clk     ,
     input                                                       rst_n   ,
     input                                                       CTRLWEIPEC_RdyWei  ,
     output                                                      PECCTRLWEI_GetWei  ,//=CTRLWEIPEC_RdyWei paulse
     input [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE   -1 : 0] DISWEIPEC_Wei,
     input [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE             -1 : 0] DISWEIPEC_FlgWei,
-    input [ BUSPEC_WIDTH                                -1 : 0] INBUS_LSTPEC,
+    input [ `BUSPEC_WIDTH                                -1 : 0] INBUS_LSTPEC,
     input                                                       INBUS_NXTPEC,
-    output [ BUSPEC_WIDTH                                -1 : 0] OUTBUS_NXTPEC,
+    output [ `BUSPEC_WIDTH                                -1 : 0] OUTBUS_NXTPEC,
     output                                                      OUTBUS_LSTPEC,
 
     output                                                      PECRAM_EnWr,
-    output reg [ `C_LOG_2(`LENPSUM)                     -1 : 0] PECRAM_AddrWr,
-    output [  PSUM_WIDTH *  ( `LENPSUM )                -1 : 0] PECRAM_DatWr,
+    output reg [ `C_LOG_2(`LENPSUM*`LENPSUM)                     -1 : 0] PECRAM_AddrWr,
+    output [  `PSUM_WIDTH                -1 : 0] PECRAM_DatWr,
     output                                                      PECRAM_EnRd,
-    output reg [ `C_LOG_2(`LENPSUM)                     -1 : 0] PECRAM_AddrRd,
-    input  [ PSUM_WIDTH * ( `LENPSUM )                  -1 : 0] RAMPEC_DatRd 
+    output reg [ `C_LOG_2(`LENPSUM*`LENPSUM)                     -1 : 0] PECRAM_AddrRd,
+    input  [ `PSUM_WIDTH                   -1 : 0] RAMPEC_DatRd
 
 );
 //=====================================================================================================================
@@ -50,10 +47,12 @@ module PEC #(
     wire                                                       LSTPEC_LstActRow   ;//
     wire                                                       LSTPEC_LstActBlk   ;//
     wire                                                       LSTPEC_ValPsum     ;// only for write RAM valid
+    wire                                                        LSTPEC_ValCol;
     reg                                                    NXTPEC_FrtActRow   ;
     reg                                                    NXTPEC_LstActRow   ;
     reg                                                    NXTPEC_LstActBlk   ;
     reg                                                    NXTPEC_ValPsum     ;
+    reg                                                    NXTPEC_ValCol     ;
     wire                                                       LSTPEC_RdyAct;// level
     wire                                                       LSTPEC_GetAct;// PAULSE
     wire [ `BLOCK_DEPTH                                -1 : 0] PEBPEC_FlgAct;
@@ -84,13 +83,14 @@ wire                                                    FnhRow;
 wire                                                    StaRow;
 wire                                                    FnhBlk; // not used
 wire                                                    PECCNV_FnhRow;
-wire [  PSUM_WIDTH * `LENPSUM                   -1 : 0] PECCNV_Psum;
-wire [  PSUM_WIDTH * `LENPSUM                   -1 : 0] CNVOUT_Psum0;
-wire [  PSUM_WIDTH * `LENPSUM                   -1 : 0] CNVOUT_Psum1;
-wire [  PSUM_WIDTH * `LENPSUM                   -1 : 0] CNVOUT_Psum2;
+wire [  `PSUM_WIDTH                    -1 : 0] PECCNV_Psum;
+wire [  `PSUM_WIDTH                    -1 : 0] CNVOUT_Psum0;
+wire [  `PSUM_WIDTH                    -1 : 0] CNVOUT_Psum1;
+wire [  `PSUM_WIDTH                    -1 : 0] CNVOUT_Psum2;
 reg  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE-1 : 0] WeiArray;
 reg  [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE          -1 : 0] FlgWei;
 reg                                                     ValPsum;
+reg                                                     ValCol;
 reg                                                     FrtActRow;
 reg                                                     LstActRow, LstActRow_d, LstActRow_dd, LstActRow_ddd;
 reg                                                     LstActBlk,LstActBlk_d,LstActBlk_dd,LstActBlk_ddd;
@@ -130,6 +130,8 @@ reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei5;
 reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei6;
 reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei7;
 reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei8;
+
+wire                                                                              PlsFnhAll_d;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -138,6 +140,7 @@ LSTPEC_FrtActRow   ,
 LSTPEC_LstActRow   ,
 LSTPEC_LstActBlk   ,
 LSTPEC_ValPsum     ,
+LSTPEC_ValCol,
 LSTPEC_RdyAct,
 PEBPEC_FlgAct,
 PEBPEC_Act}=INBUS_LSTPEC;
@@ -147,9 +150,10 @@ NXTPEC_FrtActRow   ,
 NXTPEC_LstActRow   ,
 NXTPEC_LstActBlk   ,
 NXTPEC_ValPsum     ,
+NXTPEC_ValCol    ,
 NXTPEC_RdyAct,
 PECMAC_FlgAct,
-PECMAC_Act    
+PECMAC_Act
 } ;
 assign OUTBUS_LSTPEC = LSTPEC_GetAct;
 
@@ -172,23 +176,23 @@ always @(*) begin
     case (state)
       IDLE  :   if ( 1'b1 )
                     next_state <= CFGWEI;
-                else 
+                else
                     next_state <= IDLE;  // avoid Latch
       CFGWEI:   if ( CTRLWEIPEC_RdyWei )
                     next_state <= RDRAM;
-                else 
+                else
                     next_state <= CFGWEI;
       RDRAM:        next_state <= CFGACT;
       CFGACT:   if( LSTPEC_RdyAct && LevFnhAll) // || ~EnPEC
                     next_state <= WAITGET;
-                else 
+                else
                     next_state <= CFGACT;
       WAITGET  :if( NXTPEC_GetAct ) // make sure is gotten by NXTPEC
                     if( LstActRow )
                         next_state <= WRRAM;
                     else
                         next_state <= CFGACT;
-                else 
+                else
                     next_state <= WAITGET;
       WRRAM :  if( LstActBlk &&PlsFnhAll)
                     next_state <= IDLE;// wait row finish to config new weights
@@ -242,13 +246,13 @@ always @ ( posedge clk or negedge rst_n ) begin
         // PECMAC_AddrBaseWei6 <= DISWEI_AddrBase + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4 + ValNumWei5;
         // PECMAC_AddrBaseWei7 <= DISWEI_AddrBase + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4 + ValNumWei5 + ValNumWei6;
         // PECMAC_AddrBaseWei8 <= DISWEI_AddrBase + ValNumWei0 + ValNumWei1 + ValNumWei2 + ValNumWei3 + ValNumWei4 + ValNumWei5 + ValNumWei6 + ValNumWei7;
-    end 
+    end
 end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         CfgWei_d <= 0;
     end else begin
-        CfgWei_d <= CfgWei; 
+        CfgWei_d <= CfgWei;
     end
 end
 
@@ -334,11 +338,13 @@ always @ ( posedge clk or negedge rst_n ) begin
         LstActRow        <=LSTPEC_LstActRow;
         LstActBlk        <=LSTPEC_LstActBlk;
         ValPsum          <= LSTPEC_ValPsum;
+        ValCol              <= LSTPEC_ValCol;
 
         NXTPEC_FrtActRow <= FrtActRow;
         NXTPEC_LstActBlk <= LstActBlk;
         NXTPEC_LstActRow <= LstActRow;
         NXTPEC_ValPsum   <= ValPsum;
+        NXTPEC_ValCol   <= ValCol;
     end
 end
 
@@ -373,22 +379,23 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 //assign PECRAM_EnRd = StaRow && ValPsum; // 14
-assign PECRAM_EnRd = state == RDRAM; // 14
+//assign PECRAM_EnRd = state == RDRAM; // 14
+assign PECRAM_EnRd = PECMAC_Sta; // 14
 assign PECCNV_Psum = RAMPEC_DatRd ;
-//assign PECCNV_Psum = 0;
+
 
 // Write SRAM
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         PECRAM_AddrWr <= 0;
     end else if ( FnhBlk ) begin
-        PECRAM_AddrWr <= 0;        
+        PECRAM_AddrWr <= 0;
     end else if ( PECRAM_EnWr ) begin
         PECRAM_AddrWr <= PECRAM_AddrWr + 1;
     end
 end
-assign PECRAM_DatWr = CNVOUT_Psum0[0 +: PSUM_WIDTH * (`LENPSUM - 2)]; // 14
-assign PECRAM_EnWr  = PECCNV_FnhRow && ValPsum;//output Row is 1-14 not -1, 0
+assign PECRAM_DatWr = CNVOUT_Psum0; // 14
+assign PECRAM_EnWr  = PlsFnhAll_d && ValPsum && ValCol;//output Row is 1-14 not -1, 0
 
 
 
@@ -467,6 +474,14 @@ CNVROW CNVROW2 (
         .CNVIN_Psum     (PECCNV_Psum),
         .CNVOUT_Psum    (CNVOUT_Psum2)
     );
-
+Delay #(
+    .NUM_STAGES(1),
+    .DATA_WIDTH(1)
+    )Delay_PlsFnhAll(
+    .CLK(clk),
+    .RESET_N(rst_n),
+    .DIN(PlsFnhAll),
+    .DOUT(PlsFnhAll_d)
+    );
 
 endmodule
