@@ -11,7 +11,9 @@
 //========================================================
 `include "../include/dw_params_presim.vh"
 
-module CNVROW  (
+module CNVROW #(
+    parameter ADDR_GET =(`LENROW - 1)
+     ) (
     input                                       clk     ,
     input                                       rst_n   ,
     input                                       PECMAC_Sta      ,
@@ -52,7 +54,7 @@ reg [ `PSUM_WIDTH * `LENROW      - 1 : 0 ] CNVOUT_Psum_Array;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
-assign         CNVOUT_Psum  = CNVOUT_Psum_Array[ `PSUM_WIDTH * (`LENROW - 1) +: `PSUM_WIDTH];
+assign         CNVOUT_Psum  = CNVOUT_Psum_Array[ `PSUM_WIDTH * ADDR_GET +: `PSUM_WIDTH];
 always @ ( posedge clk or negedge rst_n ) begin
      if ( ~rst_n ) begin
         CNVOUT_Psum_Array  <= 0;

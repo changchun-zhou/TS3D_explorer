@@ -12,6 +12,8 @@ CNVOUT_Psum1FileName = 'CNVOUT_Psum1.dat'
 CNVOUT_Psum0FileName = 'CNVOUT_Psum0.dat'
 PECMAC_ActFileName = "PECMAC_Act_Gen.dat"
 PECMAC_FlgActFileName='PECMAC_FlgAct_Gen.dat'
+GBFOFM_DatWrFileName='GBFOFM_DatWr_Ref.dat'
+GBFFLGOFM_DatWrFileName='GBFFLGOFM_DatWr_Ref.dat'
 PECMAC_Wei0FileName = 'PECMAC_Wei0.dat'
 
 NumChn = 32
@@ -23,12 +25,15 @@ NumPEC = 3
 NumPEB = 2
 Len = 16
 KerSize = 3
+Stride = 2
+fl = 0
+PORT_DATAWIDTH = 96
 # PSUM_WIDTH = 23
 
 PECMAC_Wei = [ [ 0 for x in range (0,NumChn)] for y in range(0, NumWei) ]
 PECMAC_FlgWei = [ [ 0 for x in range (0,NumChn)] for y in range(0, NumWei) ]
 
-   
+
 #CNVOUT_PsumHEX = [['' for x in range ( 0, Len )] for y in range(0, KerSize)]
 '''
 Mac0 = [[ [ 0 for x in range (0,Len )] for y in range(0, Len) ] for z in range(0, KerSize)]
@@ -46,17 +51,17 @@ cntActError = 0
 #     return dat_hex
 with    open(FlagActFileName, 'r') as FlagActFile, \
         open(ActFileName, 'r') as ActFile,\
-        open (CNVOUT_Psum2FileName, 'w') as CNVOUT_Psum2File,\
-        open (CNVOUT_Psum1FileName, 'w') as CNVOUT_Psum1File,\
-        open (CNVOUT_Psum0FileName, 'w') as CNVOUT_Psum0File,\
         open (PECMAC_ActFileName, 'w') as PECMAC_ActFile,\
         open(PECMAC_FlgActFileName, 'w') as PECMAC_FlgActFile,\
+        open(GBFOFM_DatWrFileName,'w') as GBFOFM_DatWrFile, \
+        open(GBFFLGOFM_DatWrFileName,'w') as GBFFLGOFM_DatWrFile, \
         open(PECRAM_DatWrFileName, 'w') as PECRAM_DatWrFile, \
         open (PECMAC_Wei0FileName,'w') as PECMAC_Wei0File:
                         Psum2 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ] for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
                         Psum1 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ]for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
                         Psum0 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ]for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
-
+                        FRMPOOL = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
+                        DELTA = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
                         for cntfrm in range(0,NumFrm):
 
                             # same weight per frame
@@ -69,10 +74,10 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
                                     CNVOUT_Psum2_PEL = ['' for x in range ( 0, Len )]
                                     CNVOUT_Psum1_PEL = ['' for x in range ( 0, Len )]
                                     CNVOUT_Psum0_PEL = ['' for x in range ( 0, Len )]
-                                    PECRAM_DatWr_PEL = ['' for x in range ( 0, Len-2)]
+                                    PECRAM_DatWr_PEL = [['' for x in range ( 0, Len-2)] for y in range(0,Len-2)]
 
                                     #Fetch a block activation
-                                    for actrow in range(0, Len) : 
+                                    for actrow in range(0, Len) :
                                         for actcol in range(0, Len):
                                             PECMAC_Act = ''
                                             #PECMAC_FlgAct = ['' for x in range (0,NumChn)]
@@ -80,13 +85,13 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
                                             PECMAC_FlgActFile.write(PECMAC_FlgAct)
 
                                             FlagActFile.read(1)
-                                            for i in range (0, NumChn): 
+                                            for i in range (0, NumChn):
                                                 if PECMAC_FlgAct[NumChn-1-i] == '1' :
                                                     act = ActFile.read(2)
                                                     ActFile.read(1)
                                                     cntActError = cntActError + 1
                                                     PECMAC_Act = PECMAC_Act + act
-                                                    
+
                                                    # PECMAC_ActFile.write(act)
 
                                                     if act == '':
@@ -136,7 +141,7 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
                                                 PECMAC_Wei0File.write(PECMAC_Wei0 )
                                                 PECMAC_Wei0File.write('\n')
                                             acc = [ [ [0 for x in range (0,NumWei)] for y in range(0, Len)] for z in range(0, Len)]
-                                            for actrow in range(0, Len) : 
+                                            for actrow in range(0, Len) :
                                                 for actcol in range(0, Len):
                                                     for j in range(0, NumWei):
                                                         for m in range (0, NumChn):
@@ -148,7 +153,7 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
                                             CNVOUT_Psum2 = ['' for x in range ( 0, Len )]
                                             CNVOUT_Psum1 = ['' for x in range ( 0, Len )]
                                             CNVOUT_Psum0 = ['' for x in range ( 0, Len )]
-                                            PECRAM_DatWr = ['' for x in range ( 0, Len-2)]
+                                            PECRAM_DatWr = [['' for x in range ( 0, Len-2)] for y in range(0,Len-2)]
                                             for psumrow in range(0, Len):
                                                 for psumcol in range(0, Len-2):
                                                     # add previous Psum of previous blk
@@ -167,15 +172,13 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
                                                            # Psum0[psumrow][psumcol] = acc[psumrow][psumcol][6] + acc[psumrow][psumcol+1][7] + acc[psumrow][psumcol+2][8];
                                                         if psumrow >= 2 :
                                                             Psum0[cntBlk][cntPEB][cntPEC][psumrow-2][psumcol] =  0  + acc[psumrow][psumcol][6] + acc[psumrow][psumcol+1][7] + acc[psumrow][psumcol+2][8] + Psum1[cntBlk][cntPEB][cntPEC][psumrow -1][psumcol];
-                                                        
+
                                                         CNVOUT_Psum2[psumrow] = CNVOUT_Psum2[psumrow] + '{:023b}'.format(Psum2[cntBlk][cntPEB][cntPEC][psumrow][psumcol])
                                                         CNVOUT_Psum1[psumrow] = CNVOUT_Psum1[psumrow] + '{:023b}'.format(Psum1[cntBlk][cntPEB][cntPEC][psumrow][psumcol])
                                                         if psumrow >= 2 :  # 14rows
                                                             CNVOUT_Psum0[psumrow-2] = CNVOUT_Psum0[psumrow-2] + '{:023b}'.format(Psum0[cntBlk][cntPEB][cntPEC][psumrow-2][psumcol])
-                                                            if psumcol > 1 : #drop two rows
-                                                                PECRAM_DatWr[psumrow-2] = PECRAM_DatWr[psumrow-2] + '{:023b}'.format(Psum0[cntBlk][cntPEB][cntPEC][psumrow-2][psumcol])
-                                                            else :
-                                                                PECRAM_DatWr[psumrow-2] = '{:023b}'.format(0) + PECRAM_DatWr[psumrow-2] 
+                                                            PECRAM_DatWr[psumrow-2][psumcol] = '{:023b}'.format(Psum0[cntBlk][cntPEB][cntPEC][psumrow-2][psumcol])
+
                                                     else : # ACCumulate across channel
                                                         #DPsum2[cntBlk][cntPEB][cntPEC][psumrow][psumcol] = Psum0[cntBlk-1][cntPEB][cntPEC][psumrow][psumcol] + acc[psumrow][psumcol][0] + acc[psumrow][psumcol+1][1] + acc[psumrow][psumcol+2][2];
                                                         Psum2[cntBlk][cntPEB][cntPEC][psumrow][psumcol] = Psum0[cntBlk-1][cntPEB][cntPEC][psumrow][psumcol] + acc[psumrow][psumcol][0] + acc[psumrow][psumcol+1][1] + acc[psumrow][psumcol+2][2];
@@ -191,11 +194,12 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
                                                         CNVOUT_Psum1[psumrow] = CNVOUT_Psum1[psumrow] + '{:023b}'.format(Psum1[cntBlk][cntPEB][cntPEC][psumrow][psumcol])
                                                         if psumrow >= 2 :  # 14rows
                                                             CNVOUT_Psum0[psumrow-2] = CNVOUT_Psum0[psumrow-2] + '{:023b}'.format(Psum0[cntBlk][cntPEB][cntPEC][psumrow-2][psumcol])
-                                                            if psumcol > 1 : #drop two rows
-                                                                PECRAM_DatWr[psumrow-2] = PECRAM_DatWr[psumrow-2] + '{:023b}'.format(Psum0[cntBlk][cntPEB][cntPEC][psumrow-2][psumcol])
-                                                            else :
-                                                                PECRAM_DatWr[psumrow-2] = '{:023b}'.format(0) + PECRAM_DatWr[psumrow-2] 
+                                                             #drop two rows
+                                                            PECRAM_DatWr[psumrow-2][psumcol] = '{:023b}'.format(Psum0[cntBlk][cntPEB][cntPEC][psumrow-2][psumcol])
 
+                                                            #if psumrow >= 2 :  # 14rows
+                                                    if psumrow >= 2 :
+                                                            PECRAM_DatWr_PEL[psumrow-2][psumcol] = PECRAM_DatWr_PEL[psumrow-2][psumcol] + ((str(hex(int(PECRAM_DatWr[psumrow-2][psumcol],2))).lstrip('0x')).rstrip('L')).zfill(6);
                                                 #print(CNVOUT_Psum0[psumrow])
 
                                                 # transfer to hex firstly
@@ -207,29 +211,82 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
 
                                                 #print(psumrow)
                                                 #print(CNVOUT_Psum0_PEL)
-                                                if psumrow >= 2 :  # 14rows
 
-                                                    PECRAM_DatWr_PEL[psumrow-2] = PECRAM_DatWr_PEL[psumrow-2] + ((str(hex(int(PECRAM_DatWr[psumrow-2],2))).lstrip('0x')).rstrip('L')).zfill(81);
                                     # save first block then second block
                                     for psumrow in range(0, Len):
                                         #CNVOUT_Psum2_PEL[psumrow] = hex(int(CNVOUT_Psum2_PEL[psumrow],2))
-                                        CNVOUT_Psum2File.write(str(CNVOUT_Psum2_PEL[psumrow]))
-                                        CNVOUT_Psum2File.write('\n')
+                                        #CNVOUT_Psum2File.write(str(CNVOUT_Psum2_PEL[psumrow]))
+                                        #CNVOUT_Psum2File.write('\n')
 
                                         #CNVOUT_Psum1_PEL[psumrow] = hex(int(CNVOUT_Psum1_PEL[psumrow],2))
-                                        CNVOUT_Psum1File.write(str(CNVOUT_Psum1_PEL[psumrow]))
-                                        CNVOUT_Psum1File.write('\n')
+                                        #CNVOUT_Psum1File.write(str(CNVOUT_Psum1_PEL[psumrow]))
+                                        #CNVOUT_Psum1File.write('\n')
                                         if psumrow >= 2 :  # 14rows
                                             #print( CNVOUT_Psum0_PEL[psumrow-2])
                                             #CNVOUT_Psum0_PEL[psumrow-2] = hex(int(CNVOUT_Psum0_PEL[psumrow-2],2))
-                                            CNVOUT_Psum0File.write(str(CNVOUT_Psum0_PEL[psumrow-2]))
-                                            CNVOUT_Psum0File.write('\n')
-
+                                            #CNVOUT_Psum0File.write(str(CNVOUT_Psum0_PEL[psumrow-2]))
+                                            #CNVOUT_Psum0File.write('\n')
+                                            for psumcol in range(0,Len-2):
                                             #PECRAM_DatWr_PEL[psumrow-2] = ((str(hex(int(PECRAM_DatWr_PEL[psumrow-2],2))).lstrip('0x')).rstrip('L')).zfill(81*NumPEC*NumPEB)
-                                            PECRAM_DatWrFile.write(PECRAM_DatWr_PEL[psumrow-2]+'\n')
+                                                PECRAM_DatWrFile.write(PECRAM_DatWr_PEL[psumrow-2][psumcol]+'\n')
+                                            PECRAM_DatWrFile.write('\n')
+                            print(cntfrm)
+                            POOL_MEM = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
+                            SPRS = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
+                            FLAG_MEM = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
+                            GBFOFM_DatWr = ''
+                            GBFFLGOFM_DatWr = ''
+                            cnt_ACT = 0
+                            cnt_Flag = 0
+                            for AddrRow in range ( 0, Len-2 - Stride + 1, Stride):
+                                AddrPooly = 0
+                                for AddrCol in range ( 0, Len-2 - Stride + 1, Stride):
+                                    AddrPoolx = 0
+                                    for cntPEB in range (0, NumPEB):
+                                        for cnt_pooly in range (0, Stride):
+                                            for cnt_poolx in range (0, Stride):
+                                                PELPOOL_Dat = '{:023b}'.format(Psum0[NumBlk -1][cntPEB][NumPEC -1][AddrRow + cnt_pooly][AddrCol+cnt_poolx])
+                                                if  PELPOOL_Dat[0] == '1' :
+                                                    ReLU = '0' + PELPOOL_Dat[22-fl : 15-fl]
+                                                elif PELPOOL_Dat[0] == '0' :
+                                                    ReLU = '{:023b}'.format(0)
+                                                else:
+                                                    print("PELPOOL_Dat ERROR")
+                                                ReLU = int(ReLU,2)
+                                                if ReLU > POOL_MEM[AddrPooly][AddrPoolx][cntPEB] :
+                                                    POOL_MEM[AddrPooly][AddrPoolx][cntPEB] = ReLU;
+                                        if FRMPOOL[AddrPooly][AddrPoolx][cntPEB] > POOL_MEM[AddrPooly][AddrPoolx][cntPEB] :
+                                            POOL_MEM[AddrPooly][AddrPoolx][cntPEB] = FRMPOOL[cntPEB][AddrPooly][AddrPoolx]
+                                        else:
+                                            FRMPOOL[AddrPooly][AddrPoolx][cntPEB] = POOL_MEM[AddrPooly][AddrPoolx][cntPEB] # update frame for pool_frame
+                                        SPRS[AddrPooly][AddrPoolx][cntPEB] = POOL_MEM[AddrPooly][AddrPoolx][cntPEB] - DELTA[cntPEB][AddrPooly][AddrPoolx]
+                                        DELTA[cntPEB][AddrPooly][AddrPoolx] = POOL_MEM[AddrPooly][AddrPoolx][cntPEB];# update frame for delta
+                                        if SPRS[AddrPooly][AddrPoolx][cntPEB] != 0:
+                                            FLAG_MEM[AddrPooly][AddrPoolx][cntPEB]  = 1
+                                            if cnt_ACT < PORT_DATAWIDTH/8 :
+                                                GBFOFM_DatWr = ((str(hex(SPRS[AddrPooly][AddrPoolx][cntPEB])).lstrip('0x')).rstrip('L')).zfill(2) + GBFOFM_DatWr
+                                                cnt_ACT = cnt_ACT + 1
+                                            else:
+                                                GBFOFM_DatWrFile.Write(GBFOFM_DatWr+'\n')
+                                                cnt_ACT = 0
+                                                GBFOFM_DatWr = ''
+                                        else:
+                                            FLAG_MEM[AddrPooly][AddrPoolx][cntPEB]  = 0
+                                        if cnt_Flag < PORT_DATAWIDTH:
+                                            GBFFLGOFM_DatWr = str(FLAG_MEM[AddrPooly][AddrPoolx][cntPEB] ) + GBFFLGOFM_DatWr
+                                            cnt_Flag = cnt_Flag + 1
+                                        else:
+                                            GBFFLGOFM_DatWrFile.write(GBFFLGOFM_DatWr+'\n')
+                                            cnt_Flag = 0
+                                            GBFFLGOFM_DatWr = ''
+                                    AddrPoolx = AddrPoolx + 1
+                                AddrPooly = AddrPooly + 1;
 
-
-                                        
+"""
+        open (CNVOUT_Psum2FileName, 'w') as CNVOUT_Psum2File,\
+        open (CNVOUT_Psum1FileName, 'w') as CNVOUT_Psum1File,\
+        open (CNVOUT_Psum0FileName, 'w') as CNVOUT_Psum0File,\
+"""
 
 
 """               for outrow in range (0, Len -2):
@@ -270,7 +327,7 @@ with open (CNVOUT_Psum0FileName, 'w') as CNVOUT_Psum0File:
                                 print(CNVOUT_PsumHEX[2][0])
                                 print(hex(int('10111111',2)))
 """
-                                
+
 '''                                            for cnvrow in range (0, KerSize) :
                                                 for psumrow in range(0, Len):
                                                     for psumcol in range(0, Len):

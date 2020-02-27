@@ -1,4 +1,4 @@
 Debussy
 sim
 synth
-testbench/Data/*.dat
+testbench/Data/MonRTL/*.dat

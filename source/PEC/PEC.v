@@ -403,7 +403,9 @@ assign PECRAM_EnWr  = PlsFnhAll_d && ValPsum && ValCol;//output Row is 1-14 not 
 // Sub-Module :
 //=====================================================================================================================
 
-CNVROW CNVROW0 (
+CNVROW #(
+    .ADDR_GET(0)
+    ) CNVROW0 (
         .clk            (clk),
         .rst_n          (rst_n),
         .PECMAC_Sta     (PECMAC_Sta),
