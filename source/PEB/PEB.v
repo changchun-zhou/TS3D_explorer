@@ -97,7 +97,7 @@ wire                                        PECRAM_EnWr0;
 wire [  `C_LOG_2(`LENPSUM*`LENPSUM)         - 1 : 0 ] PECRAM_AddrWr0;
 wire [   `PSUM_WIDTH    - 1 : 0 ] PECRAM_DatWr0;
 wire                                        PECRAM_EnRd0;
-wire [          - 1 : 0 ] PECRAM_AddrRd0;
+wire [  `C_LOG_2(`LENPSUM*`LENPSUM)        - 1 : 0 ] PECRAM_AddrRd0;
 wire [  `PSUM_WIDTH     - 1 : 0 ] RAMPEC_DatRd0;
 
 wire                                        PECRAM_EnWr1;
@@ -167,16 +167,16 @@ end
 assign EnWr0         = PECRAM_EnWr0     ;
 assign AddrWr0       = PECRAM_AddrWr0   ;
 assign DatWr0        = PECRAM_DatWr0    ;
-assign EnRd0         = CTRLPEB_FrtBlk ? 0 : PECRAM_EnRd0     ;
-assign AddrRd0       = CTRLPEB_FrtBlk ? 0 : PECRAM_AddrRd0   ;
+assign EnRd0         = CTRLPEB_FrtBlk ?  PECRAM_EnRd1: PECRAM_EnRd0     ;
+assign AddrRd0       = CTRLPEB_FrtBlk ? PECRAM_AddrRd1 : PECRAM_AddrRd0   ;
 assign RAMPEC_DatRd0 = CTRLPEB_FrtBlk ? 0 : DatRd0    ; //after first block, the first data is x because of EnRd is 0 before.
 
 assign EnWr1         = PECRAM_EnWr1     ;
 assign AddrWr1       = PECRAM_AddrWr1   ;
 assign DatWr1        = PECRAM_DatWr1    ;
-assign EnRd1         = CTRLPEB_FrtBlk ? PECRAM_EnRd0      : PECRAM_EnRd1     ;
-assign AddrRd1       = CTRLPEB_FrtBlk ? PECRAM_AddrRd0    : PECRAM_AddrRd1   ;
-assign RAMPEC_DatRd1 = CTRLPEB_FrtBlk ? DatRd0     : DatRd1           ;
+assign EnRd1         = CTRLPEB_FrtBlk ? PECRAM_EnRd2      : PECRAM_EnRd1     ;
+assign AddrRd1       = CTRLPEB_FrtBlk ? PECRAM_AddrRd2    : PECRAM_AddrRd1   ;
+assign RAMPEC_DatRd1 = CTRLPEB_FrtBlk ? 0     : DatRd1           ;
 
 // Ping
 assign EnWr2         = FlgRAM2 ? ( PECRAM_EnWr2     ) : 0               ;
@@ -185,7 +185,7 @@ assign DatWr2        = FlgRAM2 ? ( PECRAM_DatWr2    ) : 0               ;
 assign EnRd2         = FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_EnRd1      : PECRAM_EnRd2     ) : POOLPEB_EnRd    ;
 assign AddrRd2       = FlgRAM2 ? ( CTRLPEB_FrtBlk ? PECRAM_AddrRd1    : PECRAM_AddrRd2   ) : POOLPEB_AddrRd  ;
 
-assign RAMPEC_DatRd2 = CTRLPEB_FrtBlk ? DatRd1 : FlgRAM2 ? DatRd2  : DatRd3     ; // ERROR //////////////////////////////////////////
+assign RAMPEC_DatRd2 = CTRLPEB_FrtBlk ? 0 : FlgRAM2 ? DatRd2  : DatRd3     ; // ERROR //////////////////////////////////////////
 // assign RAMPEC_DatRd2 = CTRLPEB_FrtBlk ?( DatRd1+ FlgRAM2 ? DatRd2  : DatRd3): FlgRAM2 ? DatRd2  : DatRd3     ; // ERROR //////////////////////////////////////////
 
 // Pong

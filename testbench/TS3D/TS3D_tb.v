@@ -69,7 +69,7 @@ begin
     #25  rst_n  =  0;
     #100 rst_n  =  1;
 end
-
+integer cnt;
 generate
     genvar i,j;
     for(i=0;i<`NUMPEB;i=i+1) begin:Mon_PEB
@@ -79,11 +79,21 @@ generate
             integer PECMAC_FlgAct_Gen;
             integer PECMAC_Act_Mon;
             integer PECMAC_Act_Gen;
+            integer PECMAC_FlgWei0_Mon;
+            integer PECMAC_FlgWei0_Ref;
+            integer PECMAC_Wei0_Mon;
+            integer PECMAC_Wei0_Ref;
             integer Suc_FlgAct;
             integer Suc_Act;
             integer Suc_DatWr;
+            integer Suc_FlgWei0;
+            integer Suc_Wei0;
             reg [`BLOCK_DEPTH -  1 : 0]PECMAC_FlgAct_GenDat;
             reg [ `DATA_WIDTH * `BLOCK_DEPTH             -1 : 0]PECMAC_Act_GenDat;
+            reg [ `BLOCK_DEPTH * `NUMPEC * `KERNEL_SIZE -1 : 0] PECMAC_FlgWei0_RefDat;
+            reg [ `DATA_WIDTH * `BLOCK_DEPTH         - 1: 0] PECMAC_Wei0_RefDat;
+            reg [5 : 0] addr,NumVal;
+
             reg [ 8 -1 :0 ] Number;
             //Number = i*j;
             initial begin
@@ -91,6 +101,9 @@ generate
                 PECMAC_FlgAct_Gen = $fopen("../testbench/Data/GenTest/PECMAC_FlgAct_Gen.dat","r");
                 PECMAC_Act_Mon = $fopen("../testbench/Data/MonRTL/PECMAC_Act_Mon.dat","w");
                 PECMAC_Act_Gen = $fopen("../testbench/Data/GenTest/PECMAC_Act_Gen.dat","r");
+                PECMAC_FlgWei0_Mon = $fopen("../testbench/Data/MonRTL/PECMAC_FlgWei0_Mon.dat","w");
+                PECMAC_FlgWei0_Ref = $fopen("../testbench/Data/GenTest/PECMAC_FlgWei0_Ref.dat","r");
+                PECMAC_Wei0_Ref = $fopen("../testbench/Data/GenTest/PECMAC_Wei0_Ref.dat","r");
 
 
                 repeat(NumClk) begin
@@ -104,22 +117,51 @@ generate
 
                         if(TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECMAC_FlgAct != PECMAC_FlgAct_GenDat)
                             $display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_FlgAct = %b", $time,i,j, PECMAC_FlgAct_GenDat);
-
                         if(TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECMAC_Act != PECMAC_Act_GenDat)
                             $display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_Act = %h",  $time,i,j, PECMAC_Act_GenDat);
+                    end
+                    if(TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.CfgWei) begin
+                        @(negedge clk);
+                        //$display("Test CfgWei");
+                        $fdisplay(PECMAC_FlgWei0_Mon,"%b",TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECMAC_FlgWei0);
+                        //$fdisplay(PECMAC_Wei0_Mon,"%h",TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECMAC_Wei0);
+                        Suc_FlgWei0 = $fscanf(PECMAC_FlgWei0_Ref,"%b",PECMAC_FlgWei0_RefDat);
+                        Suc_Wei0=$fscanf(PECMAC_Wei0_Ref,"%h",PECMAC_Wei0_RefDat);
+
+                        if(TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECMAC_FlgWei0[0+:`BLOCK_DEPTH] != PECMAC_FlgWei0_RefDat[ `BLOCK_DEPTH*(`NUMPEC-(3*i+j) )*`KERNEL_SIZE -1 -: `BLOCK_DEPTH])
+                            $display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_FlgWei0 = %b", $time,i,j, PECMAC_FlgWei0_RefDat);
+
+                        NumVal <= 0;
+                        for (addr=0;addr<32;addr=addr+1) begin
+                            if(TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECMAC_FlgWei0[addr])
+                                NumVal <= NumVal + 1;
+                        end
+                        for(addr=0;addr<NumVal;addr=addr+1)begin
+                            if(TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECMAC_Wei0[`DATA_WIDTH*addr +: `DATA_WIDTH]!=PECMAC_Wei0_RefDat[`DATA_WIDTH*addr +: `DATA_WIDTH])
+                                $display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_Wei0 = %h",  $time,i,j, PECMAC_Wei0_RefDat);
+                        end
+                        //if(TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECMAC_Wei0 != PECMAC_Wei0_GenDat)
+                            //$display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_Wei0 = %h",  $time,i,j, PECMAC_Wei0_GenDat);
+
+
                     end
                 end
             end
 
             integer PECRAM_DatWr_Mon;
             integer PECRAM_DatWr_Ref;
-
+            //integer PECRAM_DatWr_Mon;
+            integer RAMPEC_DatRd_Ref;
+            integer Suc_DatRd;
             // .py zfill(81)
-            reg [  `PSUM_WIDTH*`NUMPEC               -1 : 0] PECRAM_DatWr_RefDat;
+
+            reg [  `DATA_WIDTH*`CEIL(`PSUM_WIDTH, `DATA_WIDTH) *`NUMPEC               -1 : 0] PECRAM_DatWr_RefDat;
+            reg [  `DATA_WIDTH*`CEIL(`PSUM_WIDTH, `DATA_WIDTH) *`NUMPEC               -1 : 0] RAMPEC_DatRd_RefDat;
 
             initial begin
                 PECRAM_DatWr_Mon = $fopen("../testbench/Data/MonRTL/PECRAM_DatWr_Mon.dat","w");
                 PECRAM_DatWr_Ref = $fopen("../testbench/Data/GenTest/PECRAM_DatWr_Ref.dat","r");
+                RAMPEC_DatRd_Ref = $fopen("../testbench/Data/GenTest/RAMPEC_DatRd_Ref.dat","r");
 
 
                 repeat(NumClk) begin
@@ -129,8 +171,17 @@ generate
                         $fdisplay(PECRAM_DatWr_Mon,"%h",TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECRAM_DatWr);
                         Suc_DatWr = $fscanf(PECRAM_DatWr_Ref,"%h",PECRAM_DatWr_RefDat);
 
-                        if(TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECRAM_DatWr != PECRAM_DatWr_RefDat[`PSUM_WIDTH * (`NUMPEC -(3*i+j))        -1 -:`PSUM_WIDTH ])
-                            $display("ERROR time: %t  PEB[%d].PEC[%d].PECRAM_DatWr = %b", $time, i,j,TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECRAM_DatWr);
+                        if(~(TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECRAM_DatWr == PECRAM_DatWr_RefDat[`DATA_WIDTH*`CEIL(`PSUM_WIDTH, `DATA_WIDTH)  * (`NUMPEC -(3*i+j) -1)   +:`PSUM_WIDTH ]))
+                            $display("ERROR time: %t  PEB[%d].PEC[%d].PECRAM_DatWr = %h", $time, i,j,TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECRAM_DatWr);
+                    end
+
+                    if(TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECRAM_EnRd && TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].PECRAM_AddrRd < 8'hc4) begin // 14 rows
+                        @(negedge clk);
+                        //$fdisplay(PECRAM_DatWr_Mon,"%h",TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.PECRAM_DatWr);
+                        Suc_DatRd = $fscanf(RAMPEC_DatRd_Ref,"%h",RAMPEC_DatRd_RefDat);
+
+                        if(~(TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.RAMPEC_DatRd == RAMPEC_DatRd_RefDat[`DATA_WIDTH*`CEIL(`PSUM_WIDTH, `DATA_WIDTH)  * (`NUMPEC -(3*i+j) -1)   +:`PSUM_WIDTH ]))
+                            $display("ERROR time: %t  PEB[%d].PEC[%d].RAMPEC_DatRd = %h", $time, i,j,TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[j].inst_PEC.RAMPEC_DatRd);
                     end
                 end
             end

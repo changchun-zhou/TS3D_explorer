@@ -24,6 +24,7 @@
 `define NUMPEC 3*`NUMPEB
 
 `define KERNEL_SIZE 9
+`define MAX_DEPTH 1024 // c3d 512 i3d 1024
 `define GBFWEI_DATAWIDTH `DATA_WIDTH * `KERNEL_SIZE // avoid * 9
 `define GBFFLGWEI_DATAWIDTH `BLOCK_DEPTH * `KERNEL_SIZE
 `define PORT_DATAWIDTH `DATA_WIDTH * 12
@@ -32,7 +33,6 @@
 
 `define LENROW 16
 `define LENPSUM 14
-//`define PSUM
 
 // POOL parameters
 `define POOL_WIDTH 2//Stride
@@ -42,7 +42,8 @@
 
 `define BUSPEC_WIDTH (6 + `BLOCK_DEPTH + `DATA_WIDTH * `BLOCK_DEPTH)
 `define BUSPEB_WIDTH `BUSPEC_WIDTH
-`define PSUM_WIDTH (`DATA_WIDTH *2 + `C_LOG_2(`BLOCK_DEPTH) + 2 )
+`define PSUM_WIDTH (`DATA_WIDTH *2 + `C_LOG_2(`KERNEL_SIZE*`MAX_DEPTH) )
+
 // Config parameters
 `define FRAME_WIDTH 5
 `define PATCH_WIDTH 8
@@ -72,3 +73,7 @@
 (n) <= (1<<28) ? 28 : (n) <= (1<<29) ? 29 :\
 (n) <= (1<<30) ? 30 : (n) <= (1<<31) ? 31 : 32)
 //-----------------------------------------------------------
+
+`define CEIL(a,b) ( \
+ (a%b)? (a/b+1):(a/b) \
+)

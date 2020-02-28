@@ -132,6 +132,7 @@ reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei7;
 reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei8;
 
 wire                                                                              PlsFnhAll_d;
+wire                                                                              PlsFnhAll_dd;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -146,11 +147,11 @@ PEBPEC_FlgAct,
 PEBPEC_Act}=INBUS_LSTPEC;
 assign NXTPEC_GetAct = INBUS_NXTPEC;
 assign OUTBUS_NXTPEC = {
-NXTPEC_FrtActRow   ,
-NXTPEC_LstActRow   ,
-NXTPEC_LstActBlk   ,
-NXTPEC_ValPsum     ,
-NXTPEC_ValCol    ,
+FrtActRow   ,
+LstActRow   ,
+LstActBlk   ,
+ValPsum     ,
+ValCol    ,
 NXTPEC_RdyAct,
 PECMAC_FlgAct,
 PECMAC_Act
@@ -221,8 +222,17 @@ assign PECCTRLWEI_GetWei = next_state == RDRAM && state ==  CFGWEI;//==CTRLWEIPE
 // finished in DISWEI
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
-        WeiArray          <= 0;
+        //WeiArray          <= 0;
         FlgWei              <= 0;
+        PECMAC_Wei0 <= 0;
+        PECMAC_Wei1 <= 0;
+        PECMAC_Wei2 <= 0;
+        PECMAC_Wei3 <= 0;
+        PECMAC_Wei4 <= 0;
+        PECMAC_Wei5 <= 0;
+        PECMAC_Wei6 <= 0;
+        PECMAC_Wei7 <= 0;
+        PECMAC_Wei8 <= 0;
     end else if ( CfgWei ) begin
         FlgWei           <= DISWEIPEC_FlgWei;
         // WeiArray          <= DISWEIPEC_Wei;
@@ -327,9 +337,18 @@ always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         PECMAC_FlgAct <= 0;
         PECMAC_Act    <= 0;
+        FrtActRow <=0;
+        LstActRow <=0;
+        LstActBlk <= 0;
+        ValPsum <= 0;
+        ValCol <= 0;
+
         NXTPEC_FrtActRow <= 0;
-        NXTPEC_LstActBlk <= 0;
         NXTPEC_LstActRow <= 0;
+        NXTPEC_LstActBlk <= 0;
+        NXTPEC_ValPsum   <= 0;
+        NXTPEC_ValCol   <= 0;
+
     end else if ( CfgMac ) begin
         PECMAC_FlgAct    <= PEBPEC_FlgAct;
         PECMAC_Act       <= PEBPEC_Act;
@@ -339,12 +358,13 @@ always @ ( posedge clk or negedge rst_n ) begin
         LstActBlk        <=LSTPEC_LstActBlk;
         ValPsum          <= LSTPEC_ValPsum;
         ValCol              <= LSTPEC_ValCol;
-
+/*
         NXTPEC_FrtActRow <= FrtActRow;
         NXTPEC_LstActBlk <= LstActBlk;
         NXTPEC_LstActRow <= LstActRow;
         NXTPEC_ValPsum   <= ValPsum;
         NXTPEC_ValCol   <= ValCol;
+*/
     end
 end
 
@@ -372,15 +392,15 @@ assign PECCNV_FnhRow = FnhRow;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         PECRAM_AddrRd <= 0;
- //   end else if ( FnhBlk ) begin // PECRAM_AddrRd automatic to zero because of PECRAM_EnRd
- //       PECRAM_AddrRd <= 0;
+    end else if ( FnhBlk ) begin // PECRAM_AddrRd automatic to zero because of PECRAM_EnRd
+        PECRAM_AddrRd <= 0;
     end else if ( PECRAM_EnRd ) begin
         PECRAM_AddrRd <= PECRAM_AddrRd + 1;
     end
 end
 //assign PECRAM_EnRd = StaRow && ValPsum; // 14
 //assign PECRAM_EnRd = state == RDRAM; // 14
-assign PECRAM_EnRd = PECMAC_Sta; // 14
+assign PECRAM_EnRd = PECMAC_Sta && ValCol ; // &&  14 x 14: when first 2 act, EnRd =0; when last 2 row, EnRd =0
 assign PECCNV_Psum = RAMPEC_DatRd ;
 
 
@@ -395,8 +415,20 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 assign PECRAM_DatWr = CNVOUT_Psum0; // 14
-assign PECRAM_EnWr  = PlsFnhAll_d && ValPsum && ValCol;//output Row is 1-14 not -1, 0
 
+//output Row is 1-14 not -1, 0
+// **confition is: There are no two continous PlsFnhAlls
+wire _PECRAM_EnWr;
+assign _PECRAM_EnWr  = PlsFnhAll && ValPsum && ValCol;
+Delay #(
+    .NUM_STAGES(1),
+    .DATA_WIDTH(1)
+    )Delay_PECRAM_EnWr(
+    .CLK(clk),
+    .RESET_N(rst_n),
+    .DIN(_PECRAM_EnWr),
+    .DOUT(PECRAM_EnWr)
+    );
 
 
 //=====================================================================================================================
@@ -479,11 +511,19 @@ CNVROW CNVROW2 (
 Delay #(
     .NUM_STAGES(1),
     .DATA_WIDTH(1)
-    )Delay_PlsFnhAll(
+    )Delay_PlsFnhAll_d(
     .CLK(clk),
     .RESET_N(rst_n),
     .DIN(PlsFnhAll),
     .DOUT(PlsFnhAll_d)
     );
-
+Delay #(
+    .NUM_STAGES(2),
+    .DATA_WIDTH(1)
+    )Delay_PlsFnhAll_dd(
+    .CLK(clk),
+    .RESET_N(rst_n),
+    .DIN(PlsFnhAll),
+    .DOUT(PlsFnhAll_dd)
+    );
 endmodule

@@ -184,11 +184,12 @@ generate
           end else if ( state == IDLE ) begin
              POOL_MEM[i] <= 0;
          end else if(  POOLPEL_EnRd_d)begin
-             POOL_MEM[i]   <= (POOL_MEM[i]  >  PELPOOL_Dat[ `PSUM_WIDTH *  i  +: `PSUM_WIDTH] )? POOL_MEM[i] :{ 1'b0 , ReLU[i][FL + 6 -: 7] } ;
+             POOL_MEM[i]   <= (POOL_MEM[i]  >  ReLU[i] )? POOL_MEM[i] :{ 1'b0 , ReLU[i][FL + 6 -: 7] } ;
           end
         end
+    // Pooling 2x1x1
     assign FRMPOOL_DatWr[`DATA_WIDTH*i +: `DATA_WIDTH] = ( POOL_MEM[i] > FRMPOOL_DatRd[`DATA_WIDTH*i +: `DATA_WIDTH] || ~POOL_ValFrm)? POOL_MEM[i] :FRMPOOL_DatRd[`DATA_WIDTH*i +: `DATA_WIDTH];
-    assign DELTA_DatWr[`DATA_WIDTH*i +: `DATA_WIDTH] = FRMPOOL_DatWr[`DATA_WIDTH*i +: `DATA_WIDTH] - DELTA_DatRd[ `DATA_WIDTH * (`NUMPEB - i )  -1 -: `DATA_WIDTH];
+    assign DELTA_DatWr[`DATA_WIDTH*i +: `DATA_WIDTH] = $signed(FRMPOOL_DatWr[`DATA_WIDTH*i +: `DATA_WIDTH]) - $signed(DELTA_DatRd[ `DATA_WIDTH * (`NUMPEB - i )  -1 -: `DATA_WIDTH]);
         always @ ( posedge clk or negedge rst_n ) begin
             if ( !rst_n ) begin
                 SPRS_MEM[i] <= 0;

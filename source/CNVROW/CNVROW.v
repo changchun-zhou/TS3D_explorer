@@ -55,13 +55,16 @@ reg [ `PSUM_WIDTH * `LENROW      - 1 : 0 ] CNVOUT_Psum_Array;
 // Logic Design :
 //=====================================================================================================================
 assign         CNVOUT_Psum  = CNVOUT_Psum_Array[ `PSUM_WIDTH * ADDR_GET +: `PSUM_WIDTH];
+wire [ `PSUM_WIDTH                  - 1 : 0 ] Acc;
+assign Acc = $signed(MACCNV_Mac2) + $signed(CNVIN_Psum);
 always @ ( posedge clk or negedge rst_n ) begin
      if ( ~rst_n ) begin
         CNVOUT_Psum_Array  <= 0;
      end else if ( PECCNV_PlsAcc ) begin
-        CNVOUT_Psum_Array <= { CNVOUT_Psum_Array, MACCNV_Mac2 + CNVIN_Psum};// shift
+        CNVOUT_Psum_Array <= { CNVOUT_Psum_Array, Acc};// shift
      end
  end
+
 /*
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin

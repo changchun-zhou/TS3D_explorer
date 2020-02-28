@@ -4,7 +4,7 @@
 //======================================================
 // Module : MACAW
 // Author : CC zhou
-// Contact : 
+// Contact :
 // Date : 3 .1 .2019
 //=======================================================
 // Description :
@@ -17,7 +17,7 @@ module MACAW(
     output reg                                                  MACPEC_Fnh,//level; same time
     input [ `BLOCK_DEPTH                                -1 : 0] PECMAC_FlgAct,
     input [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] PECMAC_Act,
-    input [ `BLOCK_DEPTH                                -1 : 0] PECMAC_FlgWei,    
+    input [ `BLOCK_DEPTH                                -1 : 0] PECMAC_FlgWei,
     input [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] PECMAC_Wei, // trans
     input [ `DATA_WIDTH * 2+ `C_LOG_2(`BLOCK_DEPTH*3)      -1 : 0] MACMAC_Mac,
     output reg[ `DATA_WIDTH * 2 + `C_LOG_2(`BLOCK_DEPTH*3)  -1 : 0] MACCNV_Mac
@@ -47,7 +47,7 @@ reg                                       PECMAC_Sta_dd;
 // Logic Design :
 //=====================================================================================================================
 
-localparam IDLE = 0; 
+localparam IDLE = 0;
 localparam COMP = 1;
 reg  state;
 always @(posedge clk or negedge rst_n) begin
@@ -65,7 +65,7 @@ always @(posedge clk or negedge rst_n) begin
   end
 end
 
-// 
+//
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         AddrAct <= -1;// Meet first Addr 31
@@ -73,10 +73,10 @@ always @ ( posedge clk or negedge rst_n ) begin
     end else if ( PECMAC_Sta ) begin
         AddrAct <= -1;
         AddrWei <= -1;
-    end else begin // When FlgAct==0, AddrAct <= 31 
+    end else begin // When FlgAct==0, AddrAct <= 31
         AddrAct <= AddrAct + OffsetAct;
         AddrWei <= AddrWei + OffsetWei;
-    end 
+    end
 end
 
 always @ ( posedge clk or negedge rst_n ) begin
@@ -91,14 +91,17 @@ assign ValAddr = |OffsetAct_d;// reduce path delay from FlgCutAct to AddrAct;
 assign AddrBaseAct = AddrAct << `C_LOG_2(`DATA_WIDTH);
 assign AddrBaseWei = AddrWei << `C_LOG_2(`DATA_WIDTH);
 
+wire [ `DATA_WIDTH              - 1:0 ] Act;
+wire [ `DATA_WIDTH              - 1:0 ] Wei;
+assign Act = PECMAC_Act[  AddrBaseAct +: `DATA_WIDTH];
+assign Wei = PECMAC_Wei[  AddrBaseWei +: `DATA_WIDTH];
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         MACCNV_Mac <= 0;
     end else if ( PECMAC_Sta ) begin
         MACCNV_Mac <= MACMAC_Mac;
     end else if ( ValAddr ) begin
-        MACCNV_Mac <= MACCNV_Mac + PECMAC_Act[  AddrBaseAct +: `DATA_WIDTH] 
-                                 * PECMAC_Wei[  AddrBaseWei +: `DATA_WIDTH];
+        MACCNV_Mac <= $signed(MACCNV_Mac) + $signed(Act) * $signed(Wei);
     end
 end
 
