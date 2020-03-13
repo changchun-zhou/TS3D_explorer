@@ -1,0 +1,9 @@
+Debussy/*
+sim/*
+source/primitives/Memory/*
+synth/fv/*
+synth/gate/*
+synth/logs/*
+synth/p+r_enc/*
+synth/rpt/*
+testbench/Data/MonRTL/*.dat

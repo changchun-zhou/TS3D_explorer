@@ -1,0 +1,5 @@
+Debussy
+sim
+source/primitives/Memory/*
+synth
+testbench/Data/MonRTL/*.dat
