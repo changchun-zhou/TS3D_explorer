@@ -32,8 +32,8 @@ module TS3D (
 //    input                                       GBFFLGWEI_Val, //valid
     input                                       GBFFLGWEI_EnWr,
     output wire                              GBFFLGWEI_EnRd  ,
-    input [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrWr,
-    output reg[ `GBFWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrRd,
+    input [ `GBFFLGWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrWr,
+    output reg[ `GBFFLGWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrRd,
     input [ `PORT_DATAWIDTH        -1 : 0] GBFFLGWEI_DatWr,
 
  //   input                                       GBFACT_Val, //valid
@@ -46,8 +46,8 @@ module TS3D (
  //   input                                       GBFFLGACT_Val, //valid
     input                                       GBFFLGACT_EnWr,
     output                                      GBFFLGACT_EnRd,
-    input  [ `GBFACT_ADDRWIDTH          -1 : 0] GBFFLGACT_AddrWr,
-    output reg [ `GBFACT_ADDRWIDTH          -1 : 0] GBFFLGACT_AddrRd,
+    input  [ `GBFFLGACT_ADDRWIDTH          -1 : 0] GBFFLGACT_AddrWr,
+    output reg [ `GBFFLGACT_ADDRWIDTH          -1 : 0] GBFFLGACT_AddrRd,
     input  [ `PORT_DATAWIDTH               -1 : 0] GBFFLGACT_DatWr,
 
     input                                                                    GBFOFM_EnRd,
@@ -376,7 +376,7 @@ RAM_GBFWEI_wrap #(
 
 
 RAM_GBFFLGWEI_wrap #(
-        .SRAM_DEPTH_BIT(`GBFWEI_ADDRWIDTH),
+        .SRAM_DEPTH_BIT(`GBFFLGWEI_ADDRWIDTH),
         .SRAM_WIDTH(`PORT_DATAWIDTH),
         .INIT_IF ("yes"),
         .INIT_FILE ("../testbench/Data/RAM_GBFFLGWEI_12B.dat")
@@ -390,7 +390,7 @@ RAM_GBFFLGWEI_wrap #(
         .data_out ( GBFFLGWEI_DatRd      )
     );
 ReqGBF #(
-    .DEPTH(2**`GBFWEI_ADDRWIDTH ),
+    .DEPTH(2**`GBFFLGWEI_ADDRWIDTH ),
     .CNT_WIDTH( 8), //////////////////////////////////////////////////////////
     .DEPTH_REQ(`BLOCK_DEPTH*`KERNEL_SIZE/ (`PORT_DATAWIDTH)) // at least cfg a PEC
     ) ReqGBFFLGWEI(
@@ -510,7 +510,7 @@ unpacker #(
 
 
 RAM_GBFFLGACT_wrap #(
-        .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),
+        .SRAM_DEPTH_BIT(`GBFFLGACT_ADDRWIDTH),
         .SRAM_WIDTH(`PORT_DATAWIDTH),
         .INIT_IF ("yes"),
         .INIT_FILE ("../testbench/Data/RAM_GBFACT_12B1.dat")
@@ -525,7 +525,7 @@ RAM_GBFFLGACT_wrap #(
     );
 
 ReqGBF #(
-    .DEPTH(2**`GBFACT_ADDRWIDTH ),
+    .DEPTH(2**`GBFFLGACT_ADDRWIDTH ),
     .CNT_WIDTH( 8), //////////////////////////////////////////////////////////
     .DEPTH_REQ( 1) // at least cfg a PEC
     ) ReqGBFFLGACT(
