@@ -32,22 +32,12 @@ module packer #(
      ceil_a_by_b = c;
    end
  endfunction
+
 localparam integer OUT_NUM_DATA = ceil_a_by_b(OUT_WIDTH, IN_WIDTH);
 localparam integer DATA_COUNT_W = `C_LOG_2(OUT_NUM_DATA);
+ reg [DATA_COUNT_W:0] dcount;
 
-//assign Unpacked_RdyWr = m_write_ready;
-/*reg Unpacked_RdyWr_reg;
-always @ ( posedge clk or negedge rst_n ) begin
-    if ( !rst_n ) begin
-        Unpacked_RdyWr <= 1;
-    end else if ( Packed_EnRd ) begin
-        Unpacked_RdyWr <= 1;
-    end else if (Packed_RdyRd )begin
-       Unpacked_RdyWr <= 0;
-    end
-end
-*/
-assign Unpacked_RdyWr = ~Packed_RdyRd;
+assign Unpacked_RdyWr = ~(dcount == OUT_NUM_DATA || (dcount ==OUT_NUM_DATA -1 && Unpacked_EnWr));
 
 genvar g;
 generate
@@ -57,16 +47,15 @@ generate
     assign Packed_RdyRd = Unpacked_EnWr;
   end
   else begin
-    reg [DATA_COUNT_W:0] dcount;
-
     always @(posedge clk or negedge rst_n)
     begin
       if (!rst_n )
         dcount <= 0;
-      else if (Unpacked_EnWr) begin
-          dcount <= dcount + 1'b1;
-      end else if( Packed_EnRd || Reset)
+      else if( Packed_EnRd || Reset) begin
           dcount <= 0;
+      end else if (Unpacked_EnWr) begin
+          dcount <= dcount + 1'b1;
+      end
     end
 
     reg [OUT_WIDTH-1:0] data;
@@ -76,9 +65,7 @@ generate
       else if (Unpacked_EnWr)
         data <= {data,Unpacked_DatWr};
 
-    wire ready;
-    assign ready = dcount ==OUT_NUM_DATA;
-    assign Packed_RdyRd = ready;// paulse
+    assign Packed_RdyRd = dcount ==OUT_NUM_DATA;
     assign Packed_DatRd = data;
 
   end
