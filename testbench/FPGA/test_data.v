@@ -37,12 +37,18 @@ integer SPRS_MEM_Ref0;
 integer Suc_SPRS0;
 integer GBFFLGACT_DatWr_File;
 integer GBFACT_DatWr_File;
+integer GBFFLGOFM_DatRd_File;
+integer GBFOFM_DatRd_File;
 integer GBFFLGWEI_DatWr_File;
 integer Suc_GBFFLGACT_DatWr;
 integer Suc_GBFACT_DatWr;
+integer Suc_GBFFLGOFM_DatRd;
+integer Suc_GBFOFM_DatRd;
 integer Suc_GBFFLGWEI_DatWr;
 reg [`PORT_DATAWIDTH                - 1 : 0 ] GBFFLGACT_DatWr;
 reg [`PORT_DATAWIDTH                - 1 : 0 ] GBFACT_DatWr;
+reg [`PORT_DATAWIDTH                - 1 : 0 ] GBFFLGOFM_DatRd;
+reg [`PORT_DATAWIDTH                - 1 : 0 ] GBFOFM_DatRd;
 reg [`PORT_DATAWIDTH                - 1 : 0 ] GBFFLGWEI_DatWr;
 reg [ `PORT_DATAWIDTH               - 1 : 0 ] SPRS_MEM_RefDat0;
 initial begin:GBF_DatWr
@@ -50,6 +56,8 @@ initial begin:GBF_DatWr
     SPRS_MEM_Ref0 = $fopen("../testbench/Data/RAM_GBFWEI_12B.dat","r");
     GBFFLGACT_DatWr_File = $fopen("../testbench/Data/RAM_GBFACT_12B1.dat","r");
     GBFACT_DatWr_File = $fopen("../testbench/Data/RAM_GBFACT_12B.dat","r");
+    GBFFLGOFM_DatRd_File = $fopen("../testbench/Data/RAM_GBFFLGOFM_12B.dat","r");
+    GBFOFM_DatRd_File = $fopen("../testbench/Data/RAM_GBFOFM_12B.dat","r");
     repeat(NumClk) begin
         @(negedge mem_controller_tb.ASIC.TS3D.clk);// use mem_controller_tb.ASIC.clk
         if (mem_controller_tb.ASIC.TS3D.Reset_WEI)begin//paulse
@@ -60,6 +68,10 @@ initial begin:GBF_DatWr
               GBFFLGACT_DatWr_File = $fopen("../testbench/Data/RAM_GBFACT_12B1.dat","r");//Reset
               GBFACT_DatWr_File = $fopen("../testbench/Data/RAM_GBFACT_12B.dat","r");
         end
+        if(mem_controller_tb.ASIC.TS3D.Reset_OFM) begin
+            GBFFLGOFM_DatRd_File = $fopen("../testbench/Data/RAM_GBFFLGOFM_12B.dat","r");
+            GBFOFM_DatRd_File = $fopen("../testbench/Data/RAM_GBFOFM_12B.dat","r");
+        end
         if ( mem_controller_tb.ASIC.TS3D.GBFFLGWEI_EnWr) begin
             Suc_GBFFLGWEI_DatWr=$fscanf(GBFFLGWEI_DatWr_File, "%h",GBFFLGWEI_DatWr);
             if(mem_controller_tb.ASIC.TS3D.GBFFLGWEI_DatWr !=GBFFLGWEI_DatWr )
@@ -68,7 +80,7 @@ initial begin:GBF_DatWr
         if ( mem_controller_tb.ASIC.TS3D.GBFWEI_EnWr) begin
             Suc_SPRS0=$fscanf(SPRS_MEM_Ref0, "%h",SPRS_MEM_RefDat0);
             if(mem_controller_tb.ASIC.TS3D.GBFWEI_DatWr !=SPRS_MEM_RefDat0 )
-                $display("ERROR time: %t GBFWEI_DatWr = %h, ", $time,SPRS_MEM_RefDat0);
+                $display("ERROR time: %t GBFWEI_DatWr_Mon = %h,  GBFWEI_DatWr_Ref = %h, ", $time,mem_controller_tb.ASIC.TS3D.GBFWEI_DatWr, SPRS_MEM_RefDat0);
         end
         if ( mem_controller_tb.ASIC.TS3D.GBFFLGACT_EnWr) begin
             Suc_GBFFLGACT_DatWr=$fscanf(GBFFLGACT_DatWr_File, "%h",GBFFLGACT_DatWr);
@@ -79,6 +91,16 @@ initial begin:GBF_DatWr
             Suc_GBFACT_DatWr=$fscanf(GBFACT_DatWr_File, "%h",GBFACT_DatWr);
             if(mem_controller_tb.ASIC.TS3D.GBFACT_DatWr !=GBFACT_DatWr )
                 $display("ERROR time: %t GBFACT_DatWr_Mon = %h, GBFACT_DatWr_Ref = %h", $time,mem_controller_tb.ASIC.TS3D.GBFACT_DatWr,GBFACT_DatWr);
+        end
+        if ( mem_controller_tb.ASIC.TS3D.GBFOFM_EnRd) begin
+            Suc_GBFOFM_DatRd=$fscanf(GBFOFM_DatRd_File, "%h",GBFOFM_DatRd);
+            if(mem_controller_tb.ASIC.TS3D.GBFOFM_DatRd!=GBFOFM_DatRd )
+                $display("ERROR time: %t GBFOFM_DatRd_Mon = %h, GBFOFM_DatRd_Ref = %h", $time,mem_controller_tb.ASIC.TS3D.GBFOFM_DatRd,GBFOFM_DatRd);
+        end
+        if ( mem_controller_tb.ASIC.TS3D.GBFFLGOFM_EnRd) begin
+            Suc_GBFFLGOFM_DatRd=$fscanf(GBFFLGOFM_DatRd_File, "%h",GBFFLGOFM_DatRd);
+            if(mem_controller_tb.ASIC.TS3D.GBFFLGOFM_DatRd!=GBFFLGOFM_DatRd )
+                $display("ERROR time: %t GBFFLGOFM_DatRd_Mon = %h, GBFFLGOFM_DatRd_Ref = %h", $time,mem_controller_tb.ASIC.TS3D.GBFFLGOFM_DatRd,GBFFLGOFM_DatRd);
         end
     end
 end

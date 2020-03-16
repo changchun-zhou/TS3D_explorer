@@ -52,7 +52,7 @@ clk_rst_driver clkgen(
 reg clk_chip;
 reg reset_n_chip;
 reg reset_dll;
-reg write_ddr;
+//reg write_ddr;
 initial begin
 	clk_chip = 0;
 //	wait(!reset_n_chip);
@@ -287,93 +287,6 @@ generate
 // AXI to DDR
 // ==================================================================
 
-  integer i;
-        // DDR initial
-  reg [ TX_SIZE_WIDTH - 1 : 0 ]     ddr_idx;
-  reg [`PORT_DATAWIDTH -1 : 0] tmp;
-  reg [`PORT_DATAWIDTH -1 : 0]DATA_RF_mem_1[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]DATA_RF_mem_2[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]Flag_RF_mem_1[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]Flag_RF_mem_2[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]DATA_RF_mem_WEI_1[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]DATA_RF_mem_WEI_2[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]Flag_RF_mem_WEI_1[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]Flag_RF_mem_WEI_2[0 : 4095];
-
-  reg [14 : 0]addr_r_BUS_1;
-    initial begin
-          write_ddr = 0;
-          $readmemh("../testbench/Data/RAM_GBFACT_12B.dat", DATA_RF_mem_1);
-          ddr_idx = (CONFIG_ADDR -32'h0800_0000) ;
-
-          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<9; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
-            if( addr_r_BUS_1 == 0)
-              tmp = {4'd15,5'd31,5'd1,5'd3, 8'd0, 8'd7, 5'd0, 1'd1, 3'd2};
-            else
-              // tmp = DATA_RF_mem_1[addr_r_BUS_1];
-              tmp = 0;
-            for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
-              u_axim_driver.ddr_ram[ddr_idx] = tmp[DATA_WIDTH*i +: DATA_WIDTH];
-              if( addr_r_BUS_1 < 10)
-                 $display (" CONFIG DDR_RAM[%h] = %h", ddr_idx, u_axim_driver.ddr_ram[ddr_idx]);
-              ddr_idx = ddr_idx + 1;
-            end
-          end
-
-          ddr_idx = (ACT_DATA_1_ADDR-32'h0800_0000) ;
-
-          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<11; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin//
-            tmp = DATA_RF_mem_1[addr_r_BUS_1];
-            for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
-              u_axim_driver.ddr_ram[ddr_idx] = tmp[DATA_WIDTH*i +: DATA_WIDTH];
-              if( addr_r_BUS_1 < 10)
-                $display (" S_HP_RD0 DATA_RF_mem_1 DDR_RAM[%h] = %b", ddr_idx, u_axim_driver.ddr_ram[ddr_idx]);
-              ddr_idx = ddr_idx + 1;
-            end
-          end
-
-          ddr_idx = (ACT_FLAG_1_ADDR-32'h0800_0000);
-          $readmemh("../testbench/Data/RAM_GBFACT_12B1.dat", Flag_RF_mem_1);
-          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<10; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
-            tmp = Flag_RF_mem_1[addr_r_BUS_1];
-            for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
-              u_axim_driver.ddr_ram[ddr_idx] = tmp[DATA_WIDTH*i +: DATA_WIDTH];
-              // if( addr_r_BUS_1 < 50)
-              //   $display (" Flag_RF_mem_1 S_HP_RD0DDR_RAM[%h] = %b", ddr_idx, u_axim_driver.ddr_ram[ddr_idx]);
-              ddr_idx = ddr_idx + 1;
-            end
-          end
-          ddr_idx = (WEI_DATA_1_ADDR-32'h0800_0000) ;
-          $readmemh("../testbench/Data/RAM_GBFWEI_12B.dat", DATA_RF_mem_WEI_1);
-          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<12; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
-            tmp = DATA_RF_mem_WEI_1[addr_r_BUS_1];
-            for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
-              u_axim_driver.ddr_ram[ddr_idx] = tmp[DATA_WIDTH*i +: DATA_WIDTH];
-               if( addr_r_BUS_1 < 120 && addr_r_BUS_1> 116)
-                 $display ("RAM_GBFWEI_12B DDR_RAM[%h] = %h", ddr_idx, u_axim_driver.ddr_ram[ddr_idx]);
-              ddr_idx = ddr_idx + 1;
-            end
-          end
-          ddr_idx = (WEI_FLAG_1_ADDR-32'h0800_0000) ;
-          $readmemh("../testbench/Data/RAM_GBFFLGWEI_12B.dat", Flag_RF_mem_WEI_1);
-          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<12; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
-            tmp = Flag_RF_mem_WEI_1[addr_r_BUS_1];
-            for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
-              u_axim_driver.ddr_ram[ddr_idx] = tmp[DATA_WIDTH*i +: DATA_WIDTH];
-              // if( addr_r_BUS_1 < 10)
-              //   $display ("S_HP_RD0 DDR_RAM[%h] = %b", ddr_idx, u_axim_driver.ddr_ram[ddr_idx]);
-              ddr_idx = ddr_idx + 1;
-            end
-          end
-          ddr_idx = (WEI_FLAG_2_ADDR-32'h0800_0000) ;
-         write_ddr = 1;
-
-            ddr_idx = (CONFIG_ADDR-32'h0800_0000) ;
-          // for( i=0; i<10; i=i+1)
-          //     $display (" TEST S_HP_RD0 DDR_RAM[%h] = %b", (ddr_idx+i), u_axim_driver.ddr_ram[ddr_idx+i]);
-
-    end
-
 
     axi_master_tb_driver #(
         .AXI_DATA_WIDTH           ( AXI_DATA_W               ),
@@ -543,24 +456,6 @@ wire OE_req;
   );
 
 
-      // DDR initial
-    // integer ddr_idx;
-    // integer tmp;
-
-    // initial begin
-    //       ddr_idx = (32'h080d8f90-32'h080d8f90) >> 1;
-    //       tmp = 0;
-    //         repeat (8192 ) begin //1024X8
-    //           u_axim_driver.ddr_ram[ddr_idx] = tmp;
-    //           // $display ("DDR_RAM[%h] = %b", ddr_idx, u_axim_driver.ddr_ram[ddr_idx]);
-    //           ddr_idx = ddr_idx + 1;
-    //           if( tmp < 255 )
-    //             tmp = tmp + 1;
-    //           else
-    //             tmp = 0;
-    //         end
-
-    // end
     axi_master_tb_driver #(
         .AXI_DATA_WIDTH           ( AXI_DATA_W               ),
         .DATA_WIDTH               ( 8                        ),
@@ -649,9 +544,9 @@ wire DLL_clock_out_pad;
     );
 
 initial begin
-    File_data_in_1 = $fopen("File_data_in_1.txt");
-    File_data_in_2 = $fopen("File_data_in_2.txt");
-    File_data_out_BUS = $fopen("File_data_out_BUS.txt");
+//    File_data_in_1 = $fopen("File_data_in_1.txt");
+//    File_data_in_2 = $fopen("File_data_in_2.txt");
+//    File_data_out_BUS = $fopen("File_data_out_BUS.txt");
 //    $dumpfile("mem_controller_tb.vcd");
  //   $dumpvars;
 //save wave data ---------------------------------------------
@@ -666,202 +561,9 @@ repeat(NumClk/3) @(negedge clk_chip);
     $finish;
   end
 
-integer SPRS_MEM_Ref0;
-integer Suc_SPRS0;
-integer GBFFLGACT_DatWr_File;
-integer GBFACT_DatWr_File;
-integer GBFFLGWEI_DatWr_File;
-integer Suc_GBFFLGACT_DatWr;
-integer Suc_GBFACT_DatWr;
-integer Suc_GBFFLGWEI_DatWr;
-reg [`PORT_DATAWIDTH                - 1 : 0 ] GBFFLGACT_DatWr;
-reg [`PORT_DATAWIDTH                - 1 : 0 ] GBFACT_DatWr;
-reg [`PORT_DATAWIDTH                - 1 : 0 ] GBFFLGWEI_DatWr;
-reg [ `PORT_DATAWIDTH               - 1 : 0 ] SPRS_MEM_RefDat0;
-initial begin:GBF_DatWr
-    GBFFLGWEI_DatWr_File = $fopen("../testbench/Data/RAM_GBFFLGWEI_12B.dat","r");//Initial
-    SPRS_MEM_Ref0 = $fopen("../testbench/Data/RAM_GBFWEI_12B.dat","r");
-    GBFFLGACT_DatWr_File = $fopen("../testbench/Data/RAM_GBFACT_12B1.dat","r");
-    GBFACT_DatWr_File = $fopen("../testbench/Data/RAM_GBFACT_12B.dat","r");
-    repeat(NumClk) begin
-        @(negedge ASIC.TS3D.clk);// use ASIC.clk
-        if (ASIC.TS3D.Reset_WEI)begin//paulse
-            GBFFLGWEI_DatWr_File = $fopen("../testbench/Data/RAM_GBFFLGWEI_12B.dat","r");//Reset
-            SPRS_MEM_Ref0 = $fopen("../testbench/Data/RAM_GBFWEI_12B.dat","r");
-        end
-        if(ASIC.TS3D.Reset_ACT) begin
-              GBFFLGACT_DatWr_File = $fopen("../testbench/Data/RAM_GBFACT_12B1.dat","r");//Reset
-              GBFACT_DatWr_File = $fopen("../testbench/Data/RAM_GBFACT_12B.dat","r");
-        end
-        if ( ASIC.TS3D.GBFFLGWEI_EnWr) begin
-            Suc_GBFFLGWEI_DatWr=$fscanf(GBFFLGWEI_DatWr_File, "%h",GBFFLGWEI_DatWr);
-            if(ASIC.TS3D.GBFFLGWEI_DatWr !=GBFFLGWEI_DatWr )
-                $display("ERROR time: %t GBFFLGACT_DatWr_Mon = %h,GBFFLGWEI_DatWr_Ref = %h, ", $time,ASIC.TS3D.GBFFLGWEI_DatWr,GBFFLGWEI_DatWr);
-        end
-        if ( ASIC.TS3D.GBFWEI_EnWr) begin
-            Suc_SPRS0=$fscanf(SPRS_MEM_Ref0, "%h",SPRS_MEM_RefDat0);
-            if(ASIC.TS3D.GBFWEI_DatWr !=SPRS_MEM_RefDat0 )
-                $display("ERROR time: %t GBFWEI_DatWr = %h, ", $time,SPRS_MEM_RefDat0);
-        end
-        if ( ASIC.TS3D.GBFFLGACT_EnWr) begin
-            Suc_GBFFLGACT_DatWr=$fscanf(GBFFLGACT_DatWr_File, "%h",GBFFLGACT_DatWr);
-            if(ASIC.TS3D.GBFFLGACT_DatWr !=GBFFLGACT_DatWr )
-                $display("ERROR time: %t GBFFLGACT_DatWr_Mon = %h, GBFFLGACT_DatWr_Ref = %h", $time,ASIC.TS3D.GBFFLGACT_DatWr,GBFFLGACT_DatWr);
-        end
-        if ( ASIC.TS3D.GBFACT_EnWr) begin
-            Suc_GBFACT_DatWr=$fscanf(GBFACT_DatWr_File, "%h",GBFACT_DatWr);
-            if(ASIC.TS3D.GBFACT_DatWr !=GBFACT_DatWr )
-                $display("ERROR time: %t GBFACT_DatWr_Mon = %h, GBFACT_DatWr_Ref = %h", $time,ASIC.TS3D.GBFACT_DatWr,GBFACT_DatWr);
-        end
-    end
-end
-
-integer cnt;
-generate
-    genvar i,m0;
-    for(i=0;i<`NUMPEB;i=i+1) begin:Mon_PEB
-        for(m0=0;m0<3;m0=m0+1) begin:Mon_PEC
-
-            integer PECMAC_FlgAct_Mon;
-            integer PECMAC_FlgAct_Gen;
-            integer PECMAC_Act_Mon;
-            integer PECMAC_Act_Gen;
-            integer PECMAC_FlgWei0_Mon;
-            integer PECMAC_FlgWei0_Ref;
-            integer PECMAC_Wei0_Mon;
-            integer PECMAC_Wei0_Ref;
-            integer Suc_FlgAct;
-            integer Suc_Act;
-            integer Suc_DatWr;
-            integer Suc_FlgWei0;
-            integer Suc_Wei0;
-            reg [`BLOCK_DEPTH -  1 : 0]PECMAC_FlgAct_GenDat;
-            reg [ `DATA_WIDTH * `BLOCK_DEPTH             -1 : 0]PECMAC_Act_GenDat;
-            reg [ `BLOCK_DEPTH * `NUMPEC * `KERNEL_SIZE -1 : 0] PECMAC_FlgWei0_RefDat;
-            reg [ `DATA_WIDTH * `BLOCK_DEPTH         - 1: 0] PECMAC_Wei0_RefDat;
-            reg [5 : 0] addr,NumVal;
-
-            reg [ 8 -1 :0 ] Number;
-            //Number = i*m0;
-
-
-            initial begin:PECMAC_FlgAct_MonPECMAC_Act_Mon
-                PECMAC_FlgAct_Mon = $fopen("../testbench/Data/MonRTL/PECMAC_FlgAct_Mon.dat"+Number,"w");
-                PECMAC_FlgAct_Gen = $fopen("../testbench/Data/GenTest/PECMAC_FlgAct_Gen.dat","r");
-                PECMAC_Act_Mon = $fopen("../testbench/Data/MonRTL/PECMAC_Act_Mon.dat","w");
-                PECMAC_Act_Gen = $fopen("../testbench/Data/GenTest/PECMAC_Act_Gen.dat","r");
-                repeat(NumClk) begin
-                    @(negedge ASIC.clk);
-                  if( ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.CfgMac) begin
-                        @(negedge ASIC.clk);
-                        $fdisplay(PECMAC_FlgAct_Mon,"%b",ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgAct);
-                        $fdisplay(PECMAC_Act_Mon,"%h",ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_Act);
-                        Suc_FlgAct = $fscanf(PECMAC_FlgAct_Gen,"%b",PECMAC_FlgAct_GenDat);
-                        Suc_Act=$fscanf(PECMAC_Act_Gen,"%h",PECMAC_Act_GenDat);
-
-                        if(ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgAct != PECMAC_FlgAct_GenDat)
-                            $display("ERROR time: %t  PEB[%d].PEC[%d].Ref_PECMAC_FlgAct = %h; Mon_PECMAC_FlgAct = %h", $time,i,m0, PECMAC_FlgAct_GenDat,ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgAct);
-                        if(ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_Act != PECMAC_Act_GenDat)
-                            $display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_Act = %h",  $time,i,m0, PECMAC_Act_GenDat);
-                    end
-                end
-            end
-
-            initial begin:PECMAC_FlgWei0_MonPECMAC_Wei0_Ref
-                PECMAC_FlgWei0_Mon = $fopen("../testbench/Data/MonRTL/PECMAC_FlgWei0_Mon.dat","w");
-                PECMAC_FlgWei0_Ref = $fopen("../testbench/Data/GenTest/PECMAC_FlgWei0_Ref.dat","r");
-                PECMAC_Wei0_Ref = $fopen("../testbench/Data/GenTest/PECMAC_Wei0_Ref.dat","r");
-                repeat(NumClk) begin
-                    @(negedge ASIC.clk)
-                    @(negedge ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.CfgWei) begin
-                        @(negedge ASIC.clk)//ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgAct);
-                        //@(negedge ASIC.clk)//ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgAct);
-                        //$display("Test CfgWei");
-                        //$fdisplay(PECMAC_FlgWei0_Mon,"%b",ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgWei0);
-                        //$fdisplay(PECMAC_Wei0_Mon,"%h",ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_Wei0);
-                        Suc_FlgWei0 = $fscanf(PECMAC_FlgWei0_Ref,"%b",PECMAC_FlgWei0_RefDat);
-                        Suc_Wei0=$fscanf(PECMAC_Wei0_Ref,"%h",PECMAC_Wei0_RefDat);
-
-                        if(ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgWei0[0+:`BLOCK_DEPTH] != PECMAC_FlgWei0_RefDat[ `BLOCK_DEPTH*(`NUMPEC-(3*i+m0) )*`KERNEL_SIZE -1 -: `BLOCK_DEPTH])
-                            $display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_FlgWei0_Mon= %h PECMAC_FlgWei0_Ref = %h", $time,i,m0, ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgWei0[0+:`BLOCK_DEPTH],PECMAC_FlgWei0_RefDat[ `BLOCK_DEPTH*(`NUMPEC-(3*i+m0) )*`KERNEL_SIZE -1 -: `BLOCK_DEPTH]);
-
-                        NumVal <= 0;
-                        for (addr=0;addr<32;addr=addr+1) begin
-                            if(ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgWei0[addr])
-                                NumVal <= NumVal + 1;
-                        end
-                        for(addr=0;addr<NumVal;addr=addr+1)begin
-                            if(ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_Wei0[`DATA_WIDTH*addr +: `DATA_WIDTH]!=PECMAC_Wei0_RefDat[`DATA_WIDTH*addr +: `DATA_WIDTH])
-                                $display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_Wei0 = %h",  $time,i,m0, PECMAC_Wei0_RefDat);
-                        end
-                        //if(ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_Wei0 != PECMAC_Wei0_GenDat)
-                            //$display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_Wei0 = %h",  $time,i,m0, PECMAC_Wei0_GenDat);
-
-
-                    end
-                end
-            end
-
-
-            integer PECRAM_DatWr_Mon;
-            integer PECRAM_DatWr_Ref;
-            //integer PECRAM_DatWr_Mon;
-            integer RAMPEC_DatRd_Ref;
-            integer Suc_DatRd;
-            // .py zfill(81)
-
-            reg [  `DATA_WIDTH*`CEIL(`PSUM_WIDTH, `DATA_WIDTH) *`NUMPEC               -1 : 0] PECRAM_DatWr_RefDat;
-            reg [  `DATA_WIDTH*`CEIL(`PSUM_WIDTH, `DATA_WIDTH) *`NUMPEC               -1 : 0] RAMPEC_DatRd_RefDat;
-
-            initial begin:PECRAM_DatWr_MonRAMPEC_DatRd_Ref
-                PECRAM_DatWr_Mon = $fopen("../testbench/Data/MonRTL/PECRAM_DatWr_Mon.dat","w");
-                PECRAM_DatWr_Ref = $fopen("../testbench/Data/GenTest/PECRAM_DatWr_Ref.dat","r");
-                RAMPEC_DatRd_Ref = $fopen("../testbench/Data/GenTest/RAMPEC_DatRd_Ref.dat","r");
-                repeat(NumClk) begin
-                    @(negedge ASIC.clk);
-                    if(ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECRAM_EnWr) begin
-                        // @(negedge ASIC.clk);
-                        $fdisplay(PECRAM_DatWr_Mon,"%h",ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECRAM_DatWr);
-                        Suc_DatWr = $fscanf(PECRAM_DatWr_Ref,"%h",PECRAM_DatWr_RefDat);
-
-                        if(~(ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECRAM_DatWr == PECRAM_DatWr_RefDat[`DATA_WIDTH*`CEIL(`PSUM_WIDTH, `DATA_WIDTH)  * (`NUMPEC -(3*i+m0) -1)   +:`PSUM_WIDTH ]))
-                            $display("ERROR time: %t  PEB[%d].PEC[%d].PECRAM_DatWr_Ref = %h,PECRAM_DatWr_Mon = %h", $time, i,m0,PECRAM_DatWr_RefDat[`DATA_WIDTH*`CEIL(`PSUM_WIDTH, `DATA_WIDTH)  * (`NUMPEC -(3*i+m0) -1)   +:`PSUM_WIDTH ],ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECRAM_DatWr);
-                    end
-
-                    if(ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECRAM_EnRd && ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].PECRAM_AddrRd < 8'hc4) begin // 14 rows
-                        @(negedge ASIC.clk);
-                        //$fdisplay(PECRAM_DatWr_Mon,"%h",ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECRAM_DatWr);
-                        Suc_DatRd = $fscanf(RAMPEC_DatRd_Ref,"%h",RAMPEC_DatRd_RefDat);
-
-                        if(~(ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.RAMPEC_DatRd == RAMPEC_DatRd_RefDat[`DATA_WIDTH*`CEIL(`PSUM_WIDTH, `DATA_WIDTH)  * (`NUMPEC -(3*i+m0) -1)   +:`PSUM_WIDTH ]))
-                            $display("ERROR time: %t  PEB[%d].PEC[%d].RAMPEC_DatRd = %h", $time, i,m0,ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.RAMPEC_DatRd);
-                    end
-                end
-            end
-
-        end
-    end
-endgenerate
-
-integer SPRS_MEM_Ref;
-integer Suc_SPRS;
-reg [ `DATA_WIDTH               - 1 : 0 ] SPRS_MEM_RefDat;
-reg [ `C_LOG_2(`NUMPEB)      - 1 : 0 ]Addr;
-
-initial begin: GBFOFM_DatWr_Ref
-    SPRS_MEM_Ref = $fopen("../testbench/Data/GenTest/GBFOFM_DatWr_Ref.dat","r");
-    repeat(NumClk) begin
-        @(negedge ASIC.clk);
-        if ( ASIC.TS3D.POOL.SIPO_OFM.enable) begin
-            Suc_SPRS=$fscanf(SPRS_MEM_Ref, "%h",SPRS_MEM_RefDat);
-            Addr <= ASIC.TS3D.POOL.SPRS_Addr;
-            if(ASIC.TS3D.POOL.SIPO_OFM.data_in !=SPRS_MEM_RefDat )
-                $display("ERROR time: %t  SPRS_MEM[%h] = %h, SPRS %h", $time,Addr,ASIC.TS3D.POOL.SIPO_OFM.data_in, SPRS_MEM_RefDat);
-        end
-    end
-end
-
-
-
+test_data #(
+  .NumClk(NumClk)
+  )test_data();
+Init_DDR Init_DDR();
 
 endmodule
