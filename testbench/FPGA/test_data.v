@@ -236,12 +236,16 @@ endgenerate
 
 
 integer SPRS_MEM_Ref;
+integer FLAG_MEM_Ref;
+
 integer Suc_SPRS;
+integer Suc_FLAG;
 reg [ `DATA_WIDTH               - 1 : 0 ] SPRS_MEM_RefDat;
+reg [ `DATA_WIDTH               - 1 : 0 ] FLAG_MEM_RefDat;
 reg [ `C_LOG_2(`NUMPEB)      - 1 : 0 ]Addr;
 
-initial begin: GBFOFM_DatWr_Ref
-    SPRS_MEM_Ref = $fopen("../testbench/Data/GenTest/GBFOFM_DatWr_Ref.dat","r");
+initial begin: POOL_SPRS_MEM_Ref
+    SPRS_MEM_Ref = $fopen("../testbench/Data/GenTest/POOL_SPRS_MEM_Ref.dat","r");
     repeat(NumClk) begin
         @(negedge mem_controller_tb.ASIC.clk);
         if ( mem_controller_tb.ASIC.TS3D.POOL.SIPO_OFM.enable) begin
@@ -249,6 +253,11 @@ initial begin: GBFOFM_DatWr_Ref
             Addr <= mem_controller_tb.ASIC.TS3D.POOL.SPRS_Addr;
             if(mem_controller_tb.ASIC.TS3D.POOL.SIPO_OFM.data_in !=SPRS_MEM_RefDat )
                 $display("ERROR time: %t  SPRS_MEM[%h] = %h, SPRS %h", $time,Addr,mem_controller_tb.ASIC.TS3D.POOL.SIPO_OFM.data_in, SPRS_MEM_RefDat);
+        end
+        if ( mem_controller_tb.ASIC.TS3D.POOL.SIPO_FLGOFM.enable) begin
+            Suc_FLAG=$fscanf(FLAG_MEM_Ref, "%h",FLAG_MEM_RefDat);
+            if(mem_controller_tb.ASIC.TS3D.POOL.SIPO_FLGOFM.data_in !=FLAG_MEM_RefDat )
+                $display("ERROR time: %t  FLAG_MEM_Mon = %h, FLAG_MEM_Ref = %h", $time,mem_controller_tb.ASIC.TS3D.POOL.SIPO_FLGOFM.data_in, FLAG_MEM_RefDat);
         end
     end
 end
