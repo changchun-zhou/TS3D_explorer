@@ -26,6 +26,8 @@ module mem_controller_tb;
     parameter         OF_BASE_ADDR                      = 32'h0804_8000 ; //
     parameter         OF_FLAG_BASE_ADDR                 = 32'h0805_0000 ; //4MB outfm
 
+parameter NumClk = 40000;
+
 wire                                        clk;
 wire                                        reset;
 /*initial begin
@@ -354,7 +356,7 @@ generate
           end
           ddr_idx = (WEI_FLAG_1_ADDR-32'h0800_0000) ;
           $readmemh("../testbench/Data/RAM_GBFFLGWEI_12B.dat", Flag_RF_mem_WEI_1);
-          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<8; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
+          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<12; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
             tmp = Flag_RF_mem_WEI_1[addr_r_BUS_1];
             for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
               u_axim_driver.ddr_ram[ddr_idx] = tmp[DATA_WIDTH*i +: DATA_WIDTH];
@@ -653,34 +655,49 @@ initial begin
 //    $dumpfile("mem_controller_tb.vcd");
  //   $dumpvars;
 //save wave data ---------------------------------------------
-    $shm_open("wave_gds_sim_20ns.shm" ,,,,1024);
-//    $shm_probe(inst_TOP_ASIC, "AS",S_HP_RD0[0],"AS",S_HP_RD1[0],"AS",S_HP_WR[0],"AS");
-    $shm_probe(mem_controller_tb,"AS");
-repeat(200000) @(negedge clk_chip);
+    $shm_open("wave_gds_sim_20ns.shm" ,,,,1024);//1G
+    $shm_probe(mem_controller_tb,"AC");
+repeat(NumClk*2/3) @(negedge clk_chip);
     $shm_close;
-repeat(100000) @(negedge clk_chip);
+repeat(NumClk/3) @(negedge clk_chip);
     $fclose(File_data_in_1);
     $fclose(File_data_in_2);
     $fclose(File_data_out_BUS);
     $finish;
   end
-parameter NumClk = 6500000;
 
 integer SPRS_MEM_Ref0;
 integer Suc_SPRS0;
 integer GBFFLGACT_DatWr_File;
+integer GBFACT_DatWr_File;
 integer GBFFLGWEI_DatWr_File;
 integer Suc_GBFFLGACT_DatWr;
+integer Suc_GBFACT_DatWr;
 integer Suc_GBFFLGWEI_DatWr;
 reg [`PORT_DATAWIDTH                - 1 : 0 ] GBFFLGACT_DatWr;
+reg [`PORT_DATAWIDTH                - 1 : 0 ] GBFACT_DatWr;
 reg [`PORT_DATAWIDTH                - 1 : 0 ] GBFFLGWEI_DatWr;
 reg [ `PORT_DATAWIDTH               - 1 : 0 ] SPRS_MEM_RefDat0;
 initial begin:GBF_DatWr
+    GBFFLGWEI_DatWr_File = $fopen("../testbench/Data/RAM_GBFFLGWEI_12B.dat","r");//Initial
     SPRS_MEM_Ref0 = $fopen("../testbench/Data/RAM_GBFWEI_12B.dat","r");
     GBFFLGACT_DatWr_File = $fopen("../testbench/Data/RAM_GBFACT_12B1.dat","r");
-    GBFFLGWEI_DatWr_File = $fopen("../testbench/Data/RAM_GBFFLGWEI_12B.dat","r");
-    repeat(600000000) begin
-        @(negedge ASIC.TS3D.clk);
+    GBFACT_DatWr_File = $fopen("../testbench/Data/RAM_GBFACT_12B.dat","r");
+    repeat(NumClk) begin
+        @(negedge ASIC.TS3D.clk);// use ASIC.clk
+        if (ASIC.TS3D.Reset_WEI)begin//paulse
+            GBFFLGWEI_DatWr_File = $fopen("../testbench/Data/RAM_GBFFLGWEI_12B.dat","r");//Reset
+            SPRS_MEM_Ref0 = $fopen("../testbench/Data/RAM_GBFWEI_12B.dat","r");
+        end
+        if(ASIC.TS3D.Reset_ACT) begin
+              GBFFLGACT_DatWr_File = $fopen("../testbench/Data/RAM_GBFACT_12B1.dat","r");//Reset
+              GBFACT_DatWr_File = $fopen("../testbench/Data/RAM_GBFACT_12B.dat","r");
+        end
+        if ( ASIC.TS3D.GBFFLGWEI_EnWr) begin
+            Suc_GBFFLGWEI_DatWr=$fscanf(GBFFLGWEI_DatWr_File, "%h",GBFFLGWEI_DatWr);
+            if(ASIC.TS3D.GBFFLGWEI_DatWr !=GBFFLGWEI_DatWr )
+                $display("ERROR time: %t GBFFLGACT_DatWr_Mon = %h,GBFFLGWEI_DatWr_Ref = %h, ", $time,ASIC.TS3D.GBFFLGWEI_DatWr,GBFFLGWEI_DatWr);
+        end
         if ( ASIC.TS3D.GBFWEI_EnWr) begin
             Suc_SPRS0=$fscanf(SPRS_MEM_Ref0, "%h",SPRS_MEM_RefDat0);
             if(ASIC.TS3D.GBFWEI_DatWr !=SPRS_MEM_RefDat0 )
@@ -691,16 +708,13 @@ initial begin:GBF_DatWr
             if(ASIC.TS3D.GBFFLGACT_DatWr !=GBFFLGACT_DatWr )
                 $display("ERROR time: %t GBFFLGACT_DatWr_Mon = %h, GBFFLGACT_DatWr_Ref = %h", $time,ASIC.TS3D.GBFFLGACT_DatWr,GBFFLGACT_DatWr);
         end
-        if ( ASIC.TS3D.GBFFLGWEI_EnWr) begin
-            Suc_GBFFLGWEI_DatWr=$fscanf(GBFFLGWEI_DatWr_File, "%h",GBFFLGWEI_DatWr);
-            if(ASIC.TS3D.GBFFLGWEI_DatWr !=GBFFLGWEI_DatWr )
-                $display("ERROR time: %t GBFFLGWEI_DatWr = %h, ", $time,GBFFLGWEI_DatWr);
+        if ( ASIC.TS3D.GBFACT_EnWr) begin
+            Suc_GBFACT_DatWr=$fscanf(GBFACT_DatWr_File, "%h",GBFACT_DatWr);
+            if(ASIC.TS3D.GBFACT_DatWr !=GBFACT_DatWr )
+                $display("ERROR time: %t GBFACT_DatWr_Mon = %h, GBFACT_DatWr_Ref = %h", $time,ASIC.TS3D.GBFACT_DatWr,GBFACT_DatWr);
         end
     end
 end
-
-
-
 
 integer cnt;
 generate
