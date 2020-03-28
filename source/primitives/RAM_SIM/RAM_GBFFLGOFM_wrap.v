@@ -43,7 +43,7 @@ end
 wire                        [SRAM_DEPTH_BIT - 1 : 0] Addr;
 assign Addr = write_en ? addr_w : addr_r;
 
-RAM_GBFFLGOFM RAM_GBFFLGOFM0(
+SYLA55_32X8X12CM2 RAM_GBFFLGOFM0(
     .A                   (  Addr               ),
     .DO                  (  data_out            ),
     .DI                  (  data_in             ),

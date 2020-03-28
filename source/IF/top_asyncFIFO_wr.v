@@ -1,3 +1,4 @@
+`include "../source/include/dw_params_presim.vh"
 module top_asyncFIFO_wr #(
     parameter SPI_WIDTH = 32,
     parameter ADDR_WIDTH_FIFO = 3,

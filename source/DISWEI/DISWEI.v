@@ -25,7 +25,7 @@ module DISWEI (
     input       [ `PORT_DATAWIDTH                         -1 : 0] GBFWEI_DatRd    ,
  //   input                                                           GBFFLGWEI_Val   , //valid
     output                                                          GBFFLGWEI_EnRd  ,
-    output reg  [ `GBFWEI_ADDRWIDTH                         -1 : 0] GBFFLGWEI_AddrRd,
+    output reg  [ `GBFFLGWEI_ADDRWIDTH                         -1 : 0] GBFFLGWEI_AddrRd,
     input       [ `GBFFLGWEI_DATAWIDTH                      -1 : 0] GBFFLGWEI_DatRd  ,
     input                                                           CTRLACT_FnhFrm  //reset AddrRd and pipeline
 

@@ -42,7 +42,7 @@ end
 wire                        [SRAM_DEPTH_BIT - 1 : 0] Addr;
 assign Addr = write_en ? addr_w : addr_r;
 
-RAM_DELTA RAM_DELTA0(
+SYLA55_196X8X16CM2 RAM_DELTA0(
     .A                   (  Addr               ),
     .DO                  (  data_out            ),
     .DI                  (  data_in             ),

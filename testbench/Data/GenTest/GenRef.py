@@ -1,11 +1,13 @@
 import numpy as np
 import random
 import os
-
+## read files
 FlagActFileName = '../RAM_GBFFLGACT_bin.dat'
 FlagWeiFileName = '../RAM_GBFFLGWEI.dat'
 ActFileName = '../RAM_GBFACT_1B.dat'
 WeiFileName = '../RAM_GBFWEI.dat'
+
+## write files
 PECRAM_DatWrFileName = 'PECRAM_DatWr_Ref.dat'
 RAMPEC_DatRdFileName = 'RAMPEC_DatRd_Ref.dat'
 CNVOUT_Psum2FileName = 'CNVOUT_Psum2.dat'
@@ -13,8 +15,10 @@ CNVOUT_Psum1FileName = 'CNVOUT_Psum1.dat'
 CNVOUT_Psum0FileName = 'CNVOUT_Psum0.dat'
 PECMAC_ActFileName = "PECMAC_Act_Gen.dat"
 PECMAC_FlgActFileName='PECMAC_FlgAct_Gen.dat'
-GBFOFM_DatWrFileName='GBFOFM_DatWr_Ref.dat'
-GBFFLGOFM_DatWrFileName='GBFFLGOFM_DatWr_Ref.dat'
+POOL_SPRS_MEMFileName='POOL_SPRS_MEM_Ref.dat'
+POOL_FLAG_MEMFileName='POOL_FLAG_MEM_Ref.dat'
+GBFFLGOFM_DatRdFileName = 'RAM_GBFFLGOFM_12B.dat'
+GBFOFM_DatRdFileName = 'RAM_GBFOFM_12B.dat'
 PECMAC_Wei0FileName = 'PECMAC_Wei0.dat'
 PECMAC_FlgWei0FileName = 'PECMAC_FlgWei0_Ref.dat'
 NumChn = 32
@@ -23,7 +27,7 @@ NumBlk = 2
 NumFrm = 4
 
 NumPEC = 3
-NumPEB = 2
+NumPEB = 16
 Len = 16
 KerSize = 3
 Stride = 2
@@ -42,12 +46,14 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
         open(ActFileName, 'r') as ActFile,\
         open (PECMAC_ActFileName, 'w') as PECMAC_ActFile,\
         open(PECMAC_FlgActFileName, 'w') as PECMAC_FlgActFile,\
-        open(GBFOFM_DatWrFileName,'w') as GBFOFM_DatWrFile, \
-        open(GBFFLGOFM_DatWrFileName,'w') as GBFFLGOFM_DatWrFile, \
-        open(CNVOUT_Psum2FileName, 'w') as CNVOUT_Psum2File, \
-        open(PECRAM_DatWrFileName, 'w') as PECRAM_DatWrFile, \
+        open(POOL_SPRS_MEMFileName,'w') as POOL_SPRS_MEMFile, \
+        open(POOL_FLAG_MEMFileName,'w') as POOL_FLAG_MEMFile, \
         open(RAMPEC_DatRdFileName, 'w') as RAMPEC_DatRdFile, \
-        open(PECMAC_FlgWei0FileName,'w') as PECMAC_FlgWei0File:
+        open(PECMAC_FlgWei0FileName,'w') as PECMAC_FlgWei0File, \
+        open(GBFFLGOFM_DatRdFileName,'w') as GBFFLGOFM_DatRdFile, \
+        open(GBFOFM_DatRdFileName,'w') as GBFOFM_DatRdFile:
+        #open(CNVOUT_Psum2FileName, 'w') as CNVOUT_Psum2File, \
+        #open(PECRAM_DatWrFileName, 'w') as PECRAM_DatWrFile, \
         #open (PECMAC_Wei0FileName,'w') as PECMAC_Wei0File:
         #open(CNVOUT_Psum1FileName, 'w') as CNVOUT_Psum1File, \
 
@@ -58,13 +64,13 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
                         DELTA = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
                         cnt_ACT = 0
                         cnt_Flag = 0 # continously save one frame by one frame
+                        GBFFLGOFM_DatRd = ""
+                        GBFOFM_DatRd = ""
                         for cntfrm in range(0,NumFrm):
-
                             # same weight per frame
                             with open(FlagWeiFileName, 'r') as FlagWeiFile,\
                                 open(WeiFileName, 'r') as WeiFile:
                                 ColWei = 0
-
                                 for cntBlk in range (0, NumBlk ):
                                     actBlk = [[[ 0 for x in range (0,NumChn)] for y in range (0,Len)] for z in range(0,Len)]
                                     CNVOUT_Psum2_PEL =[['' for x in range ( 0, Len)] for y in range(0,Len)]
@@ -189,19 +195,21 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
                                             #CNVOUT_Psum1File.write(CNVOUT_Psum1_PEL[psumrow][psumcol]+'\n')
                                             if psumrow < Len - 2  and psumcol < Len-2:  # 14rows
                                                 RAMPEC_DatRdFile.write(RAMPEC_DatRd_PEL[psumrow][psumcol]+'\n')
-                                                PECRAM_DatWrFile.write(PECRAM_DatWr_PEL[psumrow][psumcol]+'\n')
+                                                #PECRAM_DatWrFile.write(PECRAM_DatWr_PEL[psumrow][psumcol]+'\n')
 
                             print(cntfrm)
                             POOL_MEM = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
                             SPRS = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
                             FLAG_MEM = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
-                            GBFOFM_DatWr = ''
-                            GBFFLGOFM_DatWr = ''
-
+                            POOL_SPRS_MEM = ''
+                            POOL_FLAG_MEM = ''
+                            GBFFLGOFM_DatRd = ""
+                            GBFOFM_DatRd = ""
                             for AddrRow in range ( 0, Len-2 - Stride + 1, Stride):
                                 AddrPooly = AddrRow / Stride
                                 for AddrCol in range ( 0, Len-2 - Stride + 1, Stride):
                                     AddrPoolx = AddrCol / Stride
+                                    POOL_FLAG_MEM = ""
                                     for cntPEB in range (0, NumPEB):
                                         for cnt_pooly in range (0, Stride):
                                             for cnt_poolx in range (0, Stride):
@@ -225,26 +233,30 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
                                         DELTA[AddrPooly][AddrPoolx][cntPEB] = POOL_MEM[AddrPooly][AddrPoolx][cntPEB];# update frame for delta
                                         if SPRS[AddrPooly][AddrPoolx][cntPEB] != 0:
                                             FLAG_MEM[AddrPooly][AddrPoolx][cntPEB]  = 1
-                                            #if cnt_ACT < PORT_DATAWIDTH/8 :
+
                                             if SPRS[AddrPooly][AddrPoolx][cntPEB] > 0:
-                                                GBFOFM_DatWr = ((str(hex(SPRS[AddrPooly][AddrPoolx][cntPEB])).lstrip('0x')).rstrip('L')).zfill(2)
+                                                POOL_SPRS_MEM = ((str(hex(SPRS[AddrPooly][AddrPoolx][cntPEB])).lstrip('0x')).rstrip('L')).zfill(2)
                                             else: # neg [-127, 0)
-                                                GBFOFM_DatWr = ((str(hex(SPRS[AddrPooly][AddrPoolx][cntPEB]+256)).lstrip('0x')).rstrip('L')).zfill(2)
-                                            GBFOFM_DatWrFile.write(GBFOFM_DatWr+'\n')
-                                            #cnt_ACT = cnt_ACT + 1
-                                        #else:
-                                            #GBFOFM_DatWrFile.write(GBFOFM_DatWr+'\n')
-                                            #cnt_ACT = 0
-                                            #GBFOFM_DatWr = ''
+                                                POOL_SPRS_MEM = ((str(hex(SPRS[AddrPooly][AddrPoolx][cntPEB]+256)).lstrip('0x')).rstrip('L')).zfill(2)
+                                            POOL_SPRS_MEMFile.write(POOL_SPRS_MEM+'\n')
+                                            if cnt_ACT < PORT_DATAWIDTH/8 : #12B
+                                                GBFOFM_DatRd =POOL_SPRS_MEM + GBFOFM_DatRd;
+                                                cnt_ACT = cnt_ACT + 1
+                                            else:
+                                                GBFOFM_DatRdFile.write(GBFOFM_DatRd+'\n')
+                                                cnt_ACT = 0
+                                                GBFOFM_DatRd = ''
                                         else:
                                             FLAG_MEM[AddrPooly][AddrPoolx][cntPEB]  = 0
-                                        if cnt_Flag < PORT_DATAWIDTH:
-                                            GBFFLGOFM_DatWr = str(FLAG_MEM[AddrPooly][AddrPoolx][cntPEB] ) + GBFFLGOFM_DatWr
-                                            cnt_Flag = cnt_Flag + 1
-                                        else:
-                                            GBFFLGOFM_DatWrFile.write(GBFFLGOFM_DatWr+'\n')
-                                            cnt_Flag = 0
-                                            GBFFLGOFM_DatWr = ''
+                                        POOL_FLAG_MEM =  str(FLAG_MEM[AddrPooly][AddrPoolx][cntPEB] ) +POOL_FLAG_MEM  # PEB15 PEB1 PEB0
+                                    POOL_FLAG_MEMFile.write(POOL_FLAG_MEM+'\n')
+                                    if cnt_Flag < PORT_DATAWIDTH/NumPEB: #12
+                                        GBFFLGOFM_DatRd = POOL_FLAG_MEM + GBFFLGOFM_DatRd #shift right
+                                        cnt_Flag = cnt_Flag + 1
+                                    else:
+                                        GBFFLGOFM_DatRdFile.write(GBFFLGOFM_DatRd+'\n')
+                                        cnt_Flag = 0
+                                        GBFFLGOFM_DatRd = ''
                                     #AddrPoolx = AddrPoolx + 1
                                 #AddrPooly = AddrPooly + 1;
 

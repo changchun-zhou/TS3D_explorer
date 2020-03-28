@@ -26,7 +26,7 @@ module DISACT (
     input       [ `DATA_WIDTH               -1 : 0] GBFACT_DatRd,// 8 * `DATA_WIDTH meets bandwidth; like WEI ////////////////////
     input                                           GBFFLGACT_Val, //valid
     output                                          GBFFLGACT_EnRd,
-    output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFFLGACT_AddrRd,
+    output reg  [ `GBFFLGACT_ADDRWIDTH         -1 : 0] GBFFLGACT_AddrRd,
     input       [ `BLOCK_DEPTH              -1 : 0] GBFFLGACT_DatRd
 
 );

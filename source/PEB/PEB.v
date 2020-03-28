@@ -353,7 +353,7 @@ RAM_PEC_wrap #(
         .data_out ( DatRd1      )
     );
 RAM_PEC_wrap #(
-         .SRAM_DEPTH_BIT( `C_LOG_2(`LENPSUM*`LENPSUM)),
+         .SRAM_DEPTH_BIT( `C_LOG_2(`LENPSUM*`LENPSUM)),//196
         .SRAM_WIDTH( `PSUM_WIDTH)
     ) RAM_PEC2 (
         .clk      ( clk         ),

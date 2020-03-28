@@ -1,4 +1,5 @@
 // `define UNITE 1
+`include "../source/include/dw_params_presim.vh"
 module top_asyncFIFO_rd #(
     parameter SPI_WIDTH = 32,
     parameter ADDR_WIDTH_FIFO = 5,
@@ -16,6 +17,7 @@ module top_asyncFIFO_rd #(
     output                                  config_ready  , //ASIC
     input                                   config_paulse , //ASIC pull up
     input [ 4              -1 : 0 ]         config_data   , //ASIC
+    input                                   Reset_WEI_IF_CFG,
     output reg [ 4               - 1 : 0 ]O_config_data,
     input                                   rd_req        ,
     output                                  rd_valid      , //ASIC
@@ -29,7 +31,7 @@ reg [ RX_WIDTH          - 1 : 0 ] rd_count      ;
 //wire                        rd_done       ;
 reg O_spi_cs_n_sync, O_spi_cs_n_2, O_spi_cs_n_1;
 reg [ 3         - 1 : 0 ]   state         ;  //ASIC
-
+reg                             O_Reset_WEI;
 localparam IDLE = 0, CONFIG = 1, WAIT = 2, RD_DATA = 3,  WR_DATA = 4, RESET_FIFO = 5;
 
 assign config_ready = state           == IDLE ;
@@ -78,9 +80,10 @@ end
 
 reg [ RX_WIDTH          - 1 : 0 ] rd_size      ;
 always @( posedge clk_chip or negedge reset_n_chip) begin : proc_rd_size
-  if(!reset_n_chip)
+  if(!reset_n_chip) begin
     rd_size <= 43;
-  else if ( config_paulse) begin
+    O_Reset_WEI <=0;
+  end else if ( config_paulse) begin
     case(config_data)
       `IFCODE_CFG:  rd_size <= `RD_SIZE_CFG;
       `IFCODE_ACT:  rd_size <= `RD_SIZE_ACT;
@@ -90,6 +93,7 @@ always @( posedge clk_chip or negedge reset_n_chip) begin : proc_rd_size
       default:  rd_size   <= 2048;
     endcase
     O_config_data <= config_data;
+    O_Reset_WEI <= Reset_WEI_IF_CFG;
     end
 end
 
@@ -117,7 +121,7 @@ wire [ SPI_WIDTH      - 1 : 0 ] dout  ;
 wire                            empty ;
 // wire                            full  ;
 
-assign O_spi_data = {O_config_data,28'd0};
+assign O_spi_data = {O_config_data,O_Reset_WEI,27'd0};
 
 assign wr_clk = O_spi_sck  ;
 assign wr_en  = !O_spi_cs_n;

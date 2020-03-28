@@ -263,7 +263,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
-assign FRMPOOL_EnWr = state == FRMPOOLDELTA && state_d  != FRMPOOLDELTA;
+//assign FRMPOOL_EnWr =(state == FRMPOOLDELTA) && (state_d!= FRMPOOLDELTA);
 assign SIPOOFM_En = FLAG_MEM[SPRS_Addr]  && state ==SPRS;
 assign SIPOFLGOFM_En = state_dd==FRMPOOLDELTA && state_ddd != FRMPOOLDELTA;
 //=====================================================================================================================

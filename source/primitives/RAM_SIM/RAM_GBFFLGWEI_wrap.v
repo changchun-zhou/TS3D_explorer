@@ -12,7 +12,6 @@ module RAM_GBFFLGWEI_wrap #(
     output  [SRAM_WIDTH  - 1 : 0]data_out
 );
 
-
 // ******************************************************************
 // INSTANTIATIONS
 // ******************************************************************
@@ -44,26 +43,26 @@ wire                        [SRAM_DEPTH_BIT - 1 : 0] Addr;
 assign Addr = write_en ? addr_w : addr_r;
 // 144 bit width x 2
 //
-RAM_GBFFLGWEI RAM_GBFFLGWEI0(
+SYLA55_32X8X12CM2 RAM_GBFFLGWEI0(
     .A                   (  Addr               ),
-    .DO                  (  data_out[SRAM_WIDTH/2 -1 : 0]            ),
-    .DI                  (  data_in[SRAM_WIDTH/2 -1 : 0]             ),
+    .DO                  (  data_out[SRAM_WIDTH -1 : 0]            ),
+    .DI                  (  data_in[SRAM_WIDTH -1 : 0]             ),
     .DVSE                (  1'b0                ),
     .DVS                 (  4'b0                ),
     .WEB                 (  ~write_en           ),
     .CK                  (  clk                 ),
     .CSB                 ((~write_en)&(~read_en))
      );
-RAM_GBFFLGWEI RAM_GBFFLGWEI1(
-    .A                   (  Addr               ),
-    .DO                  (  data_out[SRAM_WIDTH -1 : SRAM_WIDTH/2]            ),
-    .DI                  (  data_in[SRAM_WIDTH -1 : SRAM_WIDTH/2]              ),
-    .DVSE                (  1'b0                ),
-    .DVS                 (  4'b0                ),
-    .WEB                 (  ~write_en           ),
-    .CK                  (  clk                 ),
-    .CSB                 ((~write_en)&(~read_en))
-     );
+// RAM_GBFFLGWEI RAM_GBFFLGWEI1(
+//     .A                   (  Addr               ),
+//     .DO                  (  data_out[SRAM_WIDTH -1 : SRAM_WIDTH/2]            ),
+//     .DI                  (  data_in[SRAM_WIDTH -1 : SRAM_WIDTH/2]              ),
+//     .DVSE                (  1'b0                ),
+//     .DVS                 (  4'b0                ),
+//     .WEB                 (  ~write_en           ),
+//     .CK                  (  clk                 ),
+//     .CSB                 ((~write_en)&(~read_en))
+//      );
 
 `endif
 

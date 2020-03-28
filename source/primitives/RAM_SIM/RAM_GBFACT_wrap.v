@@ -40,18 +40,18 @@ end
 
 `else
 
-RAM_GBFACT RAM_GBFACT0(
-    .A                   (  addr_w               ),
-    .B                      ( addr_r   ),
+wire                        [SRAM_DEPTH_BIT - 1 : 0] Addr;
+assign Addr = write_en ? addr_w : addr_r;
+
+SYLA55_256X8X12CM2 RAM_GBFFLGACT0(
+    .A                   (  Addr               ),
     .DO                  (  data_out            ),
     .DI                  (  data_in             ),
-    .CKA                (clk ),
-    .CKB                  ( clk ),
     .DVSE                (  1'b0                ),
     .DVS                 (  4'b0                ),
     .WEB                 (  ~write_en           ),
-    .CSAN               ( ~write_en ),
-    .CSBN                 (~read_en)
+    .CK                  (  clk                 ),
+    .CSB                 ((~write_en)&(~read_en))
      );
 `endif
 

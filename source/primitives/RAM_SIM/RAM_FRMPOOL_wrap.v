@@ -43,7 +43,7 @@ end
 wire                        [SRAM_DEPTH_BIT - 1 : 0] Addr;
 assign Addr = write_en ? addr_w : addr_r;
 
-RAM_FRMPOOL RAM_FRMPOOL0(
+SYLA55_49X8X16CM2 RAM_FRMPOOL0(
     .A                   (  Addr               ),
     .DO                  (  data_out            ),
     .DI                  (  data_in             ),

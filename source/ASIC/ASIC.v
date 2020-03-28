@@ -40,6 +40,9 @@ module ASIC (
 wire                                            clk;
 wire                                            rst_n;
     wire                                     Reset;
+    wire                                     Reset_WEI;
+    wire                                     Reset_ACT;
+    wire                                     Reset_OFM;
     wire                                     CFG_Req;
     wire [ `PORT_DATAWIDTH         - 1 : 0 ] IFCFG;
     wire                                                       IFCFG_Val;
@@ -49,12 +52,12 @@ wire                                            rst_n;
     wire [ `PORT_DATAWIDTH         - 1 : 0 ] GBFACT_DatWr;
     wire [`PORT_DATAWIDTH          - 1 : 0 ] GBFFLGOFM_DatRd;
     wire [`PORT_DATAWIDTH          - 1 : 0 ] GBFOFM_DatRd;
-    wire [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrWr;
-    wire [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrRd;
+    wire [ `GBFFLGWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrWr;
+    wire [ `GBFFLGWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrRd;
     wire [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFWEI_AddrWr;
     wire [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFWEI_AddrRd;
-    wire [ `GBFACT_ADDRWIDTH           -1 : 0] GBFFLGACT_AddrWr;
-    wire [ `GBFACT_ADDRWIDTH           -1 : 0] GBFFLGACT_AddrRd;
+    wire [ `GBFFLGACT_ADDRWIDTH           -1 : 0] GBFFLGACT_AddrWr;
+    wire [ `GBFFLGACT_ADDRWIDTH           -1 : 0] GBFFLGACT_AddrRd;
     wire [ `GBFACT_ADDRWIDTH           -1 : 0] GBFACT_AddrWr;
     wire [ `GBFACT_ADDRWIDTH           -1 : 0] GBFACT_AddrRd;
     wire [ `GBFFLGOFM_ADDRWIDTH        -1 : 0] GBFFLGOFM_AddrRd;
@@ -119,9 +122,8 @@ wire clk_to_dll_i;
 
 
   IUMBFS S0_dll_PAD  (.DO (1'b0 ), .IDDQ (1'b0), .IE (1'b1), .OE (1'b0), .PD (1'b0), .PIN1 (1'b0), .PIN2 (1'b0), .PU (1'b0), .SMT (1'b0), .DI (S0_dll), .PAD (S0_dll_pad ), .PORE (PORE));
-wire outclk_dll;
-  DLL DLL_i (.CLK(clk), .RST(reset_dll), .BYPASS(DLL_BYPASS_i), .S1(1'b0), .S0( S0_dll), .OUTCLK(outclk_dll ), .VDDA(VDDA), .VSSA(VSSA) );
-
+//wire outclk_dll;
+//  DLL DLL_i (.CLK(clk), .RST(reset_dll), .BYPASS(DLL_BYPASS_i), .S1(1'b0), .S0( S0_dll), .OUTCLK(outclk_dll ), .VDDA(VDDA), .VSSA(VSSA) );
 
 generate
   genvar k;
@@ -143,6 +145,9 @@ wire IF_RdDone;
             .clk              (clk),
             .rst_n            (rst_n),
             .Reset            (Reset),
+            .Reset_WEI   ( Reset_WEI),
+            .Reset_ACT   ( Reset_ACT),
+            .Reset_OFM   ( Reset_OFM),
             .IF_Val               ( IF_Val),
             .IF_RdDone ( IF_RdDone ),
             .CFG_Req          (CFG_Req),
@@ -192,35 +197,38 @@ TS3D  TS3D (
     .rst_n                   ( rst_n                                                            ),
     .IF_RdDone    ( IF_RdDone),
     .IF_Val             ( IF_Val),
-    .IFCFG                   ( IFCFG             [`PORT_DATAWIDTH   - 1 : 0]                    ),
+    .IFCFG                   ( IFCFG                                 ),
     .IFCFG_Val               ( IFCFG_Val                                                        ),
  //   .GBFWEI_Val              ( 1'b1                                                       ),
     .GBFWEI_EnWr             ( GBFWEI_EnWr                                                      ),
-    .GBFWEI_AddrWr           ( GBFWEI_AddrWr     [ `GBFWEI_ADDRWIDTH           -1 : 0]          ),
-    .GBFWEI_AddrRd           ( GBFWEI_AddrRd     [ `GBFWEI_ADDRWIDTH           -1 : 0]          ),
-    .GBFWEI_DatWr            ( GBFWEI_DatWr      [ `PORT_DATAWIDTH           -1 : 0]            ),
+    .GBFWEI_AddrWr           ( GBFWEI_AddrWr               ),
+    .GBFWEI_AddrRd           ( GBFWEI_AddrRd              ),
+    .GBFWEI_DatWr            ( GBFWEI_DatWr                 ),
    // .GBFFLGWEI_Val           ( 1'b1                                                    ),
     .GBFFLGWEI_EnWr          ( GBFFLGWEI_EnWr                                                   ),
-    .GBFFLGWEI_AddrWr        ( GBFFLGWEI_AddrWr  [ `GBFWEI_ADDRWIDTH           -1 : 0]          ),
-    .GBFFLGWEI_AddrRd        ( GBFFLGWEI_AddrRd  [ `GBFWEI_ADDRWIDTH           -1 : 0]          ),
-    .GBFFLGWEI_DatWr         ( GBFFLGWEI_DatWr   [ `PORT_DATAWIDTH        -1 : 0]               ),
+    .GBFFLGWEI_AddrWr        ( GBFFLGWEI_AddrWr         ),
+    .GBFFLGWEI_AddrRd        ( GBFFLGWEI_AddrRd           ),
+    .GBFFLGWEI_DatWr         ( GBFFLGWEI_DatWr                 ),
     .GBFACT_EnWr             ( GBFACT_EnWr                                                      ),
-    .GBFACT_AddrWr           ( GBFACT_AddrWr     [ `GBFACT_ADDRWIDTH          -1 : 0]           ),
-    .GBFACT_AddrRd           ( GBFACT_AddrRd     [ `GBFACT_ADDRWIDTH          -1 : 0]           ),
-    .GBFACT_DatWr            ( GBFACT_DatWr      [ `PORT_DATAWIDTH                -1 : 0]       ),
+    .GBFACT_AddrWr           ( GBFACT_AddrWr                ),
+    .GBFACT_AddrRd           ( GBFACT_AddrRd               ),
+    .GBFACT_DatWr            ( GBFACT_DatWr             ),
    // .GBFFLGACT_Val           ( 1'b1                                                    ),
     .GBFFLGACT_EnWr          ( GBFFLGACT_EnWr                                                   ),
-    .GBFFLGACT_AddrWr        ( GBFFLGACT_AddrWr  [ `GBFACT_ADDRWIDTH          -1 : 0]           ),
-    .GBFFLGACT_AddrRd        ( GBFFLGACT_AddrRd  [ `GBFACT_ADDRWIDTH          -1 : 0]           ),
-    .GBFFLGACT_DatWr         ( GBFFLGACT_DatWr   [ `PORT_DATAWIDTH               -1 : 0]        ),
+    .GBFFLGACT_AddrWr        ( GBFFLGACT_AddrWr            ),
+    .GBFFLGACT_AddrRd        ( GBFFLGACT_AddrRd             ),
+    .GBFFLGACT_DatWr         ( GBFFLGACT_DatWr           ),
     .GBFOFM_EnRd             ( GBFOFM_EnRd                                                      ),
-    .GBFOFM_AddrRd           ( GBFOFM_AddrRd     [ `GBFOFM_ADDRWIDTH                  -1 : 0]   ),
-    .GBFOFM_AddrWr           ( GBFOFM_AddrWr     [ `GBFOFM_ADDRWIDTH                  -1 : 0]   ),
+    .GBFOFM_AddrRd           ( GBFOFM_AddrRd       ),
+    .GBFOFM_AddrWr           ( GBFOFM_AddrWr        ),
     .GBFFLGOFM_EnRd          ( GBFFLGOFM_EnRd                                                   ),
-    .GBFFLGOFM_AddrRd        ( GBFFLGOFM_AddrRd  [ `GBFFLGOFM_ADDRWIDTH           - 1 :0 ]      ),
-    .GBFFLGOFM_AddrWr        ( GBFFLGOFM_AddrWr  [ `GBFFLGOFM_ADDRWIDTH           - 1 :0 ]      ),
+    .GBFFLGOFM_AddrRd        ( GBFFLGOFM_AddrRd       ),
+    .GBFFLGOFM_AddrWr        ( GBFFLGOFM_AddrWr       ),
 
     .Reset                   ( Reset                                                            ),
+            .Reset_WEI   ( Reset_WEI),
+            .Reset_ACT   ( Reset_ACT),
+            .Reset_OFM   ( Reset_OFM),
     .CFG_Req                 ( CFG_Req                                                          ),
     .GBFWEI_EnRd             ( GBFWEI_EnRd                                                      ),
     .GBFFLGWEI_EnRd          ( GBFFLGWEI_EnRd                                                   ),

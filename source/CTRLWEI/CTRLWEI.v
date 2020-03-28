@@ -46,12 +46,13 @@ wire                                                  WEI_Val;
 //=====================================================================================================================
 assign WEI_Val = GBFFLGWEI_Val && GBFWEI_Val;
 
-localparam IDLE     = 3'b000;
+localparam IDLE         = 3'b000;
 localparam PREPIPE1 = 3'b100;
 localparam PREPIPE2 = 3'b101;
 localparam PREPIPE3 = 3'b111;
 localparam PREPIPE4 = 3'b110;
-localparam GETWEI   = 3'b010;
+localparam WAITGETWEI   = 3'b010;
+localparam WAITWEIVAL   = 3'b011;
 localparam WAIT = 3'b001;
 reg [ 3 - 1 : 0          ] state;
 reg [ 3 - 1 : 0          ] next_state;
@@ -76,15 +77,23 @@ always @(*) begin
                         else
                         next_state <= PREPIPE2;
       PREPIPE3: if ( WEI_Val)
-                         next_state <= GETWEI;
+                         next_state <= WAITGETWEI;
                         else
                         next_state <= PREPIPE3;
-      GETWEI  : if( 1'b0) //config finish
+      WAITGETWEI  :
+                if( 1'b0) //config finish
                     next_state <= IDLE;
                 else if(CTRLACT_FnhFrm) //New frame reset address of weights
                     next_state <= WAIT;
+                else if ( PECCTRLWEI_GetWei )
+                    next_state <= WAITWEIVAL;
                 else
-                    next_state <= GETWEI;
+                    next_state <= WAITGETWEI;
+      WAITWEIVAL: //
+                if( WEI_Val)// check WEI Val
+                  next_state <= WAITGETWEI;
+                else
+                    next_state <= WAITWEIVAL;
       default: next_state <= IDLE;
     endcase
 end
@@ -102,7 +111,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         IDPEC <= `NUMPEC -1;
     end else if ( CTRLWEI_PlsFetch && IDPEC==0 ) begin// automatic loop 0-47
         IDPEC <= `NUMPEC -1;
-    end else if ( CTRLWEI_PlsFetch && state == GETWEI) begin
+    end else if ( CTRLWEI_PlsFetch && state == WAITWEIVAL) begin
         IDPEC <= IDPEC - 1; // MSB to LSB
     end
 end
@@ -112,15 +121,16 @@ always @ ( posedge clk or negedge rst_n ) begin
         CTRLWEIPEC_RdyWei <= 0;
     end else if ( |PECCTRLWEI_GetWei || CTRLACT_FnhFrm ) begin
         CTRLWEIPEC_RdyWei <= 0;
-    end else if ( DISWEI_RdyWei && state == GETWEI ) begin
+    end else if ( DISWEI_RdyWei && state == WAITGETWEI ) begin
         CTRLWEIPEC_RdyWei[IDPEC] <= 1;
     end
 end
 
 // PECCTRLWEI_GetWei == CTRLWEIPEC_RdyWei
 // CTRLWEI_PlsFetch is triggered by CTRLWEIPEC_RdyWei directly because PEC fectches Wei immediately
-
-assign CTRLWEI_PlsFetch = ( |CTRLWEIPEC_RdyWei && |PECCTRLWEI_GetWei && WEI_Val) || (state==WAIT&& next_state == PREPIPE1 || state == PREPIPE1 && next_state==PREPIPE2 || state == PREPIPE2 && next_state== PREPIPE3) ;
+wire PrePlsFetch; // 3 pls
+assign PrePlsFetch = (state==WAIT&& next_state == PREPIPE1 || state == PREPIPE1 && next_state==PREPIPE2 || state == PREPIPE2 && next_state== PREPIPE3);
+assign CTRLWEI_PlsFetch = ( state ==WAITWEIVAL &&next_state ==WAITGETWEI) || PrePlsFetch ;
 
 
 //=====================================================================================================================

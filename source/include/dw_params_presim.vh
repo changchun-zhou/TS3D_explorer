@@ -1,58 +1,59 @@
 
-`define SYNTH_MINI // 2 PEB function
+//`define SYNTH_MINI // 2 PEB function
 // `define SYNTH_FREQ
-// `define SYNTH_AC
+`define SYNTH_AC
 
-`ifdef SYNTH_AC
-  `define NUMPEB 16 //?
-  `define GBFWEI_ADDRWIDTH 8  //? 9 KBSSS< `BLOCK_DEPTH * `NUMPEC = 32 * 48 = 1536
-  `define GBFACT_ADDRWIDTH 11 //? 16KB
-`elsif SYNTH_FREQ
-  `define NUMPEB 16
-  `define GBFWEI_ADDRWIDTH 1  //?64 > 16*3
-  `define GBFACT_ADDRWIDTH 2 //?
-`elsif SYNTH_MINI
-  `define NUMPEB 2
-  `define GBFWEI_ADDRWIDTH 8  //?64 > log2(BLOCK_DEPTH* KERNEL_SIZE * NumPEC * NumPEB * NumBlk) = 32x9x3x2x2 = 3456
-  `define GBFACT_ADDRWIDTH 8 // log2( 16x16x32x NumBlk x NumFrmx (1-sparsity) )= 2048x32
-`endif
-
-`define BLOCK_DEPTH 32
+// ****************************************************************************
+// Hyper-parameter
+// ****************************************************************************
 `define DATA_WIDTH 8
-
+`define NUMPEB 16
 `define NUMPEC 3*`NUMPEB
+`define PORT_DATAWIDTH `DATA_WIDTH * 12
 
+// ****************************************************************************
+// Neural Networks parameter
+// ****************************************************************************
+`define BLOCK_DEPTH 32
 `define KERNEL_SIZE 9
 `define MAX_DEPTH 1024 // c3d 512 i3d 1024
-`define GBFWEI_DATAWIDTH `DATA_WIDTH * `KERNEL_SIZE // avoid * 9
-`define GBFFLGWEI_DATAWIDTH `BLOCK_DEPTH * `KERNEL_SIZE //288
-`define PORT_DATAWIDTH `DATA_WIDTH * 12
-// `define GBFFLGACT_ADDRWIDTH 8
-
-
 `define LENROW 16
 `define LENPSUM 14
-
-// POOL parameters
-//`define POOL_WIDTH 2//Stride
 `define POOL_KERNEL_WIDTH 3 // 2 3 7
-`define GBFOFM_ADDRWIDTH  `C_LOG_2(`LENPSUM*`LENPSUM*`NUMPEB/(`PORT_DATAWIDTH/`DATA_WIDTH))
-`define GBFFLGOFM_ADDRWIDTH  `C_LOG_2(`LENPSUM*`LENPSUM*`NUMPEB/`PORT_DATAWIDTH)
-
-`define BUSPEC_WIDTH (8 + `BLOCK_DEPTH + `DATA_WIDTH * `BLOCK_DEPTH)
-`define BUSPEB_WIDTH `BUSPEC_WIDTH
-`define PSUM_WIDTH (`DATA_WIDTH *2 + `C_LOG_2(`KERNEL_SIZE*`MAX_DEPTH) )
-
-// Config parameters
-
+//`define POOL_WIDTH 2//Stride
+// ************* Config parameters *****************
 `define FRAME_WIDTH 5
 `define PATCH_WIDTH 8
 `define BLK_WIDTH   `C_LOG_2(1024/`BLOCK_DEPTH)   //ONLY FOR CONV, FC? 5
 `define LAYER_WIDTH 8 //256 layers
 `define NUM_CFG_WIDTH `LAYER_WIDTH
+
+
+// ****************************************************************************
+// Global Buffer parameter
+// ****************************************************************************
+`define GBFWEI_ADDRWIDTH 8  //?64 > log2(BLOCK_DEPTH* KERNEL_SIZE * NumPEC * NumPEB * NumBlk) = 32x9x3x2x2 = 3456
+`define GBFWEI_DATAWIDTH `DATA_WIDTH * `KERNEL_SIZE // avoid * 9 Not GBF but DISWEI
+
+`define GBFFLGWEI_ADDRWIDTH 5 //12B x 32
+`define GBFFLGWEI_DATAWIDTH `BLOCK_DEPTH * `KERNEL_SIZE //288 Not GBF but DISWEI
+
+`define GBFACT_ADDRWIDTH 8 // log2( 16x16x32x NumBlk x NumFrmx (1-sparsity) )= 2048x32
+ `define GBFFLGACT_ADDRWIDTH 5
+
+`define GBFOFM_ADDRWIDTH  `C_LOG_2(`LENPSUM*`LENPSUM*`NUMPEB/(`PORT_DATAWIDTH/`DATA_WIDTH)) // 9b
+`define GBFFLGOFM_ADDRWIDTH  `C_LOG_2(`LENPSUM*`LENPSUM*`NUMPEB/(`PORT_DATAWIDTH))//6
+// PEL parameter
+`define PSUM_WIDTH (`DATA_WIDTH *2 + `C_LOG_2(`KERNEL_SIZE*`MAX_DEPTH) )//29
+`define BUSPEC_WIDTH (8 + `BLOCK_DEPTH + `DATA_WIDTH * `BLOCK_DEPTH)
+`define BUSPEB_WIDTH `BUSPEC_WIDTH
+
+// ****************************************************************************
+// Interface parameter
+// ****************************************************************************
+`define REQ_CNT_WIDTH 10 // Max time of GBF overflowing
 `define ASYSFIFO_ADDRWIDTH 5
 
-// Interface
 `define IFCODE_CFG 0
 `define IFCODE_FLGWEI 8
 `define IFCODE_WEI 6
@@ -60,17 +61,15 @@
 `define IFCODE_ACT 2
 `define IFCODE_FLGOFM 10
 `define IFCODE_OFM 11
-
-//`define GBFFLGWEI_ADDRWIDTH =
+`define IFCODE_EMPTY 15
 
 `define RD_SIZE_CFG 2**`NUM_CFG_WIDTH //12B x 256
-`define RD_SIZE_FLGWEI  2**`GBFWEI_ADDRWIDTH/8 //read half and juge 1/4; 1/8 wei
-`define RD_SIZE_WEI 2**`GBFWEI_ADDRWIDTH/2
-`define RD_SIZE_FLGACT 2** `GBFACT_ADDRWIDTH/8/2
-`define RD_SIZE_ACT 2** `GBFACT_ADDRWIDTH/2
-`define WR_SIZE_FLGOFM 2**`GBFFLGOFM_ADDRWIDTH/2
-//`define WR_SIZE_OFM 2**`GBFOFM_ADDRWIDTH/2
-`define WR_SIZE_OFM 16
+`define RD_SIZE_FLGWEI  2**`GBFFLGWEI_ADDRWIDTH * 3/4//24
+`define RD_SIZE_WEI 2**`GBFWEI_ADDRWIDTH * 3/4
+`define RD_SIZE_FLGACT 2** `GBFFLGACT_ADDRWIDTH * 3/4//24
+`define RD_SIZE_ACT 2** `GBFACT_ADDRWIDTH * 3/4
+`define WR_SIZE_FLGOFM 2**`GBFFLGOFM_ADDRWIDTH *3/4
+`define WR_SIZE_OFM 2**`GBFOFM_ADDRWIDTH * 3/4
 
 `define ACT_ADDR        32'h0800_0000
 `define FLGACT_ADDR   32'h0801_0000
@@ -104,3 +103,18 @@
 `define CEIL(a,b) ( \
  (a%b)? (a/b+1):(a/b) \
 )
+
+// `ifdef SYNTH_AC
+//    //?
+//   `define GBFWEI_ADDRWIDTH 8  //? 9 KBSSS< `BLOCK_DEPTH * `NUMPEC = 32 * 48 = 1536
+//   `define GBFACT_ADDRWIDTH 11 //? 16KB
+// `elsif SYNTH_FREQ
+//   `define NUMPEB 16
+//   `define GBFWEI_ADDRWIDTH 1  //?64 > 16*3
+//   `define GBFACT_ADDRWIDTH 2 //?
+// `elsif SYNTH_MINI
+//   `define NUMPEB 16
+//   `define GBFWEI_ADDRWIDTH 8  //?64 > log2(BLOCK_DEPTH* KERNEL_SIZE * NumPEC * NumPEB * NumBlk) = 32x9x3x2x2 = 3456
+//   `define GBFACT_ADDRWIDTH 8 // log2( 16x16x32x NumBlk x NumFrmx (1-sparsity) )= 2048x32
+// `endif
+//

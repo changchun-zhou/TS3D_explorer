@@ -168,8 +168,6 @@ PECMAC_Act
 } ;
 assign OUTBUS_LSTPEC = LSTPEC_GetAct;
 
-
-
 // FSM : ACT is ever gotten or not
 localparam IDLE     = 3'b000;
 localparam WAITCFGWEI   = 3'b001;
@@ -205,12 +203,14 @@ always @(*) begin
                         next_state <= WAITCFGACT;
                 else
                     next_state <= WAITGET;
-      WRRAM :  if( LstActBlk &&PlsFnhAll)
+      WRRAM : // if( LstActBlk &&PlsFnhAll)
+                    if( LstActBlk )
                     next_state <= IDLE;// wait row finish to config new weights
-                else if(PlsFnhAll) //wait row finish
+   //             else if(PlsFnhAll) //wait row finish
+                    else
                     next_state <= RDRAM;
-                else
-                    next_state <= WRRAM;
+  //              else
+   //                 next_state <= WRRAM;
 
       default: next_state <= IDLE;
     endcase

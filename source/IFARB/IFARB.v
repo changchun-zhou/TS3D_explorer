@@ -9,21 +9,22 @@
 //=======================================================
 // Description :
 //========================================================
-
-
 `include "../source/include/dw_params_presim.vh"
 module IFARB (
     input                                       clk     ,
     input                                       rst_n   ,
     input                                       Reset,
+    input                                       Reset_WEI,
+    input                                       Reset_ACT,
+    input                                       Reset_OFM,
     input                                       IF_Val,
     input                                       CFG_Req,
-    input [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrWr,
-    input [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrRd,
+    input [ `GBFFLGWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrWr,
+    input [ `GBFFLGWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrRd,
     input [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFWEI_AddrWr,
     input [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFWEI_AddrRd,
-    input [ `GBFACT_ADDRWIDTH           -1 : 0] GBFFLGACT_AddrWr,
-    input [ `GBFACT_ADDRWIDTH           -1 : 0] GBFFLGACT_AddrRd,
+    input [ `GBFFLGACT_ADDRWIDTH           -1 : 0] GBFFLGACT_AddrWr,
+    input [ `GBFFLGACT_ADDRWIDTH           -1 : 0] GBFFLGACT_AddrRd,
     input [ `GBFACT_ADDRWIDTH           -1 : 0] GBFACT_AddrWr,
     input [ `GBFACT_ADDRWIDTH           -1 : 0] GBFACT_AddrRd,
     input [ `GBFFLGOFM_ADDRWIDTH        -1 : 0] GBFFLGOFM_AddrWr,
@@ -77,7 +78,7 @@ wire                        IF_Req_wr;
 // Error when one cycle finished
 assign IF_Req_rd =IF_Val &&  IF_Rdy && (CFG_Req || Req_FLGWEI || Req_WEI|| Req_FLGACT || Req_ACT );
 assign IF_Req_wr = IF_Val &&  IF_Rdy && (Req_FLGOFM || Req_OFM);
-assign IF_RdWr = ~(Req_FLGOFM || Req_OFM);
+assign IF_RdWr = ~(Req_FLGOFM || Req_OFM);//super
 
 assign IF_Req = IF_Req_rd || IF_Req_wr;
 localparam IFCFG_CFG = 4'd0;
@@ -87,8 +88,15 @@ localparam IFCFG_FLGACT = 4'd4;
 localparam IFCFG_ACT = 4'd2;
 localparam IFCFG_FLGOFM = 4'd10;/////////////////////////////////////////////
 localparam IFCFG_OFM = 4'd11;
+localparam IFCFG_EMPTY = 4'd15;
 always @ ( * ) begin
-    if ( CFG_Req ) begin
+    if(Req_FLGOFM) begin// Super
+        IF_Cfg = IFCFG_FLGOFM;
+        //IF_RdWr = 0;
+    end else if(Req_OFM) begin
+        IF_Cfg = IFCFG_OFM;
+        //IF_RdWr = 0;
+    end else if ( CFG_Req ) begin
        IF_Cfg  = IFCFG_CFG;//
        //IF_RdWr = 1;
     end else if( Req_FLGWEI) begin
@@ -103,14 +111,8 @@ always @ ( * ) begin
     end else if ( Req_ACT)begin
         IF_Cfg = IFCFG_ACT;
         //IF_RdWr = 1;
-    end else if(Req_FLGOFM) begin
-        IF_Cfg = IFCFG_FLGOFM;
-        //IF_RdWr = 0;
-    end else if(Req_OFM) begin
-        IF_Cfg = IFCFG_OFM;
-        //IF_RdWr = 0;
     end else
-        IF_Cfg = 4'd0; //
+        IF_Cfg = IFCFG_EMPTY; //
         //IF_RdWr = 1;
 end
 
@@ -119,13 +121,13 @@ end
 // Sub-Module :
 //=====================================================================================================================
 ReqGBF #(
-    .DEPTH(2**`GBFWEI_ADDRWIDTH/8 ),
-    .CNT_WIDTH( 8), //////////////////////////////////////////////////////////
-    .DEPTH_REQ(2**`GBFWEI_ADDRWIDTH / 32 )
+    .DEPTH(2**`GBFFLGWEI_ADDRWIDTH ),
+    .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
+    .DEPTH_REQ( (2**`GBFFLGWEI_ADDRWIDTH) / 4 )
     ) ReqGBF_FLGWEI(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset ),
+    .Reset( Reset_WEI ),
     .AddrWr(GBFFLGWEI_AddrWr ),
     .AddrRd(GBFFLGWEI_AddrRd ),
     .EnWr(GBFFLGWEI_EnWr ),
@@ -134,12 +136,12 @@ ReqGBF #(
     );
 ReqGBF #(
     .DEPTH(2**`GBFWEI_ADDRWIDTH ),
-    .CNT_WIDTH( 8), //////////////////////////////////////////////////////////
-    .DEPTH_REQ(2**`GBFWEI_ADDRWIDTH / 4 )
+    .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
+    .DEPTH_REQ( (2**`GBFWEI_ADDRWIDTH) / 4 )
     ) ReqGBF_WEI(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset ),
+    .Reset( Reset_WEI ),
     .AddrWr(GBFWEI_AddrWr ),
     .AddrRd(GBFWEI_AddrRd ),
     .EnWr(GBFWEI_EnWr ),
@@ -147,13 +149,13 @@ ReqGBF #(
     .Req( Req_WEI)
     );
 ReqGBF #(
-    .DEPTH(2**`GBFACT_ADDRWIDTH /8),
-    .CNT_WIDTH( 8), //////////////////////////////////////////////////////////
-    .DEPTH_REQ(2**`GBFACT_ADDRWIDTH / 32 )
+    .DEPTH(2**`GBFFLGACT_ADDRWIDTH),
+    .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
+    .DEPTH_REQ( (2**`GBFFLGACT_ADDRWIDTH) / 4 )
     ) ReqGBF_FLGACT(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset ),
+    .Reset( Reset_ACT ),
     .AddrWr(GBFFLGACT_AddrWr ),
     .AddrRd(GBFFLGACT_AddrRd ),
     .EnWr(GBFFLGACT_EnWr ),
@@ -162,12 +164,12 @@ ReqGBF #(
     );
 ReqGBF #(
     .DEPTH(2**`GBFACT_ADDRWIDTH ),
-    .CNT_WIDTH( 8), //////////////////////////////////////////////////////////
-    .DEPTH_REQ(2**`GBFACT_ADDRWIDTH / 4 )
+    .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
+    .DEPTH_REQ( (2**`GBFACT_ADDRWIDTH )/ 4 )
     ) ReqGBF_ACT(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset ),
+    .Reset( Reset_ACT ),
     .AddrWr(GBFACT_AddrWr ),
     .AddrRd(GBFACT_AddrRd ),
     .EnWr(GBFACT_EnWr ),
@@ -178,12 +180,12 @@ ReqGBF #(
 // Write
 ReqGBF #(
     .DEPTH(2**`GBFFLGOFM_ADDRWIDTH ),
-    .CNT_WIDTH( 8), //////////////////////////////////////////////////////////
-    .DEPTH_REQ(2**`GBFFLGOFM_ADDRWIDTH / 2 )
+    .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
+    .DEPTH_REQ( (2**`GBFFLGOFM_ADDRWIDTH) *3/4 )
     ) ReqGBF_FLGOFM(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset ),
+    .Reset( Reset_OFM ),
     .AddrWr(GBFFLGOFM_AddrWr ),
     .AddrRd(GBFFLGOFM_AddrRd ),
     .EnWr(GBFFLGOFM_EnWr ),
@@ -193,13 +195,13 @@ ReqGBF #(
 assign Req_FLGOFM = ~_Req_FLGOFM;
 ReqGBF #(
     .DEPTH(2**`GBFOFM_ADDRWIDTH ),
-    .CNT_WIDTH( 8), //////////////////////////////////////////////////////////
-   // .DEPTH_REQ(2**`GBFOFM_ADDRWIDTH / 2 )///////////////////////////////////
-    .DEPTH_REQ(16)
+    .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
+    .DEPTH_REQ( (2**`GBFOFM_ADDRWIDTH) *3/4 )
+ //   .DEPTH_REQ(16)
     ) ReqGBF_OFM(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset ),
+    .Reset( Reset_OFM ),
     .AddrWr(GBFOFM_AddrWr ),
     .AddrRd(GBFOFM_AddrRd ),
     .EnWr(GBFOFM_EnWr ),

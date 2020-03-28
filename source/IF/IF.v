@@ -14,6 +14,9 @@ module IF(
     input                   clk     ,
     input                   rst_n   ,
     input                                       Reset,
+    input                                       Reset_WEI,
+    input                                       Reset_ACT,
+    input                                       Reset_OFM,
     input                                   IF_Val,
     input                                       CFG_Req,
     output                                  IF_RdDone,
@@ -25,12 +28,12 @@ module IF(
     output [ `PORT_DATAWIDTH         - 1 : 0 ] GBFACT_DatWr,
     input   [`PORT_DATAWIDTH          - 1 : 0 ] GBFFLGOFM_DatRd,
     input   [`PORT_DATAWIDTH          - 1 : 0 ] GBFOFM_DatRd,
-    output reg[ `GBFWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrWr,
-    input [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrRd,
+    output reg[ `GBFFLGWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrWr,
+    input [ `GBFFLGWEI_ADDRWIDTH           -1 : 0] GBFFLGWEI_AddrRd,
     output  reg [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFWEI_AddrWr,
     input [ `GBFWEI_ADDRWIDTH           -1 : 0] GBFWEI_AddrRd,
-    output  reg [ `GBFACT_ADDRWIDTH           -1 : 0] GBFFLGACT_AddrWr,
-    input [ `GBFACT_ADDRWIDTH           -1 : 0] GBFFLGACT_AddrRd,
+    output  reg [ `GBFFLGACT_ADDRWIDTH           -1 : 0] GBFFLGACT_AddrWr,
+    input [ `GBFFLGACT_ADDRWIDTH           -1 : 0] GBFFLGACT_AddrRd,
     output reg [ `GBFACT_ADDRWIDTH           -1 : 0] GBFACT_AddrWr,
     input [ `GBFACT_ADDRWIDTH           -1 : 0] GBFACT_AddrRd,
     input  [ `GBFFLGOFM_ADDRWIDTH        -1 : 0] GBFFLGOFM_AddrWr,
@@ -87,6 +90,7 @@ wire                        GBFFLGOFM_EnRd_d;
 wire                        GBFOFM_EnRd_d;
 wire                        config_req_rd;
 wire                        config_req_wr;
+reg                         Reset_WEI_IF_CFG;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -95,7 +99,7 @@ wire                        config_req_wr;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFFLGWEI_AddrWr <= 0;
-    end else if (Reset ) begin
+    end else if (Reset_WEI ) begin
         GBFFLGWEI_AddrWr <= 0;
     end else if ( GBFFLGWEI_EnWr ) begin
         GBFFLGWEI_AddrWr <= GBFFLGWEI_AddrWr + 1;
@@ -104,7 +108,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFWEI_AddrWr <= 0;
-    end else if (Reset ) begin
+    end else if (Reset_WEI ) begin
         GBFWEI_AddrWr <= 0;
     end else if ( GBFWEI_EnWr ) begin
         GBFWEI_AddrWr <= GBFWEI_AddrWr + 1;
@@ -113,7 +117,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFFLGACT_AddrWr <= 0;
-    end else if (Reset ) begin
+    end else if (Reset_ACT ) begin
         GBFFLGACT_AddrWr <= 0;
     end else if ( GBFFLGACT_EnWr ) begin
         GBFFLGACT_AddrWr <= GBFFLGACT_AddrWr + 1;
@@ -122,7 +126,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFACT_AddrWr <= 0;
-    end else if ( Reset) begin
+    end else if ( Reset_ACT) begin
         GBFACT_AddrWr <= 0;
     end else if ( GBFACT_EnWr ) begin
         GBFACT_AddrWr <= GBFACT_AddrWr + 1;
@@ -131,7 +135,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFFLGOFM_AddrRd <= 0;
-    end else if ( Reset) begin
+    end else if ( Reset_OFM) begin
         GBFFLGOFM_AddrRd <= 0;
     end else if ( GBFFLGOFM_EnRd ) begin
         GBFFLGOFM_AddrRd <= GBFFLGOFM_AddrRd + 1;
@@ -140,7 +144,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFOFM_AddrRd <= 0;
-    end else if ( Reset) begin
+    end else if ( Reset_OFM) begin
         GBFOFM_AddrRd <= 0;
     end else if ( GBFOFM_EnRd ) begin
         GBFOFM_AddrRd <= GBFOFM_AddrRd + 1;
@@ -187,6 +191,16 @@ end
 assign O_spi_data = Switch_RdWr ? O_spi_data_rd : O_spi_data_wr;
 assign config_req = Switch_RdWr ? config_req_rd : config_req_wr;
 assign IF_Rdy = Switch_RdWr ? IF_Rdy_rd: IF_Rdy_wr;
+
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        Reset_WEI_IF_CFG <= 0;
+    end else if ( Reset_WEI ) begin
+        Reset_WEI_IF_CFG <= 1;
+    end else if ( IF_Req )begin//Fetched by _rd
+        Reset_WEI_IF_CFG <= 0;
+    end
+end
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
@@ -195,6 +209,9 @@ assign IF_Rdy = Switch_RdWr ? IF_Rdy_rd: IF_Rdy_wr;
             .clk              (clk),
             .rst_n            (rst_n),
             .Reset            (Reset),
+            .Reset_WEI  ( Reset_WEI),
+            .Reset_ACT  ( Reset_ACT),
+            .Reset_OFM ( Reset_OFM),
             .IF_Val             (IF_Val ),
             .CFG_Req          (CFG_Req),
             .GBFFLGWEI_AddrWr (GBFFLGWEI_AddrWr),
@@ -243,6 +260,7 @@ top_asyncFIFO_rd #(
         .config_ready  (IF_Rdy_rd),
         .config_paulse (IF_Req && IF_RdWr),
         .config_data   (IF_Cfg),
+        .Reset_WEI_IF_CFG ( Reset_WEI_IF_CFG),
         .O_config_data (  ),
         .rd_req        (1'b1),
         .rd_valid      (ValRd),

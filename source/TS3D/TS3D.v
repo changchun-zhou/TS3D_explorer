@@ -16,6 +16,9 @@ module TS3D (
     input                                       clk     ,
     input                                       rst_n   ,
     output                                     Reset,
+    output                                      Reset_WEI,
+    output                                      Reset_ACT,
+    output                                      Reset_OFM,
     output                                      IF_Val,
     input                                           IF_RdDone,
     output                                      CFG_Req,
@@ -177,12 +180,18 @@ wire                GBFACT_Val;
 wire                _GBFACT_Val;
 wire                    GBF_Val;
 wire 			Rst_Layer;
+
+wire                    _GBFFLGOFM_Val;
+wire                    GBFFLGOFM_Val;
+wire                    _GBFOFM_Val;
+wire                    GBFOFM_Val;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
 assign GBF_Val = GBFFLGWEI_Val && GBFWEI_Val && GBFFLGACT_Val && GBFACT_Val;
-
-
+assign Reset_WEI = CTRLACT_FnhFrm;
+assign Reset_ACT = 0;//CTRLACT_FnhLayer;
+assign Reset_OFM = 0;
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
@@ -277,12 +286,12 @@ DISWEI DISWEI
   );
   ReqGBF #(
     .DEPTH(2**`GBFWEI_ADDRWIDTH ),
-    .CNT_WIDTH( 8), //////////////////////////////////////////////////////////
+    .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
     .DEPTH_REQ( `BLOCK_DEPTH * `KERNEL_SIZE/(`PORT_DATAWIDTH/`DATA_WIDTH)) // at least cfg a PEC
     ) ReqGBFWEI(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset ),
+    .Reset( Reset_WEI ),
     .AddrWr(GBFWEI_AddrWr ),
     .AddrRd(GBFWEI_AddrRd ),
     .EnWr(GBFWEI_EnWr ),
@@ -342,10 +351,10 @@ DISACT DISACT
     // .GBFVNACT_DatRd   (GBFVNACT_DatRd)
   );
   POOL POOL(
-    . clk     (clk),
-    . rst_n (rst_n)  ,
+    .clk     (clk),
+    .rst_n (rst_n)  ,
     .CFG_POOL(CFG_POOL)      ,
-    . POOL_En(PEBPOOL_En[`NUMPEB -1]),  // paulse: the last PEB
+    .POOL_En(PEBPOOL_En[`NUMPEB -1]),  // paulse: the last PEB
     .POOL_ValFrm( POOL_ValFrm),
     .POOL_ValDelta( POOL_ValDelta ),
     .POOLPEL_EnRd(POOLPEL_EnRd),// 4 bit ID of PEB
@@ -391,12 +400,12 @@ RAM_GBFFLGWEI_wrap #(
     );
 ReqGBF #(
     .DEPTH(2**`GBFFLGWEI_ADDRWIDTH ),
-    .CNT_WIDTH( 8), //////////////////////////////////////////////////////////
+    .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
     .DEPTH_REQ(`BLOCK_DEPTH*`KERNEL_SIZE/ (`PORT_DATAWIDTH)) // at least cfg a PEC
     ) ReqGBFFLGWEI(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset ),
+    .Reset( Reset_WEI ),
     .AddrWr(GBFFLGWEI_AddrWr ),
     .AddrRd(GBFFLGWEI_AddrRd ),
     .EnWr(GBFFLGWEI_EnWr ),
@@ -407,9 +416,9 @@ assign GBFFLGWEI_Val =~_GBFFLGWEI_Val;
 reg ValPacker;
 wire GBFFLGWEI_Val_d;
 wire CTRLACT_FnhFrm_d;
-assign GBFFLGWEI_EnRd = ( TOP_Sta || CTRLACT_FnhFrm_d || FLGWEI_Unpacked_RdyWr&&ValPacker) && GBFFLGWEI_Val;
-assign FLGWEI_Unpacked_EnWr = FLGWEI_Unpacked_RdyWr && ValPacker&& GBFFLGWEI_Val_d;
-//assign FLGWEI_Unpacked_EnWr = GBFFLGWEI_EnRd_d;
+//wire PreFetch = TOP_Sta || CTRLACT_FnhFrm_d ;//PreFetch per frame
+assign GBFFLGWEI_EnRd = FLGWEI_Unpacked_RdyWr&& GBFFLGWEI_Val;
+assign FLGWEI_Unpacked_EnWr = GBFFLGWEI_EnRd_d;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFFLGWEI_AddrRd <= 0;
@@ -469,12 +478,12 @@ RAM_GBFACT_wrap #(
 
 ReqGBF #(
     .DEPTH(2**`GBFACT_ADDRWIDTH ),
-    .CNT_WIDTH( 8), //////////////////////////////////////////////////////////
+    .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
     .DEPTH_REQ( 1) // at least cfg a PEC
     ) ReqGBFACT(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset ),
+    .Reset( Reset_ACT ),
     .AddrWr(GBFACT_AddrWr ),
     .AddrRd(GBFACT_AddrRd ),
     .EnWr(GBFACT_EnWr ),
@@ -526,12 +535,12 @@ RAM_GBFFLGACT_wrap #(
 
 ReqGBF #(
     .DEPTH(2**`GBFFLGACT_ADDRWIDTH ),
-    .CNT_WIDTH( 8), //////////////////////////////////////////////////////////
+    .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
     .DEPTH_REQ( 1) // at least cfg a PEC
     ) ReqGBFFLGACT(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset ),
+    .Reset( Reset_ACT ),
     .AddrWr(GBFFLGACT_AddrWr ),
     .AddrRd(GBFFLGACT_AddrRd ),
     .EnWr(GBFFLGACT_EnWr ),
@@ -564,7 +573,7 @@ unpacker #(
     .Unpacked_DatRd(FLGACT_Unpacked_DatRd)
     );
 
- RAM_GBFOFM_wrap #(
+ RAM_GBFOFM_wrap #( // Because of the supest level But POOL maybe write to 1/4 when BUS is busy
          .SRAM_DEPTH_BIT(`GBFOFM_ADDRWIDTH),
          .SRAM_WIDTH(`PORT_DATAWIDTH)
      ) RAM_GBFOFM (
@@ -576,6 +585,23 @@ unpacker #(
          .data_in  ( GBFOFM_DatWr      ),
          .data_out ( GBFOFM_DatRd      )
      );
+
+ReqGBF #(
+    .DEPTH(2**`GBFOFM_ADDRWIDTH ),
+    .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
+    .DEPTH_REQ( 1) // at least cfg a PEC
+    ) ReqGBFOFM(
+    .clk ( clk ),
+    .rst_n( rst_n),
+    .Reset( Reset_OFM ),
+    .AddrWr(GBFOFM_AddrWr ),
+    .AddrRd(GBFOFM_AddrRd ),
+    .EnWr(GBFOFM_EnWr ),
+    .EnRd(GBFOFM_EnRd),
+    .Req( _GBFOFM_Val)
+    );
+assign GBFOFM_Val = ~_GBFOFM_Val;
+
  RAM_GBFFLGOFM_wrap #(
          .SRAM_DEPTH_BIT(`GBFFLGOFM_ADDRWIDTH),
          .SRAM_WIDTH(`PORT_DATAWIDTH)
@@ -588,6 +614,22 @@ unpacker #(
          .data_in  ( GBFFLGOFM_DatWr      ),
          .data_out ( GBFFLGOFM_DatRd      )
      );
+
+ReqGBF #(
+    .DEPTH(2**`GBFFLGOFM_ADDRWIDTH ),
+    .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
+    .DEPTH_REQ( 1) // at least cfg a PEC
+    ) ReqGBFFLGOFM(
+    .clk ( clk ),
+    .rst_n( rst_n),
+    .Reset( Reset_OFM ),
+    .AddrWr(GBFFLGOFM_AddrWr ),
+    .AddrRd(GBFFLGOFM_AddrRd ),
+    .EnWr(GBFFLGOFM_EnWr ),
+    .EnRd(GBFFLGOFM_EnRd),
+    .Req( _GBFFLGOFM_Val)
+    );
+assign GBFFLGOFM_Val = ~_GBFFLGOFM_Val;
 
 Delay #(
     .NUM_STAGES(1),

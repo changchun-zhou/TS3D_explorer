@@ -577,15 +577,17 @@ parameter BYTE_WIDTH = 8;
          rd_req_config      <= 1;
          // rd_req_size_config <= 22; // ff
         case(O_data_out[31:28])
-          `IFCODE_CFG:  begin rd_req_size_config = `RD_SIZE_CFG*`PORT_DATAWIDTH/AXI_DATA_W;   rd_addr_config = CONFIG_ADDR     + (`RD_SIZE_CFG*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd0 ; count_rd0 <= count_rd0 + 1; end
+          `IFCODE_CFG:  begin rd_req_size_config = `RD_SIZE_CFG*`PORT_DATAWIDTH/AXI_DATA_W;   rd_addr_config = CONFIG_ADDR     + (`RD_SIZE_CFG*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd0 ; count_rd0 <= count_rd0 + 1;
+                count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 = (O_data_out[27]? 0:count_rd8);end
 
-          `IFCODE_ACT:  begin rd_req_size_config = `RD_SIZE_ACT*`PORT_DATAWIDTH/AXI_DATA_W;  rd_addr_config = ACT_DATA_1_ADDR + (`RD_SIZE_ACT*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd2 ; count_rd2 <= count_rd2 + 1; end
+          `IFCODE_ACT:  begin rd_req_size_config = `RD_SIZE_ACT*`PORT_DATAWIDTH/AXI_DATA_W;  rd_addr_config = ACT_DATA_1_ADDR + (`RD_SIZE_ACT*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd2 ; count_rd2 <= count_rd2 + 1;
+                count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 = (O_data_out[27]? 0:count_rd8); end
 
-          `IFCODE_FLGACT:  begin rd_req_size_config = `RD_SIZE_FLGACT*`PORT_DATAWIDTH/AXI_DATA_W;   rd_addr_config = ACT_FLAG_1_ADDR + (`RD_SIZE_FLGACT*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd4 ; count_rd4 <= count_rd4 + 1; end
+          `IFCODE_FLGACT:  begin rd_req_size_config = `RD_SIZE_FLGACT*`PORT_DATAWIDTH/AXI_DATA_W;   rd_addr_config = ACT_FLAG_1_ADDR + (`RD_SIZE_FLGACT*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd4 ; count_rd4 <= count_rd4 + 1; count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 = (O_data_out[27]? 0:count_rd8); end
 
-          `IFCODE_WEI:  begin rd_req_size_config = `RD_SIZE_WEI*`PORT_DATAWIDTH/AXI_DATA_W;   rd_addr_config = WEI_DATA_1_ADDR + (`RD_SIZE_WEI*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd6 ; count_rd6 <= count_rd6 + 1; end
+          `IFCODE_WEI:  begin   rd_req_size_config = `RD_SIZE_WEI*`PORT_DATAWIDTH/AXI_DATA_W; rd_addr_config = WEI_DATA_1_ADDR + (`RD_SIZE_WEI*`PORT_DATAWIDTH/BYTE_WIDTH)*(O_data_out[27]? 0:count_rd6)  ; count_rd6 <= (O_data_out[27]? 0:count_rd6)  + 1; count_rd8 = (O_data_out[27]? 0:count_rd8);end
 
-          `IFCODE_FLGWEI:  begin rd_req_size_config = `RD_SIZE_FLGWEI*`PORT_DATAWIDTH/AXI_DATA_W;    rd_addr_config = WEI_FLAG_1_ADDR + (`RD_SIZE_FLGWEI*`PORT_DATAWIDTH/BYTE_WIDTH)  *count_rd8 ; count_rd8 <= count_rd8 + 1; end
+          `IFCODE_FLGWEI:  begin rd_req_size_config = `RD_SIZE_FLGWEI*`PORT_DATAWIDTH/AXI_DATA_W;    rd_addr_config = WEI_FLAG_1_ADDR + (`RD_SIZE_FLGWEI*`PORT_DATAWIDTH/BYTE_WIDTH)  *(O_data_out[27]? 0:count_rd8)  ; count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 <= (O_data_out[27]? 0:count_rd8)  + 1; end
           default:  begin rd_req_size_config = 0;     rd_addr_config = ACT_DATA_1_ADDR; end
         endcase
          // rd_addr_config     <= ACT_BASE_ADDR;
