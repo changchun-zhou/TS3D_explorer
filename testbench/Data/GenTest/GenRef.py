@@ -1,13 +1,13 @@
 import numpy as np
 import random
 import os
-## read files
-FlagActFileName = '../RAM_GBFFLGACT_bin.dat'
-FlagWeiFileName = '../RAM_GBFFLGWEI.dat'
-ActFileName = '../RAM_GBFACT_1B.dat'
-WeiFileName = '../RAM_GBFWEI.dat'
+#*********** read files *******************************************
+FlagActFileName = '../RAM_GBFACT_12B1.dat'
+FlagWeiFileName = '../RAM_GBFFLGWEI_12B.dat'
+ActFileName = '../RAM_GBFACT_12B.dat'
+WeiFileName = '../RAM_GBFWEI_12B.dat'
 
-## write files
+#*********** write files  *****************************************
 PECRAM_DatWrFileName = 'PECRAM_DatWr_Ref.dat'
 RAMPEC_DatRdFileName = 'RAMPEC_DatRd_Ref.dat'
 CNVOUT_Psum2FileName = 'CNVOUT_Psum2.dat'
@@ -37,11 +37,13 @@ PORT_DATAWIDTH = 96
 
 PECMAC_Wei = [ [ 0 for x in range (0,NumChn)] for y in range(0, NumWei) ]
 PECMAC_FlgWei = [ [ 0 for x in range (0,NumChn)] for y in range(0, NumWei) ]
-
+cnt_Flag_hex = 0
 cntActError = 0
+cnt_act_hex = 0
 # def int2hex (dat_int, width):
 #     dat_hex = '{:0widthb}'.format(dat_int)
 #     return dat_hex
+
 with    open(FlagActFileName, 'r') as FlagActFile, \
         open(ActFileName, 'r') as ActFile,\
         open (PECMAC_ActFileName, 'w') as PECMAC_ActFile,\
@@ -70,6 +72,8 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
                             # same weight per frame
                             with open(FlagWeiFileName, 'r') as FlagWeiFile,\
                                 open(WeiFileName, 'r') as WeiFile:
+                                cnt_Flagwei_hex = 0
+                                cnt_wei_hex = 0
                                 ColWei = 0
                                 for cntBlk in range (0, NumBlk ):
                                     actBlk = [[[ 0 for x in range (0,NumChn)] for y in range (0,Len)] for z in range(0,Len)]
@@ -83,13 +87,35 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
                                     for actrow in range(0, Len) :
                                         for actcol in range(0, Len):
                                             PECMAC_Act = ''
-                                            PECMAC_FlgAct  = FlagActFile.read(NumChn) # == DISACT_FlgAct
+                                            #PECMAC_FlgAct  = FlagActFile.read(NumChn) # == DISACT_FlgAct
+                                            # *************************************************************************
+                                            if cnt_Flag_hex == 0:
+                                                FlgAct_hex = FlagActFile.readline().rstrip('\n') # 12B
+                                            PECMAC_FlgAct = FlgAct_hex[8*(2-cnt_Flag_hex):8*(2-cnt_Flag_hex)+8] #4B
+                                            PECMAC_FlgAct = int(PECMAC_FlgAct,16)
+                                            PECMAC_FlgAct = str(bin(PECMAC_FlgAct)).lstrip('0b').zfill(NumChn)
+                                            if cnt_Flag_hex == 2:
+                                                cnt_Flag_hex = 0
+                                            else:
+                                                cnt_Flag_hex += 1
+                                            #***************************************************************************
+
                                             PECMAC_FlgActFile.write(PECMAC_FlgAct)
-                                            FlagActFile.read(1)
+                                            #FlagActFile.read(1)
                                             for i in range (0, NumChn):
                                                 if PECMAC_FlgAct[NumChn-1-i] == '1' :
-                                                    act = ActFile.read(2)
-                                                    ActFile.read(1)
+                                                    #act = ActFile.read(2)
+                                                    #ActFile.read(1)
+                                                    # *************************************************************************
+                                                    if cnt_act_hex == 0:
+                                                        Act_hex = ActFile.readline().rstrip('\n') # 12B
+                                                    act = Act_hex[2*(11-cnt_act_hex):2*(11-cnt_act_hex)+2] #4B
+                                                    if cnt_act_hex == 11:
+                                                        cnt_act_hex = 0
+                                                    else:
+                                                        cnt_act_hex += 1
+                                                    #***************************************************************************
+
                                                     cntActError = cntActError + 1
                                                     PECMAC_Act = PECMAC_Act + act
                                                     if act == '':
@@ -112,8 +138,19 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
                                         for cntPEC in range (0, NumPEC):
 
                                             for j in range (0, NumWei) :
-                                                PECMAC_FlgWei[NumWei - 1-j] = FlagWeiFile.read(NumChn)
-                                                FlagWeiFile.read(1)
+                                                #PECMAC_FlgWei[NumWei - 1-j] = FlagWeiFile.read(NumChn)
+                                                #FlagWeiFile.read(1)
+                                                if cnt_Flagwei_hex == 0:
+                                                    FlgWei_hex = FlagWeiFile.readline().rstrip('\n') # 12B
+                                                PECMAC_FlgWei_item = FlgWei_hex[8*cnt_Flagwei_hex:8*cnt_Flagwei_hex+8] #4B
+                                                PECMAC_FlgWei_item = int(PECMAC_FlgWei_item,16)
+                                                PECMAC_FlgWei_item = str(bin(PECMAC_FlgWei_item)).lstrip('0b').zfill(NumChn)
+                                                if cnt_Flagwei_hex == 2:
+                                                    cnt_Flagwei_hex = 0
+                                                else:
+                                                    cnt_Flagwei_hex += 1
+                                                PECMAC_FlgWei[NumWei - 1-j] = PECMAC_FlgWei_item
+
                                             for j in range(0,NumWei):
                                                 for i in range (0, NumChn):
                                                     temp_PECMAC_FlgWei = temp_PECMAC_FlgWei + str(PECMAC_FlgWei[j][i])
@@ -121,12 +158,27 @@ with    open(FlagActFileName, 'r') as FlagActFile, \
                                             for j in range (0, NumWei) :
                                                 for k in range (0, NumChn):
                                                     if PECMAC_FlgWei[NumWei - 1-j][NumChn-1-k] == '1':
-                                                        if ColWei == 9 :
+
+                                                        if ColWei == 12 :
                                                             WeiFile.read(1)
                                                             ColWei = 1
                                                         else :
                                                             ColWei = ColWei + 1 #cnt
                                                         wei = WeiFile.read(2)
+
+                                                        """
+                                                        if cnt_wei_hex == 0:
+                                                            Wei_hex_array = ''
+                                                            #Wei_hex = WeiFile.readline().rstrip('\n') # 12B
+                                                            Wei_hex_array = Wei_hex_array + WeiFile.readline().rstrip('\n')
+                                                            Wei_hex_array = Wei_hex_array + WeiFile.readline().rstrip('\n')
+                                                            Wei_hex_array = Wei_hex_array + WeiFile.readline().rstrip('\n')
+                                                        wei = Wei_hex_array[2*cnt_wei_hex:2*cnt_wei_hex+2] #4B
+                                                        if cnt_wei_hex == 3:
+                                                            cnt_wei_hex = 0
+                                                        else:
+                                                            cnt_wei_hex += 1
+                                                        """
                                                         if cntPEB==0 and cntPEC ==0 and j == NumWei - 1:
                                                             PECMAC_Wei0 = PECMAC_Wei0 + wei
                                                     elif PECMAC_FlgWei[NumWei - 1-j][NumChn-1-k] == '0':
