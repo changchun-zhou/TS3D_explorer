@@ -45,11 +45,12 @@ wire                                    NearFnhPacker;
 wire                                    PlsFetch;
 reg                                     PACKER_Sta;
 reg                                     GBFFLGACT_EnRd_d;
+reg                                     GBFFLGACT_EnRd_dd;
 reg [ `C_LOG_2(`BLOCK_DEPTH)      : 0] PACKER_Num;
 reg                                     PACKER_ValDat;
 wire                                    PACKER_ReqDat;
 
-wire                                    PACKER_Bypass;
+reg                                      PACKER_Bypass;
 wire                                    GBFVNACT_EnRd;
 //=====================================================================================================================
 // Logic Design :
@@ -137,8 +138,11 @@ always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         PACKER_Sta <= 0;
         GBFFLGACT_EnRd_d <= 0;
+        GBFFLGACT_EnRd_dd <= 0;
+
     end else begin
         GBFFLGACT_EnRd_d <= GBFFLGACT_EnRd;
+        GBFFLGACT_EnRd_dd <= GBFFLGACT_EnRd_d;
         PACKER_Sta <= GBFFLGACT_EnRd_d;
     end
 end
@@ -185,8 +189,15 @@ GBFFLGACT_DatRd[31] ;
 end
 
 assign GBFFLGACT_EnRd = PlsFetch;
-assign PACKER_Bypass = ~(|PACKER_Num); //flag == 0
 
+//assign PACKER_Bypass = ~(|PACKER_Num); //flag == 0
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( ~rst_n ) begin
+        PACKER_Bypass <= 0;
+    end else if ( GBFFLGACT_EnRd_dd ) begin ///////////////////////////////////
+        PACKER_Bypass <= ~(|PACKER_Num);
+    end
+end
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================

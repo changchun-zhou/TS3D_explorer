@@ -1,7 +1,7 @@
 
-//`define SYNTH_MINI // 2 PEB function
+`define SYNTH_MINI //
 // `define SYNTH_FREQ
-`define SYNTH_AC
+//`define SYNTH_AC
 
 // ****************************************************************************
 // Hyper-parameter
@@ -48,6 +48,8 @@
 `define BUSPEC_WIDTH (8 + `BLOCK_DEPTH + `DATA_WIDTH * `BLOCK_DEPTH)
 `define BUSPEB_WIDTH `BUSPEC_WIDTH
 
+// DISWEI parameter
+`define FIFO_DISWEI_ADDRWIDTH 2 // 4 PEC
 // ****************************************************************************
 // Interface parameter
 // ****************************************************************************
@@ -76,6 +78,14 @@
 `define WEI_ADDR         32'h0802_0000
 `define FLGWEI_ADDR   32'h0803_0000
 `define CFG_ADDR        32'h0804_0000
+
+// **********************************************************************
+// Test File
+// *********************************************************************************
+`define FILE_GBFFLGWEI "../testbench/Data/dequant_data/Weight_45_conv4a.float_weight_flag.dat"
+`define FILE_GBFWEI "../testbench/Data/dequant_data/Weight_45_conv4a.float_weight_data.dat"
+`define FILE_GBFFLGACT "../testbench/Data/dequant_data/Activation_45_pool3b_flag.dat"
+`define FILE_GBFACT "../testbench/Data/dequant_data/Activation_45_pool3b_data.dat"
 
 //-----------------------------------------------------------
 //Simple Log2 calculation function

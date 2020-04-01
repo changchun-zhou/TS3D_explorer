@@ -58,6 +58,7 @@ fifo_asic #(
     ) fifo_CONFIG(
     .clk ( clk ),
     .rst_n ( rst_n ),
+    .Reset ( 1'b0),
     .push(IFCFG_Val) ,
     .pop(Rst_Layer ) ,
     .data_in( IFCFG),

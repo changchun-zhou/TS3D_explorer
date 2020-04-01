@@ -16,9 +16,12 @@ module CCU (
     output                  CFG_Req,
     input                       IFCFG_Val,
     input                   GBF_Val,
+    input                   CTRLACT_FnhFrm,
     output                  TOP_Sta,
     output                  Rst_Layer,// Rst_pat Rst_Frm,
-    output                   IF_Val
+    output                   IF_Val,
+    output                  CCUCTRLWEI_Start,
+    output                  CCUCTRLWEI_Reset
 );
 //=====================================================================================================================
 // Constant Definition :
@@ -31,7 +34,7 @@ module CCU (
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
-
+wire  CTRLACT_FnhFrm_d;
 
 
 
@@ -60,7 +63,7 @@ always @(*) begin
                     next_state <= CMP;
                 else
                     next_state <= WAITGBF;
-        CMP: if( 1'b0)
+        CMP: if( 1'b0) /// CMP_FRM CMP_PAT CMP_...
                     next_state <= IDLE;
                 else if ( 1'b0 )
                     next_state <= WAITGBF;
@@ -81,9 +84,22 @@ assign CFG_Req = state == CFG;
 assign TOP_Sta = state == WAITGBF && next_state == CMP;// paulse
 assign Rst_Layer = state != WAITGBF && next_state == WAITGBF ;
 assign IF_Val = state != IDLE;
+
+assign CCUCTRLWEI_Start = state == WAITGBF && next_state == CMP || CTRLACT_FnhFrm_d;
+assign CCUCTRLWEI_Reset = CTRLACT_FnhFrm;
+
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
-
+Delay #(
+    .NUM_STAGES(1),
+    .DATA_WIDTH(1)
+    )Delay_CTRLACT_FnhFrm_d
+    (
+        .CLK(clk),
+        .RESET_N(rst_n),
+        .DIN(CTRLACT_FnhFrm),
+        .DOUT(CTRLACT_FnhFrm_d)
+        );
 
 endmodule

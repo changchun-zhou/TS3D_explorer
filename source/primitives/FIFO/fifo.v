@@ -10,6 +10,7 @@ module fifo_asic
 )(  // Ports
     input  wire                         clk,
     input  wire                         rst_n,
+    input  wire                         Reset,
     input  wire                         push,
     input  wire                         pop,
     input  wire [ DATA_WIDTH -1 : 0 ]   data_in,
@@ -44,55 +45,56 @@ end
 
 always @ (posedge clk or negedge rst_n)
 begin : FIFO_COUNTER
-  if (~rst_n) begin
+  if (!rst_n) begin
     if( INITIALIZE_FIFO == "yes")
       fifo_count <= RAM_DEPTH;
     else
       fifo_count <= 0;
-  end
-  else if (push && (!pop||pop&&empty) && !full)
+  end else if( Reset) begin
+      fifo_count <= 0;
+  end else if (push && (!pop||pop&&empty) && !full)
     fifo_count <= fifo_count + 1;
-
   else if (pop && (!push||push&&full) && !empty)
     fifo_count <= fifo_count - 1;
 end
 
 always @ (posedge clk or negedge rst_n)
 begin : WRITE_PTR
-  if (~rst_n) begin
+  if (!rst_n) begin
     wr_pointer <= 0;
-  end
-  else if (push && !full) begin
+  end else if( Reset )begin
+    wr_pointer <= 0;
+  end else if (push && !full) begin
     wr_pointer <= wr_pointer + 1;
   end
 end
 
 always @ (posedge clk or negedge rst_n)
 begin : READ_PTR
-  if (~rst_n) begin
+  if (!rst_n) begin
     rd_pointer <= 0;
-  end
-  else if (pop && !empty) begin
+  end else if( Reset )begin
+    rd_pointer <= 0;
+  end else if (pop && !empty) begin
     rd_pointer <= rd_pointer + 1;
   end
 end
 
-always @ (posedge clk or negedge rst_n)
-begin : WRITE
-  if (push && !full) begin
+always @ (posedge clk or negedge rst_n) begin :WRITE
+  if( !rst_n) begin
+    mem[wr_pointer] <= 0;
+  end else if (push && !full) begin
     mem[wr_pointer] <= data_in;
   end
 end
 
-always @ (posedge clk or posedge rst_n)
+always @ (posedge clk or negedge rst_n)
 begin : READ
-  if (~rst_n) begin
+  if (!rst_n) begin
     data_out <= 0;
-  end
-  if (pop && !empty) begin
+  end else if (pop && !empty) begin
     data_out <= mem[rd_pointer];
-  end
-  else begin
+  end else begin
     data_out <= data_out;
   end
 end

@@ -50,7 +50,7 @@ module  Init_DDR #(
   reg [14 : 0]addr_r_BUS_1;
     initial begin
          // write_ddr = 0;
-          $readmemh("../testbench/Data/RAM_GBFACT_12B.dat", DATA_RF_mem_1);
+          $readmemh(`FILE_GBFACT, DATA_RF_mem_1);
           ddr_idx = (`CFG_ADDR -32'h0800_0000) ;
 
           for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<9; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
@@ -80,7 +80,7 @@ module  Init_DDR #(
           end
 
           ddr_idx = (`FLGACT_ADDR-32'h0800_0000);
-          $readmemh("../testbench/Data/RAM_GBFACT_12B1.dat", Flag_RF_mem_1);
+          $readmemh(`FILE_GBFFLGACT, Flag_RF_mem_1);
           for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<10; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
             tmp = Flag_RF_mem_1[addr_r_BUS_1];
             for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
@@ -91,7 +91,7 @@ module  Init_DDR #(
             end
           end
           ddr_idx = (`WEI_ADDR-32'h0800_0000) ;
-          $readmemh("../testbench/Data/RAM_GBFWEI_12B.dat", DATA_RF_mem_WEI_1);
+          $readmemh(`FILE_GBFWEI, DATA_RF_mem_WEI_1);
           for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<12; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
             tmp = DATA_RF_mem_WEI_1[addr_r_BUS_1];
             for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
@@ -102,7 +102,7 @@ module  Init_DDR #(
             end
           end
           ddr_idx = (`FLGWEI_ADDR-32'h0800_0000) ;
-          $readmemh("../testbench/Data/RAM_GBFFLGWEI_12B.dat", Flag_RF_mem_WEI_1);
+          $readmemh(`FILE_GBFFLGWEI, Flag_RF_mem_WEI_1);
           for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<12; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
             tmp = Flag_RF_mem_WEI_1[addr_r_BUS_1];
             for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin

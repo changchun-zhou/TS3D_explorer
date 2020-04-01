@@ -103,7 +103,7 @@ wire  [ `NUMPEC                                     -1 : 0] PECCTRLWEI_GetWei;
 wire  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE   -1 : 0] DISWEIPEC_Wei;
 wire  [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE             -1 : 0] DISWEIPEC_FlgWei;
 // wire  [ `C_LOG_2( `BLOCK_DEPTH) * `KERNEL_SIZE      -1 : 0] DISWEIPEC_ValNumWei;
-wire                                                        DISWEI_RdyWei;
+wire                                                        DISWEI_RdyFIFO;
 wire                                                        CTRLWEI_PlsFetch;
 // wire    [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE)    -1 : 0] DISWEI_AddrBase ;
 //wire    [ `GBFWEI_ADDRWIDTH                         -1 : 0] GBFWEI_AddrRd   ;
@@ -185,6 +185,8 @@ wire                    _GBFFLGOFM_Val;
 wire                    GBFFLGOFM_Val;
 wire                    _GBFOFM_Val;
 wire                    GBFOFM_Val;
+wire                    CCUCTRLWEI_Start;
+wire                    CCUCTRLWEI_Reset;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -202,9 +204,12 @@ CCU CCU(
     .CFG_Req ( CFG_Req ),
     .IFCFG_Val ( IFCFG_Val),
     .GBF_Val ( GBF_Val ),
+    .CTRLACT_FnhFrm(CTRLACT_FnhFrm),
     .TOP_Sta ( TOP_Sta),
     .Rst_Layer (Rst_Layer  ),
-    .IF_Val (IF_Val)
+    .IF_Val (IF_Val),
+    .CCUCTRLWEI_Start(CCUCTRLWEI_Start),
+    .CCUCTRLWEI_Reset(CCUCTRLWEI_Reset)
     );
 assign Reset = 0;
 CONFIG CONFIG
@@ -256,33 +261,31 @@ CTRLWEI CTRLWEI
   (
     .clk               (clk),
     .rst_n             (rst_n),
-    .TOP_Sta           (TOP_Sta),
+    .Start           (CCUCTRLWEI_Start),
+    .Reset             (CCUCTRLWEI_Reset),
     .CTRLWEIPEC_RdyWei (CTRLWEIPEC_RdyWei),
-        .GBFFLGWEI_Val    (FLGWEI_Packed_RdyRd),
-        .GBFWEI_Val     (GBFWEI_Val ),
     .PECCTRLWEI_GetWei (PECCTRLWEI_GetWei),
-    .DISWEI_RdyWei     (DISWEI_RdyWei),
-    .CTRLWEI_PlsFetch  (CTRLWEI_PlsFetch),
-    .CTRLACT_FnhFrm    (CTRLACT_FnhFrm)
+    .DISWEI_RdyFIFO     (DISWEI_RdyFIFO),
+    .CTRLWEI_PlsFetch  (CTRLWEI_PlsFetch)
   );
 DISWEI DISWEI
   (
     .clk              (clk),
     .rst_n            (rst_n),
     .CTRLWEI_PlsFetch (CTRLWEI_PlsFetch),
-    .DISWEI_RdyWei     (DISWEI_RdyWei),
+    .DISWEI_RdyFIFO     (DISWEI_RdyFIFO),
     .DISWEIPEC_Wei    (DISWEIPEC_Wei),
     .DISWEIPEC_FlgWei (DISWEIPEC_FlgWei),
     // .DISWEI_AddrBase  (DISWEI_AddrBase),
-//    .GBFWEI_Val       (GBFWEI_Val),
+    .GBFWEI_Val       (GBFWEI_Val),
     .GBFWEI_EnRd      (GBFWEI_EnRd),
     .GBFWEI_AddrRd    (GBFWEI_AddrRd),
     .GBFWEI_DatRd     (GBFWEI_DatRd),
-  //  .GBFFLGWEI_Val    (FLGWEI_Packed_RdyRd),
+    .GBFFLGWEI_Val    (FLGWEI_Packed_RdyRd),
     .GBFFLGWEI_EnRd   (FLGWEI_Packed_EnRd),
-    .GBFFLGWEI_AddrRd ( ),
+//    .GBFFLGWEI_AddrRd ( ),
     .GBFFLGWEI_DatRd  (FLGWEI_Packed_DatRd_d),
-    .CTRLACT_FnhFrm   (CTRLACT_FnhFrm)
+    .CTRLACT_FnhFrm   (CCUCTRLWEI_Reset)
   );
   ReqGBF #(
     .DEPTH(2**`GBFWEI_ADDRWIDTH ),
@@ -503,7 +506,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         GBFACT_AddrRd <= GBFACT_AddrRd + 1;
     end
 end
-unpacker #(
+unpacker_left #(
     .IN_WIDTH(`PORT_DATAWIDTH),
     .OUT_WIDTH(`DATA_WIDTH)
     )data_unpacker_GBFACT(
@@ -559,7 +562,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         GBFFLGACT_AddrRd <= GBFFLGACT_AddrRd + 1;
     end
 end
-unpacker #(
+unpacker_left #(
     .IN_WIDTH(`PORT_DATAWIDTH),
     .OUT_WIDTH(`BLOCK_DEPTH)
     )data_unpacker_GBFFLGACT(

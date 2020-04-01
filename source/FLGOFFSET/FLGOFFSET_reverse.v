@@ -11,21 +11,8 @@ module FLGOFFSET # (
 	output  [ ADDR_WIDTH    : 0 ] OffsetAct,
 	output[ ADDR_WIDTH      : 0 ] OffsetWei
 	);
-
-// change to ch31 ch30 ... ch0 to compute 
-//           ACT: ...ch0 ch1...ch31
-reg [`BLOCK_DEPTH                - 1 :0] FlgAct_r; // exchange MSB AND LSB
-reg [ `BLOCK_DEPTH                - 1:0] FlgWei_r;
-wire [ DATA_WIDTH  - 1 : 0 ] PECMAC_FlgWei_r;
-wire [ DATA_WIDTH  - 1 : 0 ] PECMAC_FlgAct_r;
-generate
-	genvar y;
-	for(y=0;y<`BLOCK_DEPTH;y=y+1)begin:Flgbit
-		assign PECMAC_FlgAct_r[y] = PECMAC_FlgAct[`BLOCK_DEPTH-1-y];
-		assign PECMAC_FlgWei_r[y] = PECMAC_FlgWei[`BLOCK_DEPTH-1-y];
-	end
-endgenerate
-
+reg [ `BLOCK_DEPTH                - 1 : 0] FlgAct; // exchange MSB AND LSB
+reg [ `BLOCK_DEPTH                - 1 : 0] FlgWei;
 
 wire [ DATA_WIDTH 	- 1 : 0 ] Up;
 wire [ DATA_WIDTH 	- 1 : 0 ] Down;
@@ -35,25 +22,25 @@ reg [DATA_WIDTH - 1 : 0 ] FlgCutAct;
 reg [DATA_WIDTH - 1 : 0 ] FlgCutWei;
 
 always @ ( posedge clk or negedge rst_n ) begin
-		if ( ~rst_n ) begin
-				FlgAct_r <= 0;
-				FlgWei_r <= 0;
-		end else if ( PECMAC_Sta ) begin
-				FlgAct_r <= PECMAC_FlgAct_r; //
-				FlgWei_r <= PECMAC_FlgWei_r;
-		end else begin
-				FlgAct_r <= FlgAct_r & ~Set; // drop out after 1; not need cache 1 clk which halves speed
-				FlgWei_r <= FlgWei_r & ~Set;
-		end
+    if ( ~rst_n ) begin
+        FlgAct <= 0;
+        FlgWei <= 0;
+    end else if ( PECMAC_Sta ) begin
+        FlgAct <= PECMAC_FlgAct; //
+        FlgWei <= PECMAC_FlgWei;
+    end else begin
+        FlgAct <= FlgAct & ~Set; // drop out after 1; not need cache 1 clk which halves speed
+        FlgWei <= FlgWei & ~Set;
+    end
 end
 always @ ( posedge clk or negedge rst_n ) begin
-		if ( ~rst_n ) begin
-				FlgCutAct <= 0;
-				FlgCutWei <= 0;
-		end else  begin
-				FlgCutAct <= FlgAct_r & Set;
-				FlgCutWei <= FlgWei_r & Set;
-		end
+    if ( ~rst_n ) begin
+        FlgCutAct <= 0;
+        FlgCutWei <= 0;
+    end else  begin
+        FlgCutAct <= FlgAct & Set;
+        FlgCutWei <= FlgWei & Set;
+    end
 end
 
 assign  OffsetAct =
@@ -128,8 +115,8 @@ generate
 	genvar i;
 		for ( i=1; i < DATA_WIDTH -1; i=i+1) begin:Cell
 		Cell_FlgAddr Cell_FlgAddr(
-			.FlgAct_r ( FlgAct_r[i]),
-			.FlgWei_r ( FlgWei_r[i]),
+			.FlgAct ( FlgAct[i]),
+			.FlgWei ( FlgWei[i]),
 			.UpIn( Up [i-1]),
 			.DownIn( Down[i+1]),
 			.UpOut( Up[i]),
@@ -141,8 +128,8 @@ endgenerate
 
 
 Cell_FlgAddr Cell_FlgAddr0(
-	.FlgAct_r ( FlgAct_r[0]),
-	.FlgWei_r ( FlgWei_r[0]),
+	.FlgAct ( FlgAct[0]),
+	.FlgWei ( FlgWei[0]),
 	.UpIn( 1'b0),
 	.DownIn( Down[1]),
 	.UpOut( Up[0]),
@@ -150,8 +137,8 @@ Cell_FlgAddr Cell_FlgAddr0(
 	.Set ( Set[0])
 	);
 Cell_FlgAddr Cell_FlgAddr_1(
-	.FlgAct_r ( FlgAct_r[DATA_WIDTH - 1]),
-	.FlgWei_r ( FlgWei_r[DATA_WIDTH - 1]),
+	.FlgAct ( FlgAct[DATA_WIDTH - 1]),
+	.FlgWei ( FlgWei[DATA_WIDTH - 1]),
 	.UpIn( Up [DATA_WIDTH - 1-1]),
 	.DownIn( 1'b1),
 	.UpOut( Up[DATA_WIDTH - 1]),
@@ -165,17 +152,17 @@ Cell_FlgAddr Cell_FlgAddr_1(
 endmodule
 
 module Cell_FlgAddr(
-	input FlgAct_r,
-	input FlgWei_r,
+	input FlgAct,
+	input FlgWei,
 	input UpIn,
 	input DownIn,
 	output UpOut,
 	output DownOut,
 	output Set
 );
-	assign UpOut 		= UpIn | ( FlgAct_r & FlgWei_r)		;
+	assign UpOut 		= UpIn | ( FlgAct & FlgWei)		;
 	assign Set		= UpOut & DownIn				;
-	assign DownOut   	= ~(FlgAct_r & FlgWei_r) & DownIn		;
+	assign DownOut   	= ~(FlgAct & FlgWei) & DownIn		;
 
 endmodule
 
