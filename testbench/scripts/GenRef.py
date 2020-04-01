@@ -1,4 +1,4 @@
-import numpy as np
+﻿import numpy as np
 import random
 import os
 #*********** read files *******************************************
@@ -340,7 +340,7 @@ for cntfrm in range(0,NumFrm):
                 else:
                     FLAG_MEM[AddrPooly][AddrPoolx][cntPEB]  = 0
                 POOL_FLAG_MEM =  str(FLAG_MEM[AddrPooly][AddrPoolx][cntPEB] ) +POOL_FLAG_MEM  # PEB15 PEB1 PEB0
-            POOL_FLAG_MEMFile.write(POOL_FLAG_MEM+'\n')
+            POOL_FLAG_MEMFile.write(POOL_FLAG_MEM+'\n')#二进制
             if cnt_Flag < PORT_DATAWIDTH/NumPEB: #12
                 GBFFLGOFM_DatRd = POOL_FLAG_MEM + GBFFLGOFM_DatRd #shift right
                 cnt_Flag = cnt_Flag + 1
