@@ -560,10 +560,11 @@ repeat(NumClk/3) @(negedge clk_chip);
     $fclose(File_data_out_BUS);
     $finish;
   end
-
-test_data #(
-  .NumClk(NumClk)
-  )test_data();
+//`ifdef SYNTH_MINI // hieracal
+    test_data #(
+    .NumClk(NumClk)
+    )test_data();
+//`endif
 Init_DDR Init_DDR();
 
 endmodule

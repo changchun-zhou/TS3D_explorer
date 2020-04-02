@@ -119,14 +119,14 @@ generate
             integer PECMAC_Act_Mon;
             integer PECMAC_Act_Gen;
             integer PECMAC_FlgWei0_Mon;
-            integer PECMAC_FlgWei0_Ref;
+            integer PECMAC_FlgWei_Ref;
             
             
             integer Suc_FlgAct;
             integer Suc_Act;
             integer Suc_DatWr;
             integer Suc_FlgWei0;
-            //integer Suc_Wei0;
+            //integer Suc_Wei;
             reg [`BLOCK_DEPTH -  1 : 0]PECMAC_FlgAct_GenDat;
             reg [ `DATA_WIDTH * `BLOCK_DEPTH             -1 : 0]PECMAC_Act_GenDat;
             reg [0: `BLOCK_DEPTH * `NUMPEC * `KERNEL_SIZE -1 ] PECMAC_FlgWei_RefDat_r;
@@ -160,9 +160,9 @@ generate
             end
 
             // ******************************  Test PECMAC0 for Every PEC *******************
-            initial begin:PECMAC_FlgWei0_MonPECMAC_Wei_Ref
-                PECMAC_FlgWei0_Mon = $fopen("../testbench/Data/MonRTL/PECMAC_FlgWei0_Mon.dat","w");
-                PECMAC_FlgWei0_Ref = $fopen("../testbench/Data/GenTest/PECMAC_FlgWei_Ref.dat","r");
+            initial begin:PECMAC_FlgWei0 //Only check FlgWei0 for every PEC 
+                //PECMAC_FlgWei0_Mon = $fopen("../testbench/Data/MonRTL/PECMAC_FlgWei_Mon.dat","w");
+                PECMAC_FlgWei_Ref = $fopen("../testbench/Data/GenTest/PECMAC_FlgWei_Ref.dat","r");
                 
                 repeat(NumClk) begin
                     @(negedge mem_controller_tb.ASIC.clk)
@@ -170,13 +170,13 @@ generate
                         @(negedge mem_controller_tb.ASIC.clk)//mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgAct);
                         
                         //$fdisplay(PECMAC_FlgWei0_Mon,"%b",mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgWei0);
-                        Suc_FlgWei0 = $fscanf(PECMAC_FlgWei0_Ref,"%h",PECMAC_FlgWei_RefDat_r);
+                        Suc_FlgWei0 = $fscanf(PECMAC_FlgWei_Ref,"%h",PECMAC_FlgWei_RefDat_r);
                         
                         //$display("%h",PECMAC_Wei_RefDat);
 
                         if(mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgWei0[0+:`BLOCK_DEPTH] 
                                 != PECMAC_FlgWei_RefDat_r[ `BLOCK_DEPTH*(3*i+m0)*`KERNEL_SIZE  +: `BLOCK_DEPTH])
-                            $display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_FlgWei0_Mon= %h PECMAC_FlgWei0_Ref = %h", 
+                            $display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_FlgWei0_Mon= %h PECMAC_FlgWei_Ref = %h", 
                                 $time,i,m0, mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgWei0[0+:`BLOCK_DEPTH],
                                 PECMAC_FlgWei_RefDat_r[ `BLOCK_DEPTH*((3*i+m0) *`KERNEL_SIZE) +: `BLOCK_DEPTH]);
                     end
@@ -242,26 +242,27 @@ initial begin: POOL_SPRS_MEM_Ref
     FLAG_MEM_Ref = $fopen("../testbench/Data/GenTest/POOL_FLAG_MEM_Ref.dat","r");
     repeat(NumClk) begin
         @(negedge mem_controller_tb.ASIC.clk);
-        if ( mem_controller_tb.ASIC.TS3D.POOL.SIPO_OFM.enable) begin
+        if ( mem_controller_tb.ASIC.TS3D.POOL.SIPOOFM_En) begin
             Suc_SPRS=$fscanf(SPRS_MEM_Ref, "%h",SPRS_MEM_RefDat);
-            Addr <= mem_controller_tb.ASIC.TS3D.POOL.SPRS_Addr;
-            if(mem_controller_tb.ASIC.TS3D.POOL.SIPO_OFM.data_in !=SPRS_MEM_RefDat )
-                $display("ERROR time: %t  SPRS_MEM[%h] = %h, SPRS %h", $time,Addr,mem_controller_tb.ASIC.TS3D.POOL.SIPO_OFM.data_in, SPRS_MEM_RefDat);
+            Addr = mem_controller_tb.ASIC.TS3D.POOL.SPRS_Addr;
+            if(mem_controller_tb.ASIC.TS3D.POOL.packer_right_OFM.Unpacked_DatWr !=SPRS_MEM_RefDat )
+                $display("ERROR time: %t  SPRS_MEM_Mon[%h] = %h, SPRS_MEM_Ref = %h", 
+                    $time,Addr,mem_controller_tb.ASIC.TS3D.POOL.packer_right_OFM.Unpacked_DatWr, SPRS_MEM_RefDat);
         end
-        if ( mem_controller_tb.ASIC.TS3D.POOL.SIPO_FLGOFM.enable) begin
+        if ( mem_controller_tb.ASIC.TS3D.POOL.SIPOFLGOFM_En) begin
             Suc_FLAG=$fscanf(FLAG_MEM_Ref, "%b",FLAG_MEM_RefDat);
-            if(mem_controller_tb.ASIC.TS3D.POOL.SIPO_FLGOFM.data_in !=FLAG_MEM_RefDat )
-                $display("ERROR time: %t  FLAG_MEM_Mon = %h, FLAG_MEM_Ref = %h", $time,mem_controller_tb.ASIC.TS3D.POOL.SIPO_FLGOFM.data_in, FLAG_MEM_RefDat);
+            if(mem_controller_tb.ASIC.TS3D.POOL.FLAG_MEM !=FLAG_MEM_RefDat )
+                $display("ERROR time: %t  FLAG_MEM_Mon = %h, FLAG_MEM_Ref = %h", $time,mem_controller_tb.ASIC.TS3D.POOL.FLAG_MEM, FLAG_MEM_RefDat);
         end
     end
 end
 
 // **************************** TEST DISWEI's DISWEIPEC_Wei ****************************
 integer PECMAC_Wei_Ref;
-integer Suc_Wei0;
+integer Suc_Wei;
 reg [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE        - 1: 0] PECMAC_Wei_RefDat;// a PEC
 reg [10:0]id_pec;
-initial begin: CHECK_Wei0ch31
+initial begin: CHECK_Wei0ch31 // Only CHECK Wei0's ch31:a data for every PEC
     
     id_pec = 0;
     @(posedge mem_controller_tb.ASIC.rst_n)
@@ -271,14 +272,14 @@ initial begin: CHECK_Wei0ch31
             id_pec = 0;
         if(mem_controller_tb.ASIC.TS3D.DISWEI.fifo_pop) begin
             @(negedge mem_controller_tb.ASIC.clk)//delay a clk, then get DISWEIPEC_Wei
-            Suc_Wei0=$fscanf(PECMAC_Wei_Ref,"%h",PECMAC_Wei_RefDat);
+            Suc_Wei=$fscanf(PECMAC_Wei_Ref,"%h",PECMAC_Wei_RefDat);
             //$display("whole Ref: %h",PECMAC_Wei_RefDat);
-            //$display("TEST: %t,FSCAF:%d,id_pec:%d,Mon_wei0:%h Ref:%h,",$time,Suc_Wei0,id_pec,mem_controller_tb.ASIC.TS3D.DISWEI.DISWEIPEC_Wei[`DATA_WIDTH*`BLOCK_DEPTH*8 +: `DATA_WIDTH]
+            //$display("TEST: %t,FSCAF:%d,id_pec:%d,Mon_wei0:%h Ref:%h,",$time,Suc_Wei,id_pec,mem_controller_tb.ASIC.TS3D.DISWEI.DISWEIPEC_Wei[`DATA_WIDTH*`BLOCK_DEPTH*8 +: `DATA_WIDTH]
             //    ,PECMAC_Wei_RefDat[`DATA_WIDTH*`BLOCK_DEPTH*8 +: `DATA_WIDTH]);
             if( mem_controller_tb.ASIC.TS3D.DISWEI.DISWEIPEC_Wei[`DATA_WIDTH*`BLOCK_DEPTH*8 +: `DATA_WIDTH]
             != PECMAC_Wei_RefDat[`DATA_WIDTH*`BLOCK_DEPTH*8 +: `DATA_WIDTH]
             && mem_controller_tb.ASIC.TS3D.DISWEI.DISWEIPEC_FlgWei[1*`BLOCK_DEPTH*8 +: `BLOCK_DEPTH] !=0
-            && id_pec != `NUMPEC*(mem_controller_tb.ASIC.TS3D.CONFIG.CFG_NumBlk+1)) begin// Wei0 's ch31   超过的一组wei是会从fifo取出，但不会被PEC所get到；即id_pec != all NumPECxNumBlk
+            && id_pec != `NUMPEC*(mem_controller_tb.ASIC.TS3D.CONFIG.CFG_NumBlk+1)) begin// Wei0 's ch31 id_pec != all NumPECxNumBlk
                 $display("ERROR: %t,id_pec:%d,Mon_wei0:%h Ref:%h,",$time,id_pec,mem_controller_tb.ASIC.TS3D.DISWEI.DISWEIPEC_Wei[`DATA_WIDTH*`BLOCK_DEPTH*8 +: `DATA_WIDTH]
                 ,PECMAC_Wei_RefDat[`DATA_WIDTH*`BLOCK_DEPTH*8 +: `DATA_WIDTH]);
             
