@@ -43,13 +43,15 @@ end
 wire                        [SRAM_DEPTH_BIT - 1 : 0] Addr;
 assign Addr = write_en ? addr_w : addr_r;
 
+// 16 Bytes 16 bit WEB
+wire  [ 11: 0 ] WEB = ~write_en ? 'b1 : 'b0;
 SYLA55_256X8X12CM2 RAM_GBFACT0(
     .A                   (  Addr               ),
     .DO                  (  data_out            ),
     .DI                  (  data_in             ),
     .DVSE                (  1'b0                ),
     .DVS                 (  4'b0                ),
-    .WEB                 (  ~write_en           ),
+    .WEB                 (  WEB           ),
     .CK                  (  clk                 ),
     .CSB                 ((~write_en)&(~read_en))
      );

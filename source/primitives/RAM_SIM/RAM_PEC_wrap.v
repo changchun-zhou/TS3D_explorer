@@ -43,7 +43,7 @@ end
 wire                        [SRAM_DEPTH_BIT - 1 : 0] Addr;
 assign Addr = write_en ? addr_w : addr_r;
 
-SYLA55_196X29X1CM2 RAM_PEC0(
+SYLA55_196X30X1CM2 RAM_PEC0(
     .A                   (  Addr               ),
     .DO                  (  data_out            ),
     .DI                  (  data_in             ),

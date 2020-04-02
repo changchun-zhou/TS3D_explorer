@@ -9,7 +9,7 @@
 //=======================================================
 // Description :
 //========================================================
-`include "../source/include/dw_params_presim.vh" Reset WEI every new frame
+`include "../source/include/dw_params_presim.vh"
 module test_data #(
     parameter NumClk = 40000
     )();
@@ -32,7 +32,8 @@ module test_data #(
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
-// ****************** TEST INTERFACE ********************************************
+
+// ********************* TEST INTERFACE ********************************************
 integer SPRS_MEM_Ref0;
 integer Suc_SPRS0;
 integer GBFFLGACT_DatWr_File;
@@ -119,8 +120,8 @@ generate
             integer PECMAC_Act_Gen;
             integer PECMAC_FlgWei0_Mon;
             integer PECMAC_FlgWei0_Ref;
-            integer PECMAC_Wei0_Mon;
-
+            
+            
             integer Suc_FlgAct;
             integer Suc_Act;
             integer Suc_DatWr;
@@ -129,7 +130,7 @@ generate
             reg [`BLOCK_DEPTH -  1 : 0]PECMAC_FlgAct_GenDat;
             reg [ `DATA_WIDTH * `BLOCK_DEPTH             -1 : 0]PECMAC_Act_GenDat;
             reg [0: `BLOCK_DEPTH * `NUMPEC * `KERNEL_SIZE -1 ] PECMAC_FlgWei_RefDat_r;
-
+            
             reg [5 : 0] addr,NumVal;
             reg [10:0]id_wei;
             reg [ 8 -1 :0 ] Number;
@@ -162,60 +163,27 @@ generate
             initial begin:PECMAC_FlgWei0_MonPECMAC_Wei_Ref
                 PECMAC_FlgWei0_Mon = $fopen("../testbench/Data/MonRTL/PECMAC_FlgWei0_Mon.dat","w");
                 PECMAC_FlgWei0_Ref = $fopen("../testbench/Data/GenTest/PECMAC_FlgWei_Ref.dat","r");
-
+                
                 repeat(NumClk) begin
                     @(negedge mem_controller_tb.ASIC.clk)
                     @(negedge mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.CfgWei) begin
                         @(negedge mem_controller_tb.ASIC.clk)//mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgAct);
-
+                        
                         //$fdisplay(PECMAC_FlgWei0_Mon,"%b",mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgWei0);
                         Suc_FlgWei0 = $fscanf(PECMAC_FlgWei0_Ref,"%h",PECMAC_FlgWei_RefDat_r);
-
+                        
                         //$display("%h",PECMAC_Wei_RefDat);
 
-                        if(mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgWei0[0+:`BLOCK_DEPTH]
+                        if(mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgWei0[0+:`BLOCK_DEPTH] 
                                 != PECMAC_FlgWei_RefDat_r[ `BLOCK_DEPTH*(3*i+m0)*`KERNEL_SIZE  +: `BLOCK_DEPTH])
-                            $display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_FlgWei0_Mon= %h PECMAC_FlgWei0_Ref = %h",
+                            $display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_FlgWei0_Mon= %h PECMAC_FlgWei0_Ref = %h", 
                                 $time,i,m0, mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgWei0[0+:`BLOCK_DEPTH],
                                 PECMAC_FlgWei_RefDat_r[ `BLOCK_DEPTH*((3*i+m0) *`KERNEL_SIZE) +: `BLOCK_DEPTH]);
-                        // for (id_wei=0;id_wei<9;id_wei=id_wei+1) begin
-                        //     //$display("TEST");
-                        //     NumVal <= 0;
-                        //     for (addr=0;addr<32;addr=addr+1) begin
-                        //         //$display("bit:%d",mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.FlgWei[ `BLOCK_DEPTH*(`KERNEL_SIZE-1-id_wei)+addr]);
-                        //         if(mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.FlgWei[ `BLOCK_DEPTH*(`KERNEL_SIZE-1-id_wei)+addr]==0)
-                        //             NumVal <= NumVal + 1;
-                        //     end
-                        //     //$display("FlgWei: %h,NumVal:%d",mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.FlgWei,NumVal);
-                        //     for(addr=0;addr<NumVal;addr=addr+1)begin
-                        //         // if (i==0 && m0==0) begin
-                        //         //     $display("id_wei:%d,PECMAC_Wei_Mon:%h",id_wei,mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.DISWEIPEC_Wei[`DATA_WIDTH*(`BLOCK_DEPTH*(`KERNEL_SIZE-1-id_wei)+addr) +: `DATA_WIDTH]
-                        //         //     );
-                        //         //     $display("id_wei:%d,PECMAC_Wei_Ref:%h",id_wei,
-                        //         //     PECMAC_Wei_RefDat[`DATA_WIDTH*(`BLOCK_DEPTH*( (3*i + m0)*`KERNEL_SIZE+id_wei+1)- addr) -1 -: `DATA_WIDTH]);
-
-                        //         // end
-                        // Test only ch31 of PECMAC_Wei0
-                        //[`DATA_WIDTH*(`BLOCK_DEPTH*(`KERNEL_SIZE-1-id_wei)+0) +: `DATA_WIDTH]
-                        //$display("%d,%d,Mon PECMAC_Wei0:%h Ref_Wei0: %h",i,m0,mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_Wei0[0+:`DATA_WIDTH],
-                            //PECMAC_Wei_RefDat[`DATA_WIDTH*(`BLOCK_DEPTH*( (3*i + m0)*`KERNEL_SIZE+id_wei+1)- 0) -1 -: `DATA_WIDTH]);
-                        //if(mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_Wei0[ 0 +: `DATA_WIDTH]
-                            //!=PECMAC_Wei_RefDat[`DATA_WIDTH*(`BLOCK_DEPTH*( (3*i + m0)*`KERNEL_SIZE+id_wei+1)- 0) -1 -: `DATA_WIDTH]
-                            //&& mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_FlgWei0[0+:`BLOCK_DEPTH] !=0)
-
-                            //$display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_Wei_Ref[%d] = %h",
-                                //$time,i,m0, id_wei,PECMAC_Wei_RefDat[`DATA_WIDTH*(`BLOCK_DEPTH*( (3*i + m0)*`KERNEL_SIZE+id_wei+1)- addr) -1 -: `DATA_WIDTH]);
-                            //$display("FlgWei: %h", )
-                            //end
-                            //if(mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECMAC_Wei0 != PECMAC_Wei0_GenDat)
-                                //$display("ERROR time: %t  PEB[%d].PEC[%d].PECMAC_Wei0 = %h",  $time,i,m0, PECMAC_Wei0_GenDat);
-                        //end
-
                     end
                 end
             end
 
-
+            // ************************  TEST PECRAM_DatWr/Rd *****************************
             integer PECRAM_DatWr_Mon;
             integer PECRAM_DatWr_Ref;
             //integer PECRAM_DatWr_Mon;
@@ -238,7 +206,7 @@ generate
                         Suc_DatWr = $fscanf(PECRAM_DatWr_Ref,"%h",PECRAM_DatWr_RefDat);
 
                         if(~(mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECRAM_DatWr == PECRAM_DatWr_RefDat[`DATA_WIDTH*`CEIL(`PSUM_WIDTH, `DATA_WIDTH)  * (`NUMPEC -(3*i+m0) -1)   +:`PSUM_WIDTH ]))
-                            $display("ERROR time: %t  PEB[%d].PEC[%d].PECRAM_DatWr_Ref = %h,PECRAM_DatWr_Mon = %h",
+                            $display("ERROR time: %t  PEB[%d].PEC[%d].PECRAM_DatWr_Ref = %h,PECRAM_DatWr_Mon = %h", 
                                 $time, i,m0,PECRAM_DatWr_RefDat[`DATA_WIDTH*`CEIL(`PSUM_WIDTH, `DATA_WIDTH)  * (`NUMPEC -(3*i+m0) -1)   +:`PSUM_WIDTH ],
                                 mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.PECRAM_DatWr);
                     end
@@ -259,7 +227,7 @@ generate
 endgenerate
 
 
-
+// *********************** TEST POOL output **********************************************
 integer SPRS_MEM_Ref;
 integer FLAG_MEM_Ref;
 
@@ -288,15 +256,16 @@ initial begin: POOL_SPRS_MEM_Ref
     end
 end
 
+// **************************** TEST DISWEI's DISWEIPEC_Wei ****************************
 integer PECMAC_Wei_Ref;
 integer Suc_Wei0;
 reg [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE        - 1: 0] PECMAC_Wei_RefDat;// a PEC
 reg [10:0]id_pec;
 initial begin: CHECK_Wei0ch31
-
+    
     id_pec = 0;
     @(posedge mem_controller_tb.ASIC.rst_n)
-    repeat(NumClk) begin
+    repeat(NumClk) begin 
         @(negedge mem_controller_tb.ASIC.clk)
         if ( mem_controller_tb.ASIC.TS3D.Reset_WEI) // Reset WEI every new frame
             id_pec = 0;
@@ -312,7 +281,7 @@ initial begin: CHECK_Wei0ch31
             && id_pec != `NUMPEC*(mem_controller_tb.ASIC.TS3D.CONFIG.CFG_NumBlk+1)) begin// Wei0 's ch31   超过的一组wei是会从fifo取出，但不会被PEC所get到；即id_pec != all NumPECxNumBlk
                 $display("ERROR: %t,id_pec:%d,Mon_wei0:%h Ref:%h,",$time,id_pec,mem_controller_tb.ASIC.TS3D.DISWEI.DISWEIPEC_Wei[`DATA_WIDTH*`BLOCK_DEPTH*8 +: `DATA_WIDTH]
                 ,PECMAC_Wei_RefDat[`DATA_WIDTH*`BLOCK_DEPTH*8 +: `DATA_WIDTH]);
-
+            
             end
             id_pec = id_pec + 1;
         end
@@ -324,8 +293,10 @@ initial begin: Set_PECMAC_Wei_Ref
         @(negedge mem_controller_tb.ASIC.clk)
         if ( mem_controller_tb.ASIC.TS3D.Reset_WEI) //  Reset WEI every new frame
             PECMAC_Wei_Ref = $fopen("../testbench/Data/GenTest/PECMAC_Wei_Ref.dat","r");
-    end
+    end 
 end
+
+
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
