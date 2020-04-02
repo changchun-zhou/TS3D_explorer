@@ -278,6 +278,7 @@ DISWEI DISWEI
     .DISWEIPEC_FlgWei (DISWEIPEC_FlgWei),
     // .DISWEI_AddrBase  (DISWEI_AddrBase),
     .GBFWEI_Val       (GBFWEI_Val),
+    .GBFWEI_BusyRd    (GBFWEI_EnWr),// When GBFWEI Writes, not to Read
     .GBFWEI_EnRd      (GBFWEI_EnRd),
     .GBFWEI_AddrRd    (GBFWEI_AddrRd),
     .GBFWEI_DatRd     (GBFWEI_DatRd),
@@ -415,7 +416,7 @@ ReqGBF #(
     .EnRd(GBFFLGWEI_EnRd),
     .Req( _GBFFLGWEI_Val)
     );
-assign GBFFLGWEI_Val =~_GBFFLGWEI_Val;
+assign GBFFLGWEI_Val =~_GBFFLGWEI_Val && ~GBFFLGWEI_EnWr;// Single Port: Write first
 reg ValPacker;
 wire GBFFLGWEI_Val_d;
 wire CTRLACT_FnhFrm_d;
@@ -493,7 +494,7 @@ ReqGBF #(
     .EnRd(GBFACT_EnRd),
     .Req( _GBFACT_Val)
     );
-assign GBFACT_Val = ~_GBFACT_Val;
+assign GBFACT_Val = ~_GBFACT_Val && ~GBFACT_EnWr;// SRAM Wr and Rd exclude
 assign ALLRdy_ACT = Packed_RdyWr && GBFACT_Val;
 //assign GBFACT_EnRd = Packed_RdyWr && ~Packed_RdyWr_d; // && posedge;
 assign GBFACT_EnRd = ALLRdy_ACT && ~ALLRdy_ACT_d;
@@ -550,7 +551,7 @@ ReqGBF #(
     .EnRd(GBFFLGACT_EnRd),
     .Req( _GBFFLGACT_Val)
     );
-assign GBFFLGACT_Val = ~_GBFFLGACT_Val;
+assign GBFFLGACT_Val = ~_GBFFLGACT_Val && ~GBFFLGACT_EnWr;// SRAM Wr and Rd exclude
 //assign GBFFLGACT_EnRd = FLGACT_Packed_RdyWr && ~FLGACT_Packed_RdyWr_d; // && posedge;
 assign ALLRdy_FLGACT = FLGACT_Packed_RdyWr && GBFFLGACT_Val;
 assign GBFFLGACT_EnRd =ALLRdy_FLGACT && ~ALLRdy_FLGACT_d;//posedge
