@@ -19,6 +19,7 @@ module DISWEI (
     output wire  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE -1 : 0] DISWEIPEC_Wei   ,// trans MSB and LSB
     output wire  [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE           -1 : 0] DISWEIPEC_FlgWei,
     input                                                           GBFWEI_Val      , //valid
+    input                                                           GBFWEI_BusyRd   ,
     output                                                          GBFWEI_EnRd     ,
     output reg  [ `GBFWEI_ADDRWIDTH                         -1 : 0] GBFWEI_AddrRd   ,
     input       [ `PORT_DATAWIDTH                         -1 : 0] GBFWEI_DatRd    ,
@@ -79,7 +80,7 @@ wire [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE + `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SI
 assign WEI_Val = GBFFLGWEI_Val && GBFWEI_Val;
 
 // *********************************************************************
-// FSM
+// FSM 
 localparam IDLE = 3'b000;
 localparam CHECK_FIFO_GBF = 3'b001;
 localparam FETCH_FLAGWEI = 3'b010;
@@ -101,16 +102,17 @@ always @(*) begin
                     next_state <= FETCH_FLAGWEI;
                 else
                     next_state <= CHECK_FIFO_GBF;
-        FETCH_FLAGWEI: next_state <= WAIT_FETCH_FLAGWEI;
-        WAIT_FETCH_FLAGWEI: if( Req_WEI )//wait ValNumWei compute to Req_WEI
+        FETCH_FLAGWEI: next_state <= WAIT_FETCH_FLAGWEI; // Fect flagwei         
+        WAIT_FETCH_FLAGWEI: if( Req_WEI )//wait ValNumPEC compute to Req_WEI:whether FETCH_WEI
                     next_state <= FETCH_WEI;
                 else
-                    next_state <= WATI_PUSH;
-        FETCH_WEI:  if( Req_WEI )
-                        next_state <= FETCH_FLAGWEI;
-                    else
+                    next_state <= WATI_PUSH;//directly push to fifo
+        FETCH_WEI:  if( Req_WEI )//every time next_state is FETCH_WEI, try to fetch WEI
+                        //next_state <= FETCH_FLAGWEI;
+                        next_state <= FETCH_WEI;
+                    else 
                         next_state <= WATI_PUSH;
-        WATI_PUSH:
+        WATI_PUSH: 
                     next_state <= PUSH;
         PUSH:    next_state <= CHECK_FIFO_GBF;
         default: next_state <= IDLE;
@@ -169,7 +171,7 @@ always @ ( posedge clk or negedge rst_n ) begin
 end
 
 assign Req_WEI = NumVal_Cur < ValNumPEC; // * 8 = << 3
-assign GBFWEI_EnRd = next_state == FETCH_WEI;
+assign GBFWEI_EnRd = next_state == FETCH_WEI && ~GBFWEI_BusyRd;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
           GBFWEI_AddrRd <= 0;
@@ -248,14 +250,14 @@ end
 assign fifo_push = state == PUSH;
 assign fifo_in = {GBFFLGWEI_DatRd,Wei};
 assign { DISWEIPEC_FlgWei, DISWEIPEC_Wei } = fifo_out;
-assign fifo_pop = CTRLWEI_PlsFetch;
+assign fifo_pop = CTRLWEI_PlsFetch; 
 assign DISWEI_RdyFIFO = !fifo_empty;
 
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
 fifo_asic #(
-    .DATA_WIDTH(1 * `BLOCK_DEPTH * `KERNEL_SIZE +
+    .DATA_WIDTH(1 * `BLOCK_DEPTH * `KERNEL_SIZE + 
       `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE  ),
     .ADDR_WIDTH(`FIFO_DISWEI_ADDRWIDTH ) // 4 PEC
     ) fifo_DISWEI(
