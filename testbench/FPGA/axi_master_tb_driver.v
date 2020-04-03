@@ -626,15 +626,15 @@ endtask
 //-------------------------------------------------------------------
 wire                           pass;
 wire                           fail;
-  test_status #(
-    .PREFIX                   ( "AXI_MASTER"             ),
-    .TIMEOUT                  ( 1000000                  )
-  ) status (
-    .clk                      ( clk                      ),
-    .reset                    ( reset                    ),
-    .pass                     ( pass                     ),
-    .fail                     ( fail                     )
-  );
+  // test_status #(
+  //   .PREFIX                   ( "AXI_MASTER"             ),
+  //   .TIMEOUT                  ( 1000000                  )
+  // ) status (
+  //   .clk                      ( clk                      ),
+  //   .reset                    ( reset                    ),
+  //   .pass                     ( pass                     ),
+  //   .fail                     ( fail                     )
+  // );
 
 endmodule
 

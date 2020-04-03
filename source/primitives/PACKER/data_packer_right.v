@@ -5,8 +5,7 @@ module packer_right #(
 // Parameters
 // ******************************************************************
   parameter integer IN_WIDTH        = 64,
-  parameter integer OUT_WIDTH       = 128,
-  parameter integer OP_WIDTH        = 16
+  parameter integer OUT_WIDTH       = 128
 )
 (
 // ******************************************************************

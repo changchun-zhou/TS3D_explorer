@@ -43,17 +43,51 @@ end
 wire                        [SRAM_DEPTH_BIT - 1 : 0] Addr;
 assign Addr = write_en ? addr_w : addr_r;
 
-// 16 Bytes 16 bit WEB
-wire  [ 15: 0 ] WEB = ~write_en ? 'b1 : 'b0;
+// ******************* Delay for sim ********************************************
+wire [ SRAM_DEPTH_BIT          -1 : 0] A;
+wire [ SRAM_WIDTH              -1 : 0] DI;
+wire [ 16                      -1 : 0] WEB;
+wire                                   CSB;
+// delay 1/2 clock period
+`ifdef DELAY_SRAM
+    assign #(`CLOCK_PERIOD_ASIC/2) A = Addr;
+    assign #(`CLOCK_PERIOD_ASIC/2) DI = data_in[SRAM_WIDTH -1 : 0];
+    assign #(`CLOCK_PERIOD_ASIC/2) WEB= ~write_en ? ~(16'd0) : 16'd0;
+    assign #(`CLOCK_PERIOD_ASIC/2) CSB = (~write_en)&(~read_en);
+`else 
+    assign  A = Addr;
+    assign  DI = data_in[SRAM_WIDTH -1 : 0];
+    assign  WEB= ~write_en ? ~(16'd0) : 16'd0;
+    assign  CSB = (~write_en)&(~read_en);
+`endif
+wire [ SRAM_WIDTH              -1 : 0] DO;
+wire                                   read_en_d;
+reg  [ SRAM_WIDTH              -1 : 0] DO_d;
+assign data_out = read_en_d? DO : DO_d;
+Delay #(
+    .NUM_STAGES(1),
+    .DATA_WIDTH(1)
+) Delay_read_en_d (
+    .CLK     (clk),
+    .RESET_N (),
+    .DIN     (read_en),
+    .DOUT    (read_en_d)
+);
+always @ ( posedge clk) begin
+    if( read_en_d)
+        DO_d <= DO;
+end
+// ******************************************************************************
+
 SYLA55_49X8X16CM2 RAM_FRMPOOL0(
-    .A                   (  Addr               ),
-    .DO                  (  data_out            ),
-    .DI                  (  data_in             ),
+    .A                   (  A               ),
+    .DO                  (  DO            ),
+    .DI                  (  DI             ),
     .DVSE                (  1'b0                ),
     .DVS                 (  4'b0                ),
     .WEB                 (  WEB           ),
     .CK                  (  clk                 ),
-    .CSB                 ((~write_en)&(~read_en))
+    .CSB                 (CSB)
      );
 `endif
 

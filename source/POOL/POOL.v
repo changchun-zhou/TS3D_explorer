@@ -22,9 +22,11 @@ module POOL(
     output [ `C_LOG_2(`LENPSUM * `LENPSUM)-1 : 0] POOLPEL_AddrRd,
     input  [ `PSUM_WIDTH * `NUMPEB                   -1 : 0] PELPOOL_Dat,
     output                                                                    GBFOFM_EnWr,
+    output                                                                    GBFOFM_EnRd,
     output  reg[ `GBFOFM_ADDRWIDTH                 -1 : 0] GBFOFM_AddrWr,
     output [ `PORT_DATAWIDTH                        -1 : 0] GBFOFM_DatWr,
     output                                                                    GBFFLGOFM_EnWr,
+    input                                                                    GBFFLGOFM_EnRd,
     output reg  [ `GBFFLGOFM_ADDRWIDTH         - 1 :0 ] GBFFLGOFM_AddrWr,
     output  [ `PORT_DATAWIDTH                     - 1 : 0 ] GBFFLGOFM_DatWr
 
@@ -272,32 +274,71 @@ assign SIPOFLGOFM_En = state_dd==FRMPOOLDELTA && state_ddd != FRMPOOLDELTA;
 
 // sipo
 
-sipo
-#( // INPUT PARAMETERS
-    .DATA_IN_WIDTH(`DATA_WIDTH),
-   .DATA_OUT_WIDTH (`PORT_DATAWIDTH) // 12*
-)SIPO_OFM( // PORTS
-    .clk(clk),
-    .rst_n(rst_n),
-    .enable(SIPOOFM_En),
-    .data_in(SPRS_MEM[SPRS_Addr]),
-    .ready( ),
-    .data_out(GBFOFM_DatWr),
-    .out_valid(GBFOFM_EnWr)   // output must be gotten immediately
-);
-sipo
-#( // INPUT PARAMETERS
-    .DATA_IN_WIDTH(`NUMPEB),
-   .DATA_OUT_WIDTH (`PORT_DATAWIDTH) // 12*
-)SIPO_FLGOFM( // PORTS
-    .clk(clk),
-    .rst_n(rst_n),
-    .enable(SIPOFLGOFM_En),
-    .data_in(FLAG_MEM),
-    .ready( ),
-    .data_out(GBFFLGOFM_DatWr),
-    .out_valid(GBFFLGOFM_EnWr)   // output must be gotten immediately
-);
+// sipo
+// #( // INPUT PARAMETERS
+//     .DATA_IN_WIDTH(`DATA_WIDTH),
+//    .DATA_OUT_WIDTH (`PORT_DATAWIDTH) // 12*
+// )SIPO_OFM( // PORTS
+//     .clk(clk),
+//     .rst_n(rst_n),
+//     .enable(SIPOOFM_En),
+//     .data_in(SPRS_MEM[SPRS_Addr]),
+//     .ready( ),
+//     .data_out(GBFOFM_DatWr),
+//     .out_valid(GBFOFM_EnWr)   // output must be gotten immediately
+// );
+
+wire OFM_Unpacked_RdyWr;
+wire OFM_Packed_RdyRd;
+wire OFM_Packed_EnRd;
+packer_right #(
+        .IN_WIDTH(`DATA_WIDTH),
+        .OUT_WIDTH(`PORT_DATAWIDTH)
+    ) packer_right_OFM (
+        .clk            (clk),
+        .rst_n          (rst_n),
+        .Reset          (1'b0),
+        .Unpacked_EnWr  (SIPOOFM_En),
+        .Unpacked_RdyWr (OFM_Unpacked_RdyWr),
+        .Unpacked_DatWr (SPRS_MEM[SPRS_Addr]),
+        .Packed_RdyRd   (OFM_Packed_RdyRd),
+        .Packed_EnRd    (OFM_Packed_EnRd),
+        .Packed_DatRd   (GBFOFM_DatWr)
+    );
+assign GBFOFM_EnWr = OFM_Packed_RdyRd && ~GBFOFM_EnRd;
+assign OFM_Packed_EnRd = GBFOFM_EnWr;
+// sipo
+// #( // INPUT PARAMETERS
+//     .DATA_IN_WIDTH(`NUMPEB),
+//    .DATA_OUT_WIDTH (`PORT_DATAWIDTH) // 12*
+// )SIPO_FLGOFM( // PORTS
+//     .clk(clk),
+//     .rst_n(rst_n),
+//     .enable(SIPOFLGOFM_En),
+//     .data_in(FLAG_MEM),
+//     .ready( ),
+//     .data_out(GBFFLGOFM_DatWr),
+//     .out_valid(GBFFLGOFM_EnWr)   // output must be gotten immediately
+// );
+wire FLGOFM_Unpacked_RdyWr;
+wire FLGOFM_Packed_RdyRd;
+wire FLGOFM_Packed_EnRd;
+packer_right #(
+        .IN_WIDTH(`NUMPEB),
+        .OUT_WIDTH(`PORT_DATAWIDTH)
+    ) packer_right_FLGOFM (
+        .clk            (clk),
+        .rst_n          (rst_n),
+        .Reset          (1'b0),// Reset_OFM
+        .Unpacked_EnWr  (SIPOFLGOFM_En),
+        .Unpacked_RdyWr (FLGOFM_Unpacked_RdyWr),//////////////// Use RdyWr to control EnWr//////
+        .Unpacked_DatWr (FLAG_MEM),
+        .Packed_RdyRd   (FLGOFM_Packed_RdyRd),
+        .Packed_EnRd    (FLGOFM_Packed_EnRd),
+        .Packed_DatRd   (GBFFLGOFM_DatWr)
+    );
+assign GBFFLGOFM_EnWr = FLGOFM_Packed_RdyRd && ~GBFFLGOFM_EnRd;
+assign FLGOFM_Packed_EnRd = GBFFLGOFM_EnWr;
 // ==================================================================
 
 assign FRMPOOL_EnRd = state == FRMPOOLDELTA && state_d != FRMPOOLDELTA && POOL_ValFrm;

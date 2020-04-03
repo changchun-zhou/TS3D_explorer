@@ -26,6 +26,9 @@ module PEC (
     output reg [ `C_LOG_2(`LENPSUM*`LENPSUM)                     -1 : 0] PECRAM_AddrWr,
     output [  `PSUM_WIDTH                -1 : 0] PECRAM_DatWr,
     output                                                      PECRAM_EnRd,
+    // the EnWr of the SRAM EnRd reads; follows PECRAM_EnRd
+    // To exclude SRAM's Wr and Rd
+    input                                                      PEBPEC_BusyRd,
     output reg [ `C_LOG_2(`LENPSUM*`LENPSUM)                     -1 : 0] PECRAM_AddrRd,
     input  [ `PSUM_WIDTH                   -1 : 0] RAMPEC_DatRd
 
@@ -541,6 +544,7 @@ Delay #(
     .DIN(PlsFnhAll),
     .DOUT(PlsFnhAll_dd)
     );
+wire PECRAM_EnRd_Req, PECRAM_EnRd_Req_d;
 Delay #(
     .NUM_STAGES(1),
     .DATA_WIDTH(1)
@@ -548,6 +552,31 @@ Delay #(
     .CLK(clk),
     .RESET_N(rst_n),
     .DIN(_PECRAM_EnRd),
-    .DOUT(PECRAM_EnRd)
+    .DOUT(PECRAM_EnRd_Req)
     );
+Delay #(
+    .NUM_STAGES(1),
+    .DATA_WIDTH(1)
+    )Delay_PECRAM_EnRd_Req(
+    .CLK(clk),
+    .RESET_N(rst_n),
+    .DIN(PECRAM_EnRd_Req),
+    .DOUT(PECRAM_EnRd_Req_d)
+    );
+// When the read's SRAM is being wroten, EnRd delay a clk 
+// Based on: 1. Primilary EnRd ahead PlsAcc 2 clk; 2. EnWr is a paulse
+//assign PECRAM_EnRd = PEBPEC_BusyRd? PECRAM_EnRd_Req_d: PECRAM_EnRd_Req;
+// when PEBPEC_BusyRd and PECRAM_EnRd_Req are same time,PECRAM_EnRd = 0; delay a clk, PECRAM_EnRd = 1;
+wire PEBPEC_BusyRd_d;
+Delay #(
+    .NUM_STAGES(1),
+    .DATA_WIDTH(1)
+    )Delay_PEBPEC_BusyRd(
+    .CLK(clk),
+    .RESET_N(rst_n),
+    .DIN(PEBPEC_BusyRd),
+    .DOUT(PEBPEC_BusyRd_d)
+    );
+assign PECRAM_EnRd = ( ~PEBPEC_BusyRd && PECRAM_EnRd_Req)  || (PEBPEC_BusyRd_d && PECRAM_EnRd_Req_d);
+
 endmodule

@@ -1,7 +1,13 @@
 
-`define SYNTH_MINI //
+// `define SYNTH_MINI //
 // `define SYNTH_FREQ
-//`define SYNTH_AC
+`define SYNTH_AC // With SRAM
+
+// ****************************************************************************
+// ONLY PRE-Sim parameter
+// ****************************************************************************
+`define CLOCK_PERIOD_ASIC 10 // 10ns clock period
+`define DELAY_SRAM // define with SRAM Sim
 
 // ****************************************************************************
 // Hyper-parameter
@@ -21,6 +27,7 @@
 `define LENPSUM 14
 `define POOL_KERNEL_WIDTH 3 // 2 3 7
 //`define POOL_WIDTH 2//Stride
+
 // ************* Config parameters *****************
 `define FRAME_WIDTH 5
 `define PATCH_WIDTH 8

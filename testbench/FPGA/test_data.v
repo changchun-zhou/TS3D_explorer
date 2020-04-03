@@ -217,7 +217,9 @@ generate
                         Suc_DatRd = $fscanf(RAMPEC_DatRd_Ref,"%h",RAMPEC_DatRd_RefDat);
 
                         if(~(mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.RAMPEC_DatRd == RAMPEC_DatRd_RefDat[`DATA_WIDTH*`CEIL(`PSUM_WIDTH, `DATA_WIDTH)  * (`NUMPEC -(3*i+m0) -1)   +:`PSUM_WIDTH ]))
-                            $display("ERROR time: %t  PEB[%d].PEC[%d].RAMPEC_DatRd = %h", $time, i,m0,mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.RAMPEC_DatRd);
+                            $display("ERROR time: %t  PEB[%d].PEC[%d].RAMPEC_DatRd_Mon = %h, RAMPEC_DatRd_Ref = %h", 
+                                $time, i,m0,mem_controller_tb.ASIC.TS3D.PEL.GENPEB[i].inst_PEB.GENPEC[m0].inst_PEC.RAMPEC_DatRd
+                                ,RAMPEC_DatRd_RefDat[`DATA_WIDTH*`CEIL(`PSUM_WIDTH, `DATA_WIDTH)  * (`NUMPEC -(3*i+m0) -1)   +:`PSUM_WIDTH ]);
                     end
                 end
             end
@@ -280,7 +282,7 @@ initial begin: CHECK_Wei0ch31 // Only CHECK Wei0's ch31:a data for every PEC
             != PECMAC_Wei_RefDat[`DATA_WIDTH*`BLOCK_DEPTH*8 +: `DATA_WIDTH]
             && mem_controller_tb.ASIC.TS3D.DISWEI.DISWEIPEC_FlgWei[1*`BLOCK_DEPTH*8 +: `BLOCK_DEPTH] !=0
             && id_pec != `NUMPEC*(mem_controller_tb.ASIC.TS3D.CONFIG.CFG_NumBlk+1)) begin// Wei0 's ch31 id_pec != all NumPECxNumBlk
-                $display("ERROR: %t,id_pec:%d,Mon_wei0:%h Ref:%h,",$time,id_pec,mem_controller_tb.ASIC.TS3D.DISWEI.DISWEIPEC_Wei[`DATA_WIDTH*`BLOCK_DEPTH*8 +: `DATA_WIDTH]
+                $display("ERROR time: %t,id_pec:%d,Mon_wei0:%h Ref:%h,",$time,id_pec,mem_controller_tb.ASIC.TS3D.DISWEI.DISWEIPEC_Wei[`DATA_WIDTH*`BLOCK_DEPTH*8 +: `DATA_WIDTH]
                 ,PECMAC_Wei_RefDat[`DATA_WIDTH*`BLOCK_DEPTH*8 +: `DATA_WIDTH]);
             
             end

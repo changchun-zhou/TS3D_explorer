@@ -149,7 +149,8 @@ wire [  `PSUM_WIDTH     - 1 : 0 ] DatRd3;
 
 wire                                        NXTPEC_ValPsum0;
 wire                                        NXTPEC_ValPsum1;
-
+wire        BusyRd0, BusyRd1, BusyRd2, BusyRd3;
+wire PEBPEC_BusyRd0, PEBPEC_BusyRd1, PEBPEC_BusyRd2;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -196,14 +197,19 @@ assign EnWr3         =~FlgRAM2 ?  0 :   ( PECRAM_EnWr2     )              ;
 assign AddrWr3       =~FlgRAM2 ? 0 :   ( PECRAM_AddrWr2  )              ;
 assign DatWr3        =~FlgRAM2 ?  0:   ( PECRAM_DatWr2    )              ;
 
+assign PEBPEC_BusyRd0 = CTRLPEB_FrtBlk ? 0 : BusyRd0;
 assign EnRd0                = CTRLPEB_FrtBlk ?  ( CTRLPEB_FrtFrm ? 0 : PECRAM_EnRd1   ) : PECRAM_EnRd0     ;
 assign AddrRd0             = CTRLPEB_FrtBlk ?  ( CTRLPEB_FrtFrm ? 0 : PECRAM_AddrRd1) : PECRAM_AddrRd0   ;
 assign RAMPEC_DatRd0 = CTRLPEB_FrtBlk ? 0                                                                 : DatRd0    ;
 
+assign PEBPEC_BusyRd1 = CTRLPEB_FrtBlk ?(CTRLPEB_FrtFrm ? 0 : BusyRd0) :BusyRd1;
 assign EnRd1                = CTRLPEB_FrtBlk ? ( CTRLPEB_FrtFrm ? 0: PECRAM_EnRd2     )  : PECRAM_EnRd1     ;
 assign AddrRd1              = CTRLPEB_FrtBlk ?( CTRLPEB_FrtFrm ? 0: PECRAM_AddrRd2  )  : PECRAM_AddrRd1   ;
 assign RAMPEC_DatRd1 = CTRLPEB_FrtBlk ?( CTRLPEB_FrtFrm ? 0 : DatRd0                  )   : DatRd1           ;
 
+assign PEBPEC_BusyRd2 = CTRLPEB_FrtBlk&&~CTRLPEB_FrtFrm ? BusyRd1 :
+     (FlgRAM2&&CTRLPEB_FrtBlk || ~FlgRAM2&&~CTRLPEB_FrtBlk )?BusyRd2:
+     (~FlgRAM2&&CTRLPEB_FrtBlk || FlgRAM2&&~CTRLPEB_FrtBlk )?BusyRd3 : 0;
 assign EnRd2   = FlgRAM2 ? (CTRLPEB_FrtBlk?PECRAM_EnRd2: POOLPEB_EnRd) : ( CTRLPEB_FrtBlk ? 0 :PECRAM_EnRd2     )    ;
 assign AddrRd2= FlgRAM2 ? (CTRLPEB_FrtBlk?PECRAM_AddrRd2:POOLPEB_AddrRd) :  ( CTRLPEB_FrtBlk ? 0 : PECRAM_AddrRd2   ) ;
 assign RAMPEC_DatRd2     = CTRLPEB_FrtBlk ?( CTRLPEB_FrtFrm ? 0 : ( $signed(DatRd1) + (FlgRAM2? $signed(DatRd2):$signed(DatRd3)))) : (FlgRAM2 ? DatRd3  : DatRd2 )    ; // ERROR
@@ -229,6 +235,7 @@ generate
         wire [ `C_LOG_2(`LENPSUM*`LENPSUM)                       - 1 : 0]PECRAM_AddrWr;
         wire [ `PSUM_WIDTH                     - 1 : 0 ]PECRAM_DatWr ;
         wire                                                    PECRAM_EnRd  ;
+        wire                                                    PEBPEC_BusyRd  ;
         wire [ `C_LOG_2(`LENPSUM*`LENPSUM)                       -1 : 0]PECRAM_AddrRd;
         wire [ `PSUM_WIDTH                    -1 : 0]RAMPEC_DatRd ;
 
@@ -251,6 +258,7 @@ generate
                 .PECRAM_AddrWr     (PECRAM_AddrWr),
                 .PECRAM_DatWr      (PECRAM_DatWr ),
                 .PECRAM_EnRd       (PECRAM_EnRd  ),
+                .PEBPEC_BusyRd       (PEBPEC_BusyRd  ),
                 .PECRAM_AddrRd     (PECRAM_AddrRd),
                 .RAMPEC_DatRd      (RAMPEC_DatRd )
             );
@@ -324,6 +332,9 @@ assign PECRAM_AddrRd2=GENPEC[2].PECRAM_AddrRd;
 assign GENPEC[0].RAMPEC_DatRd=RAMPEC_DatRd0;
 assign GENPEC[1].RAMPEC_DatRd=RAMPEC_DatRd1;
 assign GENPEC[2].RAMPEC_DatRd=RAMPEC_DatRd2;
+assign GENPEC[0].PEBPEC_BusyRd=PEBPEC_BusyRd0;
+assign GENPEC[1].PEBPEC_BusyRd=PEBPEC_BusyRd1;
+assign GENPEC[2].PEBPEC_BusyRd=PEBPEC_BusyRd2;
 
 
 
@@ -337,6 +348,7 @@ RAM_PEC_wrap #(
         .addr_w   ( AddrWr0     ),
         .read_en  ( EnRd0       ),
         .write_en ( EnWr0       ),
+        .BusyRd   ( BusyRd0),
         .data_in  ( DatWr0      ),
         .data_out ( DatRd0      )
     );
@@ -349,6 +361,7 @@ RAM_PEC_wrap #(
         .addr_w   ( AddrWr1     ),
         .read_en  ( EnRd1       ),
         .write_en ( EnWr1       ),
+        .BusyRd   ( BusyRd1),
         .data_in  ( DatWr1      ),
         .data_out ( DatRd1      )
     );
@@ -361,6 +374,7 @@ RAM_PEC_wrap #(
         .addr_w   ( AddrWr2     ),
         .read_en  ( EnRd2       ),
         .write_en ( EnWr2       ),
+        .BusyRd   ( BusyRd2),
         .data_in  ( DatWr2      ),
         .data_out ( DatRd2      )
     );
@@ -374,6 +388,7 @@ RAM_PEC_wrap #(
         .addr_w   ( AddrWr3     ),
         .read_en  ( EnRd3       ),
         .write_en ( EnWr3       ),
+        .BusyRd   ( BusyRd3),
         .data_in  ( DatWr3      ),
         .data_out ( DatRd3      )
     );

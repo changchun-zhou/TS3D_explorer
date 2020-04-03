@@ -59,7 +59,7 @@ initial begin
 //	wait(reset_n_chip);
 //	#10;
 	forever begin
-		#5 clk_chip = !clk_chip;
+		#(`CLOCK_PERIOD_ASIC/2) clk_chip = !clk_chip;
 	end
 end
 //always
