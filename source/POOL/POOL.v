@@ -369,6 +369,7 @@ RAM_FRMPOOL_wrap #(
         .INIT_FILE ("")
     ) RAM_FRMPOOL(
         .clk      ( clk         ),
+        .rst_n  ( rst_n ),
         .addr_r   ( FRMPOOL_AddrRd     ),
         .addr_w   ( FRMPOOL_AddrWr     ),
         .read_en  ( FRMPOOL_EnRd       ),
@@ -404,6 +405,7 @@ RAM_DELTA_wrap #(
         .INIT_FILE ("")
     ) RAM_DELTA (
         .clk      ( clk         ),
+        .rst_n ( rst_n ),
         .addr_r   ( DELTA_AddrRd     ),
         .addr_w   ( DELTA_AddrWr     ),
         .read_en  ( DELTA_EnRd       ),

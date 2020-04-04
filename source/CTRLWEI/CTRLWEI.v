@@ -5,7 +5,7 @@
 // Module : CTRLWEI
 // Author : CC zhou
 // Contact :
-// Date : 7 .1 .2019
+// Date : 1 .7 .2019
 //=======================================================
 // Description : Control configuration of Weights for 48 PECs one by one;
 
@@ -15,6 +15,7 @@
 // collect RdyWei from DISWEI, set 1 to RdyWei of NXTPEC;
 //========================================================
 `include "../source/include/dw_params_presim.vh"
+
 module CTRLWEI (
     input                                           clk     ,
     input                                           rst_n   ,

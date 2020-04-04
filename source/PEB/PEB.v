@@ -9,6 +9,7 @@
 //=======================================================
 // Description : Distribute SRAM For 3 PEC
 //========================================================
+
 `include "../source/include/dw_params_presim.vh"
 module PEB (
     input                                                   clk     ,
@@ -344,6 +345,7 @@ RAM_PEC_wrap #(
         .SRAM_WIDTH( `PSUM_WIDTH)
     ) RAM_PEC0 (
         .clk      ( clk         ),
+        .rst_n ( rst_n ),
         .addr_r   ( AddrRd0     ),
         .addr_w   ( AddrWr0     ),
         .read_en  ( EnRd0       ),
@@ -357,6 +359,7 @@ RAM_PEC_wrap #(
         .SRAM_WIDTH( `PSUM_WIDTH)
     ) RAM_PEC1 (
         .clk      ( clk         ),
+        .rst_n  ( rst_n ),
         .addr_r   ( AddrRd1     ),
         .addr_w   ( AddrWr1     ),
         .read_en  ( EnRd1       ),
@@ -370,6 +373,7 @@ RAM_PEC_wrap #(
         .SRAM_WIDTH( `PSUM_WIDTH)
     ) RAM_PEC2 (
         .clk      ( clk         ),
+        .rst_n  ( rst_n ),
         .addr_r   ( AddrRd2     ),
         .addr_w   ( AddrWr2     ),
         .read_en  ( EnRd2       ),
@@ -384,6 +388,7 @@ RAM_PEC_wrap #(
         .SRAM_WIDTH( `PSUM_WIDTH)
     ) RAM_PEC3 (
         .clk      ( clk         ),
+        .rst_n  (rst_n ),
         .addr_r   ( AddrRd3     ),
         .addr_w   ( AddrWr3     ),
         .read_en  ( EnRd3       ),

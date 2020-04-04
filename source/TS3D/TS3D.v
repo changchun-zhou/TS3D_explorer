@@ -56,12 +56,12 @@ module TS3D (
     input                                                                    GBFOFM_EnRd,
     output                                                                    GBFOFM_EnWr,
     input  [ `GBFOFM_ADDRWIDTH                  -1 : 0] GBFOFM_AddrRd,
-    input  [ `GBFOFM_ADDRWIDTH                  -1 : 0] GBFOFM_AddrWr,
+    output  [ `GBFOFM_ADDRWIDTH                  -1 : 0] GBFOFM_AddrWr,
     output [ `PORT_DATAWIDTH                      -1 : 0] GBFOFM_DatRd,
     input                                                                    GBFFLGOFM_EnRd,
     output                                                                    GBFFLGOFM_EnWr,
     input   [ `GBFFLGOFM_ADDRWIDTH           - 1 :0 ] GBFFLGOFM_AddrRd,
-    input   [ `GBFFLGOFM_ADDRWIDTH           - 1 :0 ] GBFFLGOFM_AddrWr,
+    output   [ `GBFFLGOFM_ADDRWIDTH           - 1 :0 ] GBFFLGOFM_AddrWr,
     output  [ `PORT_DATAWIDTH                    - 1 : 0 ] GBFFLGOFM_DatRd
 );
 //=====================================================================================================================
@@ -381,6 +381,7 @@ RAM_GBFWEI_wrap #(
         .INIT_FILE ("../testbench/Data/RAM_GBFWEI_12B.dat")
     ) RAM_GBFWEI (
         .clk      ( clk         ),
+        .rst_n ( rst_n),
         .addr_r   ( GBFWEI_AddrRd     ),
         .addr_w   ( GBFWEI_AddrWr     ),
         .read_en  ( GBFWEI_EnRd       ),
@@ -397,6 +398,7 @@ RAM_GBFFLGWEI_wrap #(
         .INIT_FILE ("../testbench/Data/RAM_GBFFLGWEI_12B.dat")
     ) RAM_GBFFLGWEI (
         .clk      ( clk         ),
+        .rst_n  ( rst_n ),
         .addr_r   ( GBFFLGWEI_AddrRd     ),
         .addr_w   ( GBFFLGWEI_AddrWr     ),
         .read_en  ( GBFFLGWEI_EnRd       ),
@@ -473,6 +475,7 @@ RAM_GBFACT_wrap #(
         .INIT_FILE ("../testbench/Data/RAM_GBFACT_12B.dat")
     ) RAM_GBFACT (
         .clk      ( clk         ),
+        .rst_n ( rst_n ),
         .addr_r   ( GBFACT_AddrRd     ),
         .addr_w   ( GBFACT_AddrWr     ),
         .read_en  ( GBFACT_EnRd       ),
@@ -531,6 +534,7 @@ RAM_GBFFLGACT_wrap #(
         .INIT_FILE ("../testbench/Data/RAM_GBFACT_12B1.dat")
     ) RAM_GBFFLGACT (
         .clk      ( clk         ),
+        .rst_n ( rst_n ),
         .addr_r   ( GBFFLGACT_AddrRd     ),
         .addr_w   ( GBFFLGACT_AddrWr     ),
         .read_en  ( GBFFLGACT_EnRd       ),
@@ -584,6 +588,7 @@ unpacker_left #(
          .SRAM_WIDTH(`PORT_DATAWIDTH)
      ) RAM_GBFOFM (
          .clk      ( clk         ),
+         .rst_n (rst_n),
          .addr_r   ( GBFOFM_AddrRd     ),
          .addr_w   ( GBFOFM_AddrWr     ),
          .read_en  ( GBFOFM_EnRd       ),
@@ -613,6 +618,7 @@ assign GBFOFM_Val = ~_GBFOFM_Val;
          .SRAM_WIDTH(`PORT_DATAWIDTH)
      ) RAM_GBFFLGOFM (
          .clk      ( clk         ),
+         .rst_n ( rst_n ),
          .addr_r   ( GBFFLGOFM_AddrRd     ),
          .addr_w   ( GBFFLGOFM_AddrWr     ),
          .read_en  ( GBFFLGOFM_EnRd       ),

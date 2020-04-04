@@ -150,7 +150,7 @@ wire [ NUM_AXI              -1 : 0 ]   empty         ;
 // ====================================================================================================================
 
 // ====================================================================================================================
-  //initial $sdf_annotate("/workspace/home/caoxg/Global_PE/for_post_sim/Global_PE.sdf",inst_TOP_ASIC,, "sdf.log", "MAXIMUM","1.0:1.0:1.0","FROM_MAXIMUM");
+
 // ====================================================================================================================
 // ASIC mem_chip instantiation
 // ====================================================================================================================
@@ -543,6 +543,7 @@ wire DLL_clock_out_pad;
       .S0_dll_pad          ( 1'b0     )
     );
 
+//initial $sdf_annotate("/workspace/home/zhoucc/S2CNN/Project/TS3D/synth/gate/ASIC.sdf",ASIC,, "sdf.log", "MAXIMUM","1.0:1.0:1.0","FROM_MAXIMUM");
 initial begin
 //    File_data_in_1 = $fopen("File_data_in_1.txt");
 //    File_data_in_2 = $fopen("File_data_in_2.txt");
@@ -550,10 +551,10 @@ initial begin
 //    $dumpfile("mem_controller_tb.vcd");
  //   $dumpvars;
 //save wave data ---------------------------------------------
-    $shm_open("wave_gds_sim_20ns.shm" ,,,,1024);//1G
-    $shm_probe(mem_controller_tb,"AC");
+    //$shm_open("wave_gds_sim_20ns.shm" ,,,,1024);//1G
+    //$shm_probe(mem_controller_tb,"AC");
 repeat(NumClk*2/3) @(negedge clk_chip);
-    $shm_close;
+    //$shm_close;
 repeat(NumClk/3) @(negedge clk_chip);
     $fclose(File_data_in_1);
     $fclose(File_data_in_2);
@@ -561,9 +562,9 @@ repeat(NumClk/3) @(negedge clk_chip);
     $finish;
   end
 //`ifdef SYNTH_MINI // hieracal
-    test_data #(
-    .NumClk(NumClk)
-    )test_data();
+    // test_data #(
+    // .NumClk(NumClk)
+    // )test_data();
 //`endif
 Init_DDR Init_DDR();
 

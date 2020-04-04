@@ -6,6 +6,7 @@ module RAM_GBFACT_wrap #(
     parameter INIT_FILE = ""
 )(
     input clk,
+    input rst_n,
     input [SRAM_DEPTH_BIT - 1 : 0]addr_r, addr_w,
     input read_en, write_en,
     input[SRAM_WIDTH  - 1 : 0]data_in,
@@ -54,7 +55,7 @@ wire                                   CSB;
     assign #(`CLOCK_PERIOD_ASIC/2) DI = data_in[SRAM_WIDTH -1 : 0];
     assign #(`CLOCK_PERIOD_ASIC/2) WEB= ~write_en ? ~(12'd0) : 12'd0;
     assign #(`CLOCK_PERIOD_ASIC/2) CSB = (~write_en)&(~read_en);
-`else 
+`else
     assign  A = Addr;
     assign  DI = data_in[SRAM_WIDTH -1 : 0];
     assign  WEB= ~write_en ? ~(12'd0) : 12'd0;
@@ -69,7 +70,7 @@ Delay #(
     .DATA_WIDTH(1)
 ) Delay_read_en_d (
     .CLK     (clk),
-    .RESET_N (),
+    .RESET_N (rst_n),
     .DIN     (read_en),
     .DOUT    (read_en_d)
 );
