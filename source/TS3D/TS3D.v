@@ -377,7 +377,7 @@ DISACT DISACT
 RAM_GBFWEI_wrap #(
         .SRAM_DEPTH_BIT(`GBFWEI_ADDRWIDTH),
         .SRAM_WIDTH(`PORT_DATAWIDTH),
-        .INIT_IF ("yes"),
+        .INIT_IF ("no"),
         .INIT_FILE ("../testbench/Data/RAM_GBFWEI_12B.dat")
     ) RAM_GBFWEI (
         .clk      ( clk         ),
@@ -394,7 +394,7 @@ RAM_GBFWEI_wrap #(
 RAM_GBFFLGWEI_wrap #(
         .SRAM_DEPTH_BIT(`GBFFLGWEI_ADDRWIDTH),
         .SRAM_WIDTH(`PORT_DATAWIDTH),
-        .INIT_IF ("yes"),
+        .INIT_IF ("no"),
         .INIT_FILE ("../testbench/Data/RAM_GBFFLGWEI_12B.dat")
     ) RAM_GBFFLGWEI (
         .clk      ( clk         ),
@@ -471,7 +471,7 @@ end
 RAM_GBFACT_wrap #(
         .SRAM_DEPTH_BIT(`GBFACT_ADDRWIDTH),
         .SRAM_WIDTH(`PORT_DATAWIDTH),
-        .INIT_IF ("yes"),
+        .INIT_IF ("no"),
         .INIT_FILE ("../testbench/Data/RAM_GBFACT_12B.dat")
     ) RAM_GBFACT (
         .clk      ( clk         ),
@@ -530,7 +530,7 @@ unpacker_left #(
 RAM_GBFFLGACT_wrap #(
         .SRAM_DEPTH_BIT(`GBFFLGACT_ADDRWIDTH),
         .SRAM_WIDTH(`PORT_DATAWIDTH),
-        .INIT_IF ("yes"),
+        .INIT_IF ("no"),
         .INIT_FILE ("../testbench/Data/RAM_GBFACT_12B1.dat")
     ) RAM_GBFFLGACT (
         .clk      ( clk         ),

@@ -562,9 +562,9 @@ repeat(NumClk/3) @(negedge clk_chip);
     $finish;
   end
 //`ifdef SYNTH_MINI // hieracal
-    // test_data #(
-    // .NumClk(NumClk)
-    // )test_data();
+  test_data #(
+  .NumClk(NumClk)
+  )test_data();
 //`endif
 Init_DDR Init_DDR();
 

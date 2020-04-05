@@ -7,7 +7,7 @@
 // ONLY PRE-Sim parameter
 // ****************************************************************************
 `define CLOCK_PERIOD_ASIC 10 // 10ns clock period
-//`define DELAY_SRAM // define with SRAM Sim
+`define DELAY_SRAM // define with SRAM Sim
 
 
 // ****************************************************************************

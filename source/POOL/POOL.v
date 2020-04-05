@@ -22,7 +22,7 @@ module POOL(
     output [ `C_LOG_2(`LENPSUM * `LENPSUM)-1 : 0] POOLPEL_AddrRd,
     input  [ `PSUM_WIDTH * `NUMPEB                   -1 : 0] PELPOOL_Dat,
     output                                                                    GBFOFM_EnWr,
-    output                                                                    GBFOFM_EnRd,
+    input                                                                    GBFOFM_EnRd,
     output  reg[ `GBFOFM_ADDRWIDTH                 -1 : 0] GBFOFM_AddrWr,
     output [ `PORT_DATAWIDTH                        -1 : 0] GBFOFM_DatWr,
     output                                                                    GBFFLGOFM_EnWr,

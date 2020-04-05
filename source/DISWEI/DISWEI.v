@@ -54,15 +54,15 @@ reg                                                     ValFlgWei;
 reg  [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE           -1 : 0] FlgWei;
 reg [ `C_LOG_2(`KERNEL_SIZE)                    -1 : 0] ValNumRmn_lastFetch;
 reg   [ `C_LOG_2(`BLOCK_DEPTH * `KERNEL_SIZE )   -1 : 0] CntFetch;
-wire  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei0;
-wire  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei1;
-wire  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei2;
-wire  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei3;
-wire  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei4;
-wire  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei5;
-wire  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei6;
-wire  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei7;
-wire  [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei8;
+reg   [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei0;
+reg   [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei1;
+reg   [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei2;
+reg   [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei3;
+reg   [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei4;
+reg   [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei5;
+reg   [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei6;
+reg   [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei7;
+reg   [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei8;
 reg   [ `C_LOG_2( `BLOCK_DEPTH * `KERNEL_SIZE*`DATA_WIDTH)   -1 : 0] AddrBaseWei;
 reg  [  `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE-1 : 0] SeqWei;
 reg  [ `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE -1 : 0] Wei;
@@ -80,13 +80,14 @@ wire [ 1 * `BLOCK_DEPTH * `KERNEL_SIZE + `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SI
 assign WEI_Val = GBFFLGWEI_Val && GBFWEI_Val;
 
 // *********************************************************************
-// FSM 
+// FSM
 localparam IDLE = 3'b000;
 localparam CHECK_FIFO_GBF = 3'b001;
 localparam FETCH_FLAGWEI = 3'b010;
 localparam WAIT_FETCH_FLAGWEI = 3'b110;
 localparam FETCH_WEI = 3'b011;
-localparam WATI_PUSH = 3'b100;
+localparam WAIT_PUSH1 = 3'b100;
+localparam WAIT_PUSH2= 3'b101;
 localparam PUSH = 3'b111;
 reg [ 3 -1:0 ]state;
 reg [ 3 -1:0 ]next_state;
@@ -102,18 +103,19 @@ always @(*) begin
                     next_state <= FETCH_FLAGWEI;
                 else
                     next_state <= CHECK_FIFO_GBF;
-        FETCH_FLAGWEI: next_state <= WAIT_FETCH_FLAGWEI; // Fect flagwei         
+        FETCH_FLAGWEI: next_state <= WAIT_FETCH_FLAGWEI; // Fect flagwei
         WAIT_FETCH_FLAGWEI: if( Req_WEI )//wait ValNumPEC compute to Req_WEI:whether FETCH_WEI
                     next_state <= FETCH_WEI;
                 else
-                    next_state <= WATI_PUSH;//directly push to fifo
+                    next_state <= WAIT_PUSH1;//directly push to fifo
         FETCH_WEI:  if( Req_WEI )//every time next_state is FETCH_WEI, try to fetch WEI
                         //next_state <= FETCH_FLAGWEI;
                         next_state <= FETCH_WEI;
-                    else 
-                        next_state <= WATI_PUSH;
-        WATI_PUSH: 
-                    next_state <= PUSH;
+                    else
+                        next_state <= WAIT_PUSH1;
+        WAIT_PUSH1:
+                    next_state <= WAIT_PUSH2;
+        WAIT_PUSH2: next_state <= PUSH;// Add a delay to insert Addrbasewei_reg because of negative slack
         PUSH:    next_state <= CHECK_FIFO_GBF;
         default: next_state <= IDLE;
     endcase
@@ -163,7 +165,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         NumVal_Cur <= 0;
     end else if (CTRLACT_FnhFrm ) begin // 3st stage Pipeline
         NumVal_Cur <= 0;
-    end else if ( state == WATI_PUSH )begin
+    end else if ( state == WAIT_PUSH1 )begin
         NumVal_Cur <= NumVal_Cur - ValNumPEC;
     end else if ( GBFWEI_EnRd ) begin
         NumVal_Cur <= NumVal_Cur + `PORT_DATAWIDTH/`DATA_WIDTH;//12B
@@ -197,20 +199,33 @@ always @ ( posedge clk or negedge rst_n ) begin
         AddrBaseWei <= 0;
     end else if(CTRLACT_FnhFrm) begin
         AddrBaseWei<=0;//////////////////////////////
-    end else if ( next_state == WATI_PUSH ) begin
+    end else if ( next_state == WAIT_PUSH1) begin
         AddrBaseWei <= NumVal_Cur - ValNumPEC;
     end
 end
-
-assign AddrBaseWei8 = AddrBaseWei;// PECMAC_Wei0
-assign AddrBaseWei7 = AddrBaseWei + ValNumWei[8];//PECMAC_Wei0
-assign AddrBaseWei6 = AddrBaseWei + ValNumWei[8] + ValNumWei[7];
-assign AddrBaseWei5 = AddrBaseWei + ValNumWei[8] + ValNumWei[7] + ValNumWei[6];
-assign AddrBaseWei4 = AddrBaseWei + ValNumWei[8] + ValNumWei[7] + ValNumWei[6] + ValNumWei[5];
-assign AddrBaseWei3 = AddrBaseWei + ValNumWei[8] + ValNumWei[7] + ValNumWei[6] + ValNumWei[5] + ValNumWei[4];
-assign AddrBaseWei2 = AddrBaseWei + ValNumWei[8] + ValNumWei[7] + ValNumWei[6] + ValNumWei[5] + ValNumWei[4] + ValNumWei[3];
-assign AddrBaseWei1 = AddrBaseWei + ValNumWei[8] + ValNumWei[7] + ValNumWei[6] + ValNumWei[5] + ValNumWei[4] + ValNumWei[3] + ValNumWei[2];
-assign AddrBaseWei0 = AddrBaseWei + ValNumWei[8] + ValNumWei[7] + ValNumWei[6] + ValNumWei[5] + ValNumWei[4] + ValNumWei[3] + ValNumWei[2] + ValNumWei[1];
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        AddrBaseWei8 <= 0 ;
+        AddrBaseWei7 <= 0 ;
+        AddrBaseWei6 <= 0 ;
+        AddrBaseWei5 <= 0 ;
+        AddrBaseWei4 <= 0 ;
+        AddrBaseWei3 <= 0 ;
+        AddrBaseWei2 <= 0 ;
+        AddrBaseWei1 <= 0 ;
+        AddrBaseWei0 <= 0;
+    end else if ( state == WAIT_PUSH1 ) begin
+        AddrBaseWei8 <= AddrBaseWei;// PECMAC_Wei0
+        AddrBaseWei7 <= AddrBaseWei + ValNumWei[8];//PECMAC_Wei0
+        AddrBaseWei6 <= AddrBaseWei + ValNumWei[8] + ValNumWei[7];
+        AddrBaseWei5 <= AddrBaseWei + ValNumWei[8] + ValNumWei[7] + ValNumWei[6];
+        AddrBaseWei4 <= AddrBaseWei + ValNumWei[8] + ValNumWei[7] + ValNumWei[6] + ValNumWei[5];
+        AddrBaseWei3 <= AddrBaseWei + ValNumWei[8] + ValNumWei[7] + ValNumWei[6] + ValNumWei[5] + ValNumWei[4];
+        AddrBaseWei2 <= AddrBaseWei + ValNumWei[8] + ValNumWei[7] + ValNumWei[6] + ValNumWei[5] + ValNumWei[4] + ValNumWei[3];
+        AddrBaseWei1 <= AddrBaseWei + ValNumWei[8] + ValNumWei[7] + ValNumWei[6] + ValNumWei[5] + ValNumWei[4] + ValNumWei[3] + ValNumWei[2];
+        AddrBaseWei0 <= AddrBaseWei + ValNumWei[8] + ValNumWei[7] + ValNumWei[6] + ValNumWei[5] + ValNumWei[4] + ValNumWei[3] + ValNumWei[2] + ValNumWei[1];
+  end
+end
 
 wire [ `DATA_WIDTH*`BLOCK_DEPTH  -1 : 0]Wei0;
 wire [ `DATA_WIDTH*`BLOCK_DEPTH  -1 : 0]Wei1;
@@ -234,7 +249,7 @@ assign Wei8 = SeqWei[ AddrBaseWei8 << `C_LOG_2(`DATA_WIDTH) +: `DATA_WIDTH * `BL
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         Wei <= 0;
-    end else if ( state==WATI_PUSH) begin // paulse wei0 wei1 wei2 ...wei8
+    end else if ( state==WAIT_PUSH2) begin // paulse wei0 wei1 wei2 ...wei8
         Wei <= {    Wei0,
                     Wei1,
                     Wei2,
@@ -250,14 +265,14 @@ end
 assign fifo_push = state == PUSH;
 assign fifo_in = {GBFFLGWEI_DatRd,Wei};
 assign { DISWEIPEC_FlgWei, DISWEIPEC_Wei } = fifo_out;
-assign fifo_pop = CTRLWEI_PlsFetch; 
+assign fifo_pop = CTRLWEI_PlsFetch;
 assign DISWEI_RdyFIFO = !fifo_empty;
 
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
 fifo_asic #(
-    .DATA_WIDTH(1 * `BLOCK_DEPTH * `KERNEL_SIZE + 
+    .DATA_WIDTH(1 * `BLOCK_DEPTH * `KERNEL_SIZE +
       `DATA_WIDTH * `BLOCK_DEPTH * `KERNEL_SIZE  ),
     .ADDR_WIDTH(`FIFO_DISWEI_ADDRWIDTH ) // 4 PEC
     ) fifo_DISWEI(
