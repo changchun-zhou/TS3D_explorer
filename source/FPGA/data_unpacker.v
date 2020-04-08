@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-`include "common.vh"
+`include "../source/include/dw_params_presim.vh"
 module data_unpacker #(
 // ******************************************************************
 // Parameters

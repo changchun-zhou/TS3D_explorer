@@ -1,5 +1,5 @@
 `timescale 1ns/100ps
-`include"common.vh"
+`include "../source/include/dw_params_presim.vh"
 module axi_master_tb_driver#(
 // ******************************************************************
 // PARAMETERS

@@ -7,7 +7,7 @@
 // ONLY PRE-Sim parameter
 // ****************************************************************************
 `define CLOCK_PERIOD_ASIC 10 // 10ns clock period
-`define DELAY_SRAM // define with SRAM Sim
+//`define DELAY_SRAM // define with SRAM Sim= presim
 
 
 // ****************************************************************************
@@ -83,9 +83,9 @@
 `define WR_SIZE_OFM 2**`GBFOFM_ADDRWIDTH * 3/4
 
 `define ACT_ADDR        32'h0800_0000
-`define FLGACT_ADDR   32'h0801_0000
-`define WEI_ADDR         32'h0802_0000
-`define FLGWEI_ADDR   32'h0803_0000
+`define FLGACT_ADDR     32'h0801_0000
+`define WEI_ADDR        32'h0802_0000
+`define FLGWEI_ADDR     32'h0803_0000
 `define CFG_ADDR        32'h0804_0000
 
 // **********************************************************************

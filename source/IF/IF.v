@@ -272,7 +272,7 @@ top_asyncFIFO_rd #(
     top_asyncFIFO_wr #(
             .SPI_WIDTH(`PORT_DATAWIDTH),
             .ADDR_WIDTH_FIFO(`ASYSFIFO_ADDRWIDTH)
-        ) inst_top_asyncFIFO_wr (
+        ) top_asyncFIFO_wr (
             .clk_chip      (clk),
             .reset_n_chip  (rst_n),
             .O_spi_sck     (O_spi_sck),

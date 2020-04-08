@@ -2,10 +2,10 @@
 import random
 import os
 #*********** read files *******************************************
-FlagActFileName = '../Data/dequant_data/Activation_45_pool3b_flag.dat'
-FlagWeiFileName = '../Data/dequant_data/Weight_45_conv4a.float_weight_flag.dat'
-ActFileName = '../Data/dequant_data/Activation_45_pool3b_data.dat'
-WeiFileName = '../Data/dequant_data/Weight_45_conv4a.float_weight_data.dat'
+FlagActFileName = '../Data/dequant_data/prune_quant_extract_proportion/Activation_45_pool1_flag.dat'
+FlagWeiFileName = '../Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_flag.dat'
+ActFileName = '../Data/dequant_data/prune_quant_extract_proportion/Activation_45_pool1_data.dat'
+WeiFileName = '../Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_data.dat'
 
 #*********** write files  *****************************************
 PECRAM_DatWrFileName = '../Data/GenTest/PECRAM_DatWr_Ref.dat'

@@ -26,7 +26,7 @@ module mem_controller_tb;
     parameter         OF_BASE_ADDR                      = 32'h0804_8000 ; //
     parameter         OF_FLAG_BASE_ADDR                 = 32'h0805_0000 ; //4MB outfm
 
-parameter NumClk = 40000;
+parameter NumClk = 80000;
 
 wire                                        clk;
 wire                                        reset;
@@ -543,29 +543,30 @@ wire DLL_clock_out_pad;
       .S0_dll_pad          ( 1'b0     )
     );
 
-//initial $sdf_annotate("/workspace/home/zhoucc/S2CNN/Project/TS3D/synth/gate/ASIC.sdf",ASIC,, "sdf.log", "MAXIMUM","1.0:1.0:1.0","FROM_MAXIMUM");
+reg flag_finish;
 initial begin
-//    File_data_in_1 = $fopen("File_data_in_1.txt");
-//    File_data_in_2 = $fopen("File_data_in_2.txt");
-//    File_data_out_BUS = $fopen("File_data_out_BUS.txt");
-//    $dumpfile("mem_controller_tb.vcd");
- //   $dumpvars;
 //save wave data ---------------------------------------------
-    //$shm_open("wave_gds_sim_20ns.shm" ,,,,1024);//1G
-    //$shm_probe(mem_controller_tb,"AC");
-repeat(NumClk*2/3) @(negedge clk_chip);
-    //$shm_close;
-repeat(NumClk/3) @(negedge clk_chip);
-    $fclose(File_data_in_1);
-    $fclose(File_data_in_2);
-    $fclose(File_data_out_BUS);
+    flag_finish = 0;
+    $shm_open("wave_synth_shm" ,,,,1024);//1G
+    $shm_probe(mem_controller_tb,"AS");
+    repeat(NumClk) @(negedge clk_chip);
+    $shm_close;
+    flag_finish = 1;
     $finish;
   end
-//`ifdef SYNTH_MINI // hieracal
-  test_data #(
-  .NumClk(NumClk)
-  )test_data();
-//`endif
+
+`ifdef DELAY_SRAM
+    test_data_presim #(
+    .NumClk(NumClk)
+    )test_data();
+`else
+    initial $sdf_annotate("/workspace/home/zhoucc/S2CNN/Project/TS3D/synth/gate/ASIC.sdf",ASIC
+                          ,, "sdf.log", "MAXIMUM","1.0:1.0:1.0","FROM_MAXIMUM");
+    test_data_postsim #(
+    .NumClk(NumClk)
+    )test_data();
+`endif
+
 Init_DDR Init_DDR();
 
 endmodule
