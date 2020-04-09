@@ -43,7 +43,7 @@ module DISACT (
 //=====================================================================================================================
 wire                                    NearFnhPacker;
 wire                                    PlsFetch;
-reg                                     PACKER_Sta;
+reg                                     PACKER_Sta_reg;
 reg                                     GBFFLGACT_EnRd_d;
 reg                                     GBFFLGACT_EnRd_dd;
 reg [ `C_LOG_2(`BLOCK_DEPTH)      : 0] PACKER_Num;
@@ -52,6 +52,7 @@ wire                                    PACKER_ReqDat;
 
 reg                                      PACKER_Bypass;
 wire                                    GBFVNACT_EnRd;
+wire [ `DATA_WIDTH * `BLOCK_DEPTH-1 : 0] DatPacker;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -136,17 +137,18 @@ always @ ( posedge clk or negedge rst_n ) begin
 end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
-        PACKER_Sta <= 0;
+        PACKER_Sta_reg <= 0;
         GBFFLGACT_EnRd_d <= 0;
         GBFFLGACT_EnRd_dd <= 0;
 
     end else begin
         GBFFLGACT_EnRd_d <= GBFFLGACT_EnRd;
         GBFFLGACT_EnRd_dd <= GBFFLGACT_EnRd_d;
-        PACKER_Sta <= GBFFLGACT_EnRd_d;
+        PACKER_Sta_reg <= GBFFLGACT_EnRd_d ;
     end
 end
-
+wire PACKER_Sta;
+assign PACKER_Sta = PACKER_Sta_reg && |PACKER_Num;// When isn't zero, Sta
 // FLAG
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
@@ -198,6 +200,8 @@ always @ ( posedge clk or negedge rst_n ) begin
         PACKER_Bypass <= ~(|PACKER_Num);
     end
 end
+assign DISACT_Act = PACKER_Bypass? 0 : DatPacker;
+wire PACKER_Sta_d;
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
@@ -208,12 +212,23 @@ PACKER #(
         .clk           (clk),
         .rst_n         (rst_n),
         .NumPacker     (PACKER_Num),
-        .Sta           (PACKER_Sta),
+        .GBFFLGACT_EnRd_d(GBFFLGACT_EnRd_d),
+        .Sta           (PACKER_Sta_d),
         .Bypass        (PACKER_Bypass),
         .ReqDat        (PACKER_ReqDat),
         .ValDat        (PACKER_ValDat),
         .Dat           (GBFACT_DatRd),
-        .DatPacker     (DISACT_Act),
+        .DatPacker     (DatPacker),
         .NearFnhPacker (NearFnhPacker)
     );
+Delay #(
+    .NUM_STAGES(1),
+    .DATA_WIDTH(1)
+    )Delay_PACKER_Sta_d
+    (
+        .CLK(clk),
+        .RESET_N(rst_n),
+        .DIN(PACKER_Sta),
+        .DOUT(PACKER_Sta_d)
+        );
 endmodule

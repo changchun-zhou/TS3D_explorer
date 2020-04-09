@@ -190,9 +190,9 @@ ReqGBF #(
     .AddrRd(GBFFLGOFM_AddrRd ),
     .EnWr(GBFFLGOFM_EnWr ),
     .EnRd(GBFFLGOFM_EnRd),
-    .Req( _Req_FLGOFM)
+    .Req( Req_FLGOFM)
     );
-assign Req_FLGOFM = ~_Req_FLGOFM;
+//assign Req_FLGOFM = ~_Req_FLGOFM;
 ReqGBF #(
     .DEPTH(2**`GBFOFM_ADDRWIDTH ),
     .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
@@ -206,8 +206,8 @@ ReqGBF #(
     .AddrRd(GBFOFM_AddrRd ),
     .EnWr(GBFOFM_EnWr ),
     .EnRd(GBFOFM_EnRd),
-    .Req( _Req_OFM)
+    .Req( Req_OFM)
     );
-assign Req_OFM = ~_Req_OFM;
+//assign Req_OFM = ~_Req_OFM;
 
 endmodule

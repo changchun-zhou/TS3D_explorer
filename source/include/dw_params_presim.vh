@@ -7,7 +7,7 @@
 // ONLY PRE-Sim parameter
 // ****************************************************************************
 `define CLOCK_PERIOD_ASIC 10 // 10ns clock period
-//`define DELAY_SRAM // define with SRAM Sim= presim
+`define DELAY_SRAM // define with SRAM Sim= presim
 
 
 // ****************************************************************************
@@ -91,10 +91,10 @@
 // **********************************************************************
 // Test File
 // *********************************************************************************
-`define FILE_GBFFLGWEI "../testbench/Data/dequant_data/Weight_45_conv4a.float_weight_flag.dat"
-`define FILE_GBFWEI "../testbench/Data/dequant_data/Weight_45_conv4a.float_weight_data.dat"
-`define FILE_GBFFLGACT "../testbench/Data/dequant_data/Activation_45_pool3b_flag.dat"
-`define FILE_GBFACT "../testbench/Data/dequant_data/Activation_45_pool3b_data.dat"
+`define FILE_GBFFLGWEI "../testbench/Data/dequant_data/prune_quant_extract_high/Weight_45_conv4a.float_weight_flag.dat"
+`define FILE_GBFWEI "../testbench/Data/dequant_data/prune_quant_extract_high/Weight_45_conv4a.float_weight_data.dat"
+`define FILE_GBFFLGACT "../testbench/Data/dequant_data/prune_quant_extract_high/Activation_45_pool3b_flag.dat"
+`define FILE_GBFACT "../testbench/Data/dequant_data/prune_quant_extract_high/Activation_45_pool3b_data.dat"
 
 //-----------------------------------------------------------
 //Simple Log2 calculation function

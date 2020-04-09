@@ -20,6 +20,7 @@ module  PACKER #(
     input  [ `C_LOG_2(NUM_DATA)       : 0 ] NumPacker, // 1-32 data
     input                                   Sta,//paulse
     input                                   Bypass ,// paulse 0 data
+    input                                   GBFFLGACT_EnRd_d,
 
     output                                  ReqDat,
     input                                   ValDat, // Make sure ValDat delay 1 clk after ReqDat
@@ -97,7 +98,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
-assign NearFnhPacker = Bypass || (CntFetch == NumPacker -1 && ValDat);
+assign NearFnhPacker =(  (Bypass&& ~(|NumPacker))  || (CntFetch == NumPacker -1 && ValDat) ) && ~GBFFLGACT_EnRd_d;
 
 
 //=====================================================================================================================

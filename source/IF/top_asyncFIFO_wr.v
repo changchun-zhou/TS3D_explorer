@@ -19,7 +19,20 @@ module top_asyncFIFO_wr #(
     input [ SPI_WIDTH    -1 : 0 ]           wr_data         //ASIC
     );
 
-parameter WR_COUNT = `WR_SIZE_OFM;
+reg [ TX_WIDTH    -1 : 0] wr_size;
+
+always @ ( posedge clk_chip or negedge reset_n_chip ) begin
+    if ( !reset_n_chip ) begin
+        wr_size <= 0;
+    end else if ( config_paulse ) begin
+         case( config_data)
+            `IFCODE_FLGOFM:   wr_size <= `WR_SIZE_FLGOFM;
+            `IFCODE_OFM   :   wr_size <= `WR_SIZE_OFM;
+            default       :   wr_size <= `WR_SIZE_FLGOFM;
+        endcase
+    end
+end
+
 wire                        empty         ;
 wire                        full          ;
 wire                        full_ahead_d          ;
@@ -104,7 +117,7 @@ end
 always @(posedge clk_chip or negedge reset_n_chip) begin : proc_wr_done_wait
     if(~reset_n_chip) begin
         wr_done_wait <= 0;
-    end else if( wr_count >= WR_COUNT -1 && ~full_ahead_d)begin
+    end else if( wr_count >= wr_size -1 && ~full_ahead_d)begin
         wr_done_wait <= 1; //Control wr_ready
     end else if( state == IDLE ) begin
         wr_done_wait <= 0;
@@ -124,7 +137,7 @@ end
 always @(posedge clk_chip or negedge reset_n_chip) begin : proc_wr_done_wait_in
     if(~reset_n_chip) begin
         wr_done_wait_in <= 0;
-    end else if( wr_count_in >= WR_COUNT )begin // really write 64,pull_down wr_en
+    end else if( wr_count_in >= wr_size )begin // really write 64,pull_down wr_en
         wr_done_wait_in <= 1; //Control wr_en
     end else if( state == IDLE ) begin
         wr_done_wait_in <= 0;

@@ -2,10 +2,10 @@
 import random
 import os
 #*********** read files *******************************************
-FlagActFileName = '../Data/dequant_data/prune_quant_extract_proportion/Activation_45_pool1_flag.dat'
-FlagWeiFileName = '../Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_flag.dat'
-ActFileName = '../Data/dequant_data/prune_quant_extract_proportion/Activation_45_pool1_data.dat'
-WeiFileName = '../Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_data.dat'
+FlagActFileName = '../Data/dequant_data/prune_quant_extract_high/Activation_45_pool3b_flag.dat'
+ActFileName = '../Data/dequant_data/prune_quant_extract_high/Activation_45_pool3b_data.dat'
+FlagWeiFileName = '../Data/dequant_data/prune_quant_extract_high/Weight_45_conv4a.float_weight_flag.dat'
+WeiFileName = '../Data/dequant_data/prune_quant_extract_high/Weight_45_conv4a.float_weight_data.dat'
 
 #*********** write files  *****************************************
 PECRAM_DatWrFileName = '../Data/GenTest/PECRAM_DatWr_Ref.dat'
@@ -25,13 +25,14 @@ NumChn = 32
 NumWei = 9
 NumBlk = 2
 NumFrm = 4
+KerSize = 3
+Stride = 2
+fl = 0
 
 NumPEC = 3
 NumPEB = 16
 Len = 16
-KerSize = 3
-Stride = 2
-fl = 0
+
 PORT_DATAWIDTH = 96
 # PSUM_WIDTH = 23
 
@@ -47,14 +48,14 @@ cnt_act_col = 0
 
 FlagActFile        = open (FlagActFileName,        'r')
 ActFile            = open (ActFileName,            'r')
-PECMAC_ActFile     = open (PECMAC_ActFileName,     'w') 
+PECMAC_ActFile     = open (PECMAC_ActFileName,     'w')
 PECMAC_FlgActFile  = open (PECMAC_FlgActFileName,  'w')
 POOL_SPRS_MEMFile  = open (POOL_SPRS_MEMFileName,  'w')
-POOL_FLAG_MEMFile  = open (POOL_FLAG_MEMFileName,  'w') 
-RAMPEC_DatRdFile   = open (RAMPEC_DatRdFileName,   'w') 
+POOL_FLAG_MEMFile  = open (POOL_FLAG_MEMFileName,  'w')
+RAMPEC_DatRdFile   = open (RAMPEC_DatRdFileName,   'w')
 PECMAC_FlgWeiFile = open (PECMAC_FlgWeiFileName, 'w')
 GBFFLGOFM_DatRdFile= open (GBFFLGOFM_DatRdFileName,'w')
-GBFOFM_DatRdFile   = open (GBFOFM_DatRdFileName,   'w') 
+GBFOFM_DatRdFile   = open (GBFOFM_DatRdFileName,   'w')
 
 CNVOUT_Psum2File   = open(CNVOUT_Psum2FileName, 'w')
 PECRAM_DatWrFile   = open(PECRAM_DatWrFileName, 'w')
@@ -144,7 +145,7 @@ for cntfrm in range(0,NumFrm):
 
                     PECMAC_ActFile.write('\n')
                     PECMAC_FlgActFile.write('\n')
-            
+
             for cntPEB in range(0, NumPEB):
                 for cntPEC in range (0, NumPEC):
 
@@ -161,9 +162,9 @@ for cntfrm in range(0,NumFrm):
                         else:
                             cnt_Flagwei_hex += 1
                         PECMAC_FlgWei[j] = PECMAC_FlgWei_item # FlgWei0 FlgWei1
-                        
+
                         PECMAC_FlgWei_wr = PECMAC_FlgWei_wr + PECMAC_FlgWei_item_hex
-                    
+
                     for j in range (0, NumWei) :
                         PECMAC_Wei_1 = ''
                         for k in range (0, NumChn):
@@ -271,7 +272,7 @@ for cntfrm in range(0,NumFrm):
                                 CNVOUT_Psum1File.write(CNVOUT_Psum1_PEL[psumrow][psumcol]+'\n')
                                 CNVOUT_Psum1_PEL = [['' for x in range ( 0, Len)] for y in range(0,Len)]
                         CNVOUT_Psum1File.write('\n')
-                    # Every PEC a line: WEI0(0000ch1 ch31) WEI1   
+                    # Every PEC a line: WEI0(0000ch1 ch31) WEI1
                     PECMAC_WeiFile.write(PECMAC_Wei_wr )
                     PECMAC_WeiFile.write('\n')
                     PECMAC_Wei_wr = ''
