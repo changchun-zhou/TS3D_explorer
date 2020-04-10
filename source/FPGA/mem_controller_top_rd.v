@@ -15,10 +15,10 @@ module mem_controller_top_rd
   parameter integer WSTRB_W                           = AXI_DATA_W/8  ,
   parameter integer AXI_OUT_DATA_W                    = AXI_DATA_W * 1,
   parameter integer PU_ID_W                           = 1             ,
-  parameter integer DATA_WIDTH                        = 96            ,
+  parameter integer DATA_WIDTH                        = 96
 
-  parameter integer CONFIG_ADDR_WIDTH                 = 20            ,
-  parameter integer CONFIG_SIZE_WIDTH                 = 9
+  // parameter integer CONFIG_ADDR_WIDTH                 = 20            ,
+  // parameter integer CONFIG_SIZE_WIDTH                 = 9
 
 
 )( // PORTS
@@ -89,23 +89,23 @@ module mem_controller_top_rd
 // WIRES
 // ====================================================================================================================
 // read
-    parameter         ACT_DATA_1_ADDR                     = 32'h0800_0000 ;
-    parameter         ACT_DATA_2_ADDR                     = 32'h0800_8000 ;
-    parameter         ACT_FLAG_1_ADDR                    = 32'h0801_0000 ; //4MB act
-    parameter         ACT_FLAG_2_ADDR                    = 32'h0801_8000 ; //4MB act
+    // parameter         ACT_DATA_1_ADDR                     = 32'h0800_0000 ;
+    // parameter         ACT_DATA_2_ADDR                     = 32'h0800_8000 ;
+    // parameter         ACT_FLAG_1_ADDR                    = 32'h0801_0000 ; //4MB act
+    // parameter         ACT_FLAG_2_ADDR                    = 32'h0801_8000 ; //4MB act
 
-    parameter         WEI_DATA_1_ADDR                     = 32'h0802_0000 ;
-    parameter         WEI_DATA_2_ADDR                     = 32'h0802_8000 ;
-    parameter         WEI_FLAG_1_ADDR                    = 32'h0803_0000 ; //4MB act
-    parameter         WEI_FLAG_2_ADDR                    = 32'h0803_8000 ; //4MB act
-    parameter         CONFIG_ADDR                       = 32'h0804_0000 ;
+    // parameter         WEI_DATA_1_ADDR                     = 32'h0802_0000 ;
+    // parameter         WEI_DATA_2_ADDR                     = 32'h0802_8000 ;
+    // parameter         WEI_FLAG_1_ADDR                    = 32'h0803_0000 ; //4MB act
+    // parameter         WEI_FLAG_2_ADDR                    = 32'h0803_8000 ; //4MB act
+    // parameter         CONFIG_ADDR                       = 32'h0804_0000 ;
 
-    // parameter OF_BASE_ADDR                             = 32'h0850_0000, //1MB act
-    parameter         OF_BASE_ADDR                      = 32'h080d_8f90 ; //
-    parameter         OF_FLAG_BASE_ADDR                 = 32'h0890_0000 ; //4MB outfm
-    parameter         WEI_BASE_ADDR                     = 32'h0950_0000 ; //
-    parameter         WEI_FLAG_BASE_ADDR                = 32'h1950_0000 ;  //256MB WEI
-    // parameter         CONFIG_ADDR                       = 32'h0802_0000 ;
+    // // parameter OF_BASE_ADDR                             = 32'h0850_0000, //1MB act
+    // parameter         OF_BASE_ADDR                      = 32'h080d_8f90 ; //
+    // parameter         OF_FLAG_BASE_ADDR                 = 32'h0890_0000 ; //4MB outfm
+    // parameter         WEI_BASE_ADDR                     = 32'h0950_0000 ; //
+    // parameter         WEI_FLAG_BASE_ADDR                = 32'h1950_0000 ;  //256MB WEI
+    // // parameter         CONFIG_ADDR                       = 32'h0802_0000 ;
 
     parameter g = 0;
 // genvar g;
@@ -577,18 +577,18 @@ parameter BYTE_WIDTH = 8;
          rd_req_config      <= 1;
          // rd_req_size_config <= 22; // ff
         case(O_data_out[31:28])
-          `IFCODE_CFG:  begin rd_req_size_config = `RD_SIZE_CFG*`PORT_DATAWIDTH/AXI_DATA_W;   rd_addr_config = CONFIG_ADDR     + (`RD_SIZE_CFG*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd0 ; count_rd0 <= count_rd0 + 1;
+          `IFCODE_CFG:  begin rd_req_size_config = `RD_SIZE_CFG*`PORT_DATAWIDTH/AXI_DATA_W;   rd_addr_config = `CFG_ADDR     + (`RD_SIZE_CFG*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd0 ; count_rd0 <= count_rd0 + 1;
                 count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 = (O_data_out[27]? 0:count_rd8);end
 
-          `IFCODE_ACT:  begin rd_req_size_config = `RD_SIZE_ACT*`PORT_DATAWIDTH/AXI_DATA_W;  rd_addr_config = ACT_DATA_1_ADDR + (`RD_SIZE_ACT*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd2 ; count_rd2 <= count_rd2 + 1;
+          `IFCODE_ACT:  begin rd_req_size_config = `RD_SIZE_ACT*`PORT_DATAWIDTH/AXI_DATA_W;  rd_addr_config = `ACT_ADDR + (`RD_SIZE_ACT*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd2 ; count_rd2 <= count_rd2 + 1;
                 count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 = (O_data_out[27]? 0:count_rd8); end
 
-          `IFCODE_FLGACT:  begin rd_req_size_config = `RD_SIZE_FLGACT*`PORT_DATAWIDTH/AXI_DATA_W;   rd_addr_config = ACT_FLAG_1_ADDR + (`RD_SIZE_FLGACT*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd4 ; count_rd4 <= count_rd4 + 1; count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 = (O_data_out[27]? 0:count_rd8); end
+          `IFCODE_FLGACT:  begin rd_req_size_config = `RD_SIZE_FLGACT*`PORT_DATAWIDTH/AXI_DATA_W;   rd_addr_config =  `FLGACT_ADDR + (`RD_SIZE_FLGACT*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd4 ; count_rd4 <= count_rd4 + 1; count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 = (O_data_out[27]? 0:count_rd8); end
 
-          `IFCODE_WEI:  begin   rd_req_size_config = `RD_SIZE_WEI*`PORT_DATAWIDTH/AXI_DATA_W; rd_addr_config = WEI_DATA_1_ADDR + (`RD_SIZE_WEI*`PORT_DATAWIDTH/BYTE_WIDTH)*(O_data_out[27]? 0:count_rd6)  ; count_rd6 <= (O_data_out[27]? 0:count_rd6)  + 1; count_rd8 = (O_data_out[27]? 0:count_rd8);end
+          `IFCODE_WEI:  begin   rd_req_size_config = `RD_SIZE_WEI*`PORT_DATAWIDTH/AXI_DATA_W; rd_addr_config = `WEI_ADDR + (`RD_SIZE_WEI*`PORT_DATAWIDTH/BYTE_WIDTH)*(O_data_out[27]? 0:count_rd6)  ; count_rd6 <= (O_data_out[27]? 0:count_rd6)  + 1; count_rd8 = (O_data_out[27]? 0:count_rd8);end
 
-          `IFCODE_FLGWEI:  begin rd_req_size_config = `RD_SIZE_FLGWEI*`PORT_DATAWIDTH/AXI_DATA_W;    rd_addr_config = WEI_FLAG_1_ADDR + (`RD_SIZE_FLGWEI*`PORT_DATAWIDTH/BYTE_WIDTH)  *(O_data_out[27]? 0:count_rd8)  ; count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 <= (O_data_out[27]? 0:count_rd8)  + 1; end
-          default:  begin rd_req_size_config = 0;     rd_addr_config = ACT_DATA_1_ADDR; end
+          `IFCODE_FLGWEI:  begin rd_req_size_config = `RD_SIZE_FLGWEI*`PORT_DATAWIDTH/AXI_DATA_W;    rd_addr_config = `FLGWEI_ADDR + (`RD_SIZE_FLGWEI*`PORT_DATAWIDTH/BYTE_WIDTH)  *(O_data_out[27]? 0:count_rd8)  ; count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 <= (O_data_out[27]? 0:count_rd8)  + 1; end
+          default:  begin rd_req_size_config = 0;     rd_addr_config = `ACT_ADDR; end
         endcase
          // rd_addr_config     <= ACT_BASE_ADDR;
          case ( O_data_out[31:28])
@@ -597,8 +597,8 @@ parameter BYTE_WIDTH = 8;
           // 4'b0_010 : rd_addr_config <= WEI_BASE_ADDR       + O_data_out[27:10];
           // 4'b0_011 : rd_addr_config <= WEI_FLAG_BASE_ADDR  + O_data_out[27:10];
           // 4'b0_100 : rd_addr_config <= CONFIG_ADDR;
-          4'b1_000 : wr_addr_config <= OF_BASE_ADDR;
-          4'b1_001 : wr_addr_config <= OF_FLAG_BASE_ADDR   + O_data_out[27:10];
+          4'b1_000 : wr_addr_config <= `OFM_ADDR;
+          4'b1_001 : wr_addr_config <= `FLGOFM_ADDR   + O_data_out[27:10];
           endcase // {rw, type_cs }
 
          wr_req_config      <= O_data_out[31];
@@ -645,7 +645,9 @@ parameter BYTE_WIDTH = 8;
     // Instantiation
     // ====================================================================================================================
 
-      axi_master
+      axi_master #(
+        .TX_SIZE_WIDTH(TX_SIZE_WIDTH)
+        )
       axi_master
       (
         .clk                      ( clk                      ),

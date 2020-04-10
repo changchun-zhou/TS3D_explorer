@@ -38,22 +38,22 @@ module  Init_DDR #(
         // DDR initial
   reg [ TX_SIZE_WIDTH - 1 : 0 ]     ddr_idx;
   reg [`PORT_DATAWIDTH -1 : 0] tmp;
-  reg [`PORT_DATAWIDTH -1 : 0]DATA_RF_mem_1[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]DATA_RF_mem_2[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]Flag_RF_mem_1[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]Flag_RF_mem_2[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]DATA_RF_mem_WEI_1[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]DATA_RF_mem_WEI_2[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]Flag_RF_mem_WEI_1[0 : 4095];
-  reg [`PORT_DATAWIDTH -1 : 0]Flag_RF_mem_WEI_2[0 : 4095];
+  reg [`PORT_DATAWIDTH -1 : 0]DATA_RF_mem_1[0 : 2**15];
+  //reg [`PORT_DATAWIDTH -1 : 0]DATA_RF_mem_2[0 : TX_SIZE_WIDTH];
+  reg [`PORT_DATAWIDTH -1 : 0]Flag_RF_mem_1[0 : 2**15];
+  //reg [`PORT_DATAWIDTH -1 : 0]Flag_RF_mem_2[0 : TX_SIZE_WIDTH];
+  reg [`PORT_DATAWIDTH -1 : 0]DATA_RF_mem_WEI_1[0 : 2**15];
+  //reg [`PORT_DATAWIDTH -1 : 0]DATA_RF_mem_WEI_2[0 : TX_SIZE_WIDTH];
+  reg [`PORT_DATAWIDTH -1 : 0]Flag_RF_mem_WEI_1[0 : 2**15];
+ // reg [`PORT_DATAWIDTH -1 : 0]Flag_RF_mem_WEI_2[0 : TX_SIZE_WIDTH];
 
-  reg [14 : 0]addr_r_BUS_1;
+  reg [TX_SIZE_WIDTH : 0]addr_r_BUS_1;
     initial begin
          // write_ddr = 0;
           $readmemh(`FILE_GBFACT, DATA_RF_mem_1);
           ddr_idx = (`CFG_ADDR -32'h0800_0000) ;
 
-          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<12; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
+          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<2; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
             if( addr_r_BUS_1 == 0)
               // {CFG_LenRow,CFG_DepBlk,CFG_NumBlk,CFG_NumFrm,   CFG_NumPat,CFG_NumLay,CFG_POOL    }
               //                                                                       {fl, POOL_ValIFM, Stride}
@@ -75,7 +75,7 @@ module  Init_DDR #(
           // C_LOG_2(2**12 * 12 ) = 12 + C_LOG_2(12)   = _C000
           // Total : 49, 152 = 49KB:
           // Conv2: 64 x 16 x 56 x 56 = 3, 211, 264 = 3MB => + 2**22 = 40_0000
-          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<12; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin//
+          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<19; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin//
             tmp = DATA_RF_mem_1[addr_r_BUS_1];
             for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
               mem_controller_tb.S_HP_RD0[0].u_axim_driver.ddr_ram[ddr_idx] = tmp[DATA_WIDTH*i +: DATA_WIDTH];
@@ -87,7 +87,7 @@ module  Init_DDR #(
 
           ddr_idx = (`FLGACT_ADDR-32'h0800_0000);
           $readmemh(`FILE_GBFFLGACT, Flag_RF_mem_1);
-          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<12; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
+          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<16; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
             tmp = Flag_RF_mem_1[addr_r_BUS_1];
             for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
               mem_controller_tb.S_HP_RD0[0].u_axim_driver.ddr_ram[ddr_idx] = tmp[DATA_WIDTH*i +: DATA_WIDTH];
@@ -98,7 +98,7 @@ module  Init_DDR #(
           end
           ddr_idx = (`WEI_ADDR-32'h0800_0000) ;
           $readmemh(`FILE_GBFWEI, DATA_RF_mem_WEI_1);
-          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<12; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
+          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<19; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
             tmp = DATA_RF_mem_WEI_1[addr_r_BUS_1];
             for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
               mem_controller_tb.S_HP_RD0[0].u_axim_driver.ddr_ram[ddr_idx] = tmp[DATA_WIDTH*i +: DATA_WIDTH];
@@ -109,7 +109,7 @@ module  Init_DDR #(
           end
           ddr_idx = (`FLGWEI_ADDR-32'h0800_0000) ;
           $readmemh(`FILE_GBFFLGWEI, Flag_RF_mem_WEI_1);
-          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<12; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
+          for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<16; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
             tmp = Flag_RF_mem_WEI_1[addr_r_BUS_1];
             for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
               mem_controller_tb.S_HP_RD0[0].u_axim_driver.ddr_ram[ddr_idx] = tmp[DATA_WIDTH*i +: DATA_WIDTH];

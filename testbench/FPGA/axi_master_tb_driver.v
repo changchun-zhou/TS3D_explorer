@@ -121,7 +121,7 @@ wire  [ NUM_AXI              -1 : 0 ]        M_AXI_WUSER;
  wire  [ NUM_AXI              -1 : 0 ]        M_AXI_AWUSER;
  reg  [NUM_AXI-1:0]                   M_AXI_RUSER, M_AXI_BUSER;
 wire  [ NUM_AXI              -1 : 0 ]        M_AXI_ARUSER;
-  
+
 wire  [ 32 -1 :0] aw_delay;
 wire  [ 32 -1 :0] w_delay;
   reg                                          outbuf_empty;
@@ -158,7 +158,7 @@ wire  [ 32 -1 :0] w_delay;
 // Regs and Wires
 // ******************************************************************
 
-  reg  [ 8        -1 : 0 ]        ddr_ram [0:1<<20-1];
+  reg  [ 8        -1 : 0 ]        ddr_ram [0:1<<TX_SIZE_WIDTH -1];
 
   reg                                         r_fifo_push;
   reg                                         r_fifo_pop;

@@ -86,16 +86,16 @@ module mem_controller_top_wr
 // WIRES
 // ====================================================================================================================
 // read
-    parameter         OF_BASE_ADDR                      = 32'h0804_8000 ; //
-    parameter         OF_FLAG_BASE_ADDR                 = 32'h0805_0000 ; //4MB outfm
-    parameter         OF_DEFAULT_ADDR                   = 32'h0806_0000  ;
+    // parameter         OF_BASE_ADDR                      = 32'h0804_8000 ; //
+    // parameter         OF_FLAG_BASE_ADDR                 = 32'h0805_0000 ; //4MB outfm
+    // parameter         OF_DEFAULT_ADDR                   = 32'h0806_0000  ;
 
-    parameter         ACT_BASE_ADDR                     = 32'h080d_8f90 ;
-    parameter         ACT_FLAG_BASE_ADDR                = 32'h0840_0000 ; //4MB act
-    // parameter OF_BASE_ADDR                             = 32'h0850_0000, //1MB act
-    parameter         WEI_BASE_ADDR                     = 32'h0950_0000 ; //
-    parameter         WEI_FLAG_BASE_ADDR                = 32'h1950_0000 ;  //256MB WEI
-    parameter         CONFIG_ADDR                       = 32'h1b00_0000 ;
+    // parameter         ACT_BASE_ADDR                     = 32'h080d_8f90 ;
+    // parameter         ACT_FLAG_BASE_ADDR                = 32'h0840_0000 ; //4MB act
+    // // parameter OF_BASE_ADDR                             = 32'h0850_0000, //1MB act
+    // parameter         WEI_BASE_ADDR                     = 32'h0950_0000 ; //
+    // parameter         WEI_FLAG_BASE_ADDR                = 32'h1950_0000 ;  //256MB WEI
+    // parameter         CONFIG_ADDR                       = 32'h1b00_0000 ;
     localparam IDLE = 0, CONFIG = 1, WAIT = 2, RD_DATA = 3, WR_WAIT = 4, WR_DATA = 5;
 
     parameter g = 0;
@@ -458,11 +458,11 @@ reg [TX_SIZE_WIDTH   - 1 :0] count_rd8;
         count_rd8 <= 0;
       end else if( state == WAIT )begin // Cache config data
          case ( O_data_out[31:28])
-          `IFCODE_FLGOFM:  begin wr_req_size_config = `WR_SIZE_FLGOFM*`PORT_DATAWIDTH/AXI_DATA_W;   wr_addr_config = OF_FLAG_BASE_ADDR     + (`WR_SIZE_FLGOFM*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd0 ; count_rd0 <= count_rd0 + 1; end
+          `IFCODE_FLGOFM:  begin wr_req_size_config = `WR_SIZE_FLGOFM*`PORT_DATAWIDTH/AXI_DATA_W;   wr_addr_config = `FLGOFM_ADDR     + (`WR_SIZE_FLGOFM*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd0 ; count_rd0 <= count_rd0 + 1; end
 
-          `IFCODE_OFM:  begin wr_req_size_config = `WR_SIZE_OFM*`PORT_DATAWIDTH/AXI_DATA_W;  wr_addr_config = OF_BASE_ADDR + (`WR_SIZE_OFM*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd2 ; count_rd2 <= count_rd2 + 1; end
+          `IFCODE_OFM:  begin wr_req_size_config = `WR_SIZE_OFM*`PORT_DATAWIDTH/AXI_DATA_W;  wr_addr_config = `OFM_ADDR + (`WR_SIZE_OFM*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd2 ; count_rd2 <= count_rd2 + 1; end
 
-          default : begin wr_addr_config  <=  OF_DEFAULT_ADDR ;
+          default : begin wr_addr_config  <=  `OFM_ADDR ;
           end
           endcase // {rw, type_cs }
 
@@ -511,7 +511,9 @@ reg [TX_SIZE_WIDTH   - 1 :0] count_rd8;
     // Instantiation
     // ====================================================================================================================
 
-      axi_master
+      axi_master #(
+        .TX_SIZE_WIDTH(TX_SIZE_WIDTH)
+        )
       axi_master
       (
         .clk                      ( clk                      ),

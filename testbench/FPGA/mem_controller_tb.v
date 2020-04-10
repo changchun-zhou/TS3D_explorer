@@ -7,26 +7,26 @@ module mem_controller_tb;
   localparam integer ADDR_W            = 32;
   localparam integer AXI_DATA_W        = 64;
   parameter integer WSTRB_W            = AXI_DATA_W/8 ;
-  localparam integer TX_SIZE_WIDTH     = 20;
+  localparam integer TX_SIZE_WIDTH     = 30;
   parameter integer SPI_WIDTH          = 96;
   parameter integer DATA_WIDTH         = 8 ;
   // parameter integer DDR_BATCH = 11;
 
-    parameter         ACT_DATA_1_ADDR                     = 32'h0800_0000 ;//15bit
-    parameter         ACT_DATA_2_ADDR                     = 32'h0800_8000 ;
-    parameter         ACT_FLAG_1_ADDR                    = 32'h0801_0000 ; //4MB act
-    parameter         ACT_FLAG_2_ADDR                    = 32'h0801_8000 ; //4MB act
+    // parameter         ACT_DATA_1_ADDR                     = 32'h0800_0000 ;//15bit
+    // parameter         ACT_DATA_2_ADDR                     = 32'h0800_8000 ;
+    // parameter         ACT_FLAG_1_ADDR                    = 32'h0801_0000 ; //4MB act
+    // parameter         ACT_FLAG_2_ADDR                    = 32'h0801_8000 ; //4MB act
 
-    parameter         WEI_DATA_1_ADDR                     = 32'h0802_0000 ;
-    parameter         WEI_DATA_2_ADDR                     = 32'h0802_8000 ;
-    parameter         WEI_FLAG_1_ADDR                    = 32'h0803_0000 ; //4MB act
-    parameter         WEI_FLAG_2_ADDR                    = 32'h0803_8000 ; //4MB act
-    parameter         CONFIG_ADDR                       = 32'h0804_0000 ;
+    // parameter         WEI_DATA_1_ADDR                     = 32'h0802_0000 ;
+    // parameter         WEI_DATA_2_ADDR                     = 32'h0802_8000 ;
+    // parameter         WEI_FLAG_1_ADDR                    = 32'h0803_0000 ; //4MB act
+    // parameter         WEI_FLAG_2_ADDR                    = 32'h0803_8000 ; //4MB act
+    // parameter         CONFIG_ADDR                       = 32'h0804_0000 ;
 
-    parameter         OF_BASE_ADDR                      = 32'h0804_8000 ; //
-    parameter         OF_FLAG_BASE_ADDR                 = 32'h0805_0000 ; //4MB outfm
+    // parameter         OF_BASE_ADDR                      = 32'h0804_8000 ; //
+    // parameter         OF_FLAG_BASE_ADDR                 = 32'h0805_0000 ; //4MB outfm
 
-parameter NumClk = 200000;
+parameter NumClk = 250000;
 
 wire                                        clk;
 wire                                        reset;
@@ -228,7 +228,8 @@ generate
   wire OE_req;
   wire [ 4 - 1 : 0 ] which_write;
   mem_controller_top_rd #(
-  .NUM_AXI( NUM_AXI )
+  .NUM_AXI( NUM_AXI ),
+  .TX_SIZE_WIDTH(TX_SIZE_WIDTH)
   )mem_controller_top0 ( // PORTS
     .clk                      ( clk                      ),
     .reset                    ( reset                    ),
@@ -404,7 +405,8 @@ wire OE_req;
 // FPGA mem_controller_top instantiation
 // ====================================================================================================================
   mem_controller_top_wr #(
-  .NUM_AXI( NUM_AXI )
+  .NUM_AXI( NUM_AXI ),
+  .TX_SIZE_WIDTH(TX_SIZE_WIDTH)
   )mem_controller_top ( // PORTS
     .clk                      ( clk                      ),
     .reset                    ( reset                    ),
