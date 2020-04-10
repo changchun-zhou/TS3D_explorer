@@ -320,10 +320,11 @@ for cntfrm in range(0,NumFrm):
                         ReLU = int(ReLU,2)
                         if ReLU > POOL_MEM[AddrPooly][AddrPoolx][cntPEB] :
                             POOL_MEM[AddrPooly][AddrPoolx][cntPEB] = ReLU;
-                if cntfrm == 1 or cntfrm == 3: # Pooling frame
+                # if cntfrm == 1 or cntfrm == 3: # Pooling frame
+                if cntfrm % 2 == 1:
                     if FRMPOOL[AddrPooly][AddrPoolx][cntPEB] > POOL_MEM[AddrPooly][AddrPoolx][cntPEB] :
                         POOL_MEM[AddrPooly][AddrPoolx][cntPEB] = FRMPOOL[AddrPooly][AddrPoolx][cntPEB];
-                elif cntfrm == 0 or cntfrm == 2:
+                elif cntfrm % 2 == 0: # 0 , 2
                         FRMPOOL[AddrPooly][AddrPoolx][cntPEB] = POOL_MEM[AddrPooly][AddrPoolx][cntPEB] # update frame for pool_frame
                 SPRS[AddrPooly][AddrPoolx][cntPEB] = POOL_MEM[AddrPooly][AddrPoolx][cntPEB] - DELTA[AddrPooly][AddrPoolx][cntPEB]
                 DELTA[AddrPooly][AddrPoolx][cntPEB] = POOL_MEM[AddrPooly][AddrPoolx][cntPEB];# update frame for delta

@@ -11,7 +11,7 @@
 //========================================================
 `include "../source/include/dw_params_presim.vh"
 module  Init_DDR #(
-    parameter TX_SIZE_WIDTH = 20,
+    parameter TX_SIZE_WIDTH = 30,
     parameter DATA_WIDTH = 8
     )( );
 //=====================================================================================================================
@@ -71,7 +71,10 @@ module  Init_DDR #(
           end
 
           ddr_idx = (`ACT_ADDR-32'h0800_0000) ;
-          // 11 + C_LOG_2(12) = 15 (8b) => + _6000;
+
+          // C_LOG_2(2**12 * 12 ) = 12 + C_LOG_2(12)   = _C000
+          // Total : 49, 152 = 49KB:
+          // Conv2: 64 x 16 x 56 x 56 = 3, 211, 264 = 3MB => + 2**22 = 40_0000
           for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<12; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin//
             tmp = DATA_RF_mem_1[addr_r_BUS_1];
             for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin

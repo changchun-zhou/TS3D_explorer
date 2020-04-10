@@ -82,11 +82,13 @@
 `define WR_SIZE_FLGOFM 2**`GBFFLGOFM_ADDRWIDTH *3/4
 `define WR_SIZE_OFM 2**`GBFOFM_ADDRWIDTH * 3/4
 
-`define ACT_ADDR        32'h0800_0000
-`define FLGACT_ADDR     32'h0801_0000
-`define WEI_ADDR        32'h0802_0000
-`define FLGWEI_ADDR     32'h0803_0000
-`define CFG_ADDR        32'h0804_0000
+// C3D DDR ADDR Allocation
+// 12MB
+`define ACT_ADDR        32'h0800_0000  // Max 3MB=> 40_0000
+`define FLGACT_ADDR     32'h0801_0000 // Max 8_0000
+`define WEI_ADDR        32'h0802_0000 // Max 7MB => 80_0000
+`define FLGWEI_ADDR     32'h0803_0000 // Max 1MB => 10_0000
+`define CFG_ADDR        32'h0804_0000 // 12B 000c
 
 // **********************************************************************
 // Test File
