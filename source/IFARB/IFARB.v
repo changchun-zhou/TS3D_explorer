@@ -181,7 +181,8 @@ ReqGBF #(
 ReqGBF #(
     .DEPTH(2**`GBFFLGOFM_ADDRWIDTH ),
     .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
-    .DEPTH_REQ( (2**`GBFFLGOFM_ADDRWIDTH) *3/4 )
+    .DEPTH_REQ( (2**`GBFFLGOFM_ADDRWIDTH) *3/4 ),
+    .REQ_WR( 1'b0)
     ) ReqGBF_FLGOFM(
     .clk ( clk ),
     .rst_n( rst_n),
@@ -196,7 +197,8 @@ ReqGBF #(
 ReqGBF #(
     .DEPTH(2**`GBFOFM_ADDRWIDTH ),
     .CNT_WIDTH( `REQ_CNT_WIDTH), //////////////////////////////////////////////////////////
-    .DEPTH_REQ( (2**`GBFOFM_ADDRWIDTH) *3/4 )
+    .DEPTH_REQ( (2**`GBFOFM_ADDRWIDTH) *3/4 ),
+    .REQ_WR( 1'b0)
  //   .DEPTH_REQ(16)
     ) ReqGBF_OFM(
     .clk ( clk ),

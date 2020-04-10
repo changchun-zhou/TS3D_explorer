@@ -31,6 +31,8 @@ module MACAW(
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
+reg [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] PECMAC_Act_reg;
+reg [ `DATA_WIDTH * `BLOCK_DEPTH                  -1 : 0] PECMAC_Wei_reg;
 wire[ `C_LOG_2(`BLOCK_DEPTH)         : 0] OffsetAct;
 reg [ `C_LOG_2(`BLOCK_DEPTH)         : 0] OffsetAct_d;
 wire[ `C_LOG_2(`BLOCK_DEPTH)         : 0] OffsetWei;
@@ -93,8 +95,20 @@ assign AddrBaseWei = AddrWei << `C_LOG_2(`DATA_WIDTH);
 
 wire [ `DATA_WIDTH              - 1:0 ] Act;
 wire [ `DATA_WIDTH              - 1:0 ] Wei;
-assign Act = PECMAC_Act[  AddrBaseAct +: `DATA_WIDTH];
-assign Wei = PECMAC_Wei[  AddrBaseWei +: `DATA_WIDTH];
+
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        PECMAC_Act_reg <= 0;
+        PECMAC_Wei_reg <= 0;
+    end else if ( PECMAC_Sta ) begin
+        PECMAC_Act_reg <= PECMAC_Act;
+        PECMAC_Wei_reg <= PECMAC_Wei;
+    end
+end
+
+
+assign Act = PECMAC_Act_reg[  AddrBaseAct +: `DATA_WIDTH];
+assign Wei = PECMAC_Wei_reg[  AddrBaseWei +: `DATA_WIDTH];
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         MACCNV_Mac <= 0;

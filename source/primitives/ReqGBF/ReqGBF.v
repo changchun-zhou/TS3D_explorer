@@ -13,7 +13,8 @@
 module ReqGBF #(
     parameter DEPTH  = 128,
     parameter CNT_WIDTH     = 4,
-    parameter DEPTH_REQ = 64
+    parameter DEPTH_REQ = 64,
+    parameter REQ_WR = 1
 ) (
     input                   clk     ,
     input                   rst_n   ,
@@ -63,8 +64,10 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
-assign Req = ( AddrWr + DEPTH * CntWr) -
-            ( AddrRd + DEPTH * CntRd) <= DEPTH_REQ;// 1/2
+assign Req = REQ_WR ? ( AddrWr + DEPTH * CntWr) -
+            ( AddrRd + DEPTH * CntRd) <= DEPTH_REQ
+            : ( AddrWr + DEPTH * CntWr) -
+            ( AddrRd + DEPTH * CntRd) >= DEPTH_REQ ;// 1/2
 
 
 

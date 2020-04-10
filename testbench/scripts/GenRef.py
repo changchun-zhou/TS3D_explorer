@@ -2,10 +2,14 @@
 import random
 import os
 #*********** read files *******************************************
-FlagActFileName = '../Data/dequant_data/prune_quant_extract_high/Activation_45_pool3b_flag.dat'
-ActFileName = '../Data/dequant_data/prune_quant_extract_high/Activation_45_pool3b_data.dat'
-FlagWeiFileName = '../Data/dequant_data/prune_quant_extract_high/Weight_45_conv4a.float_weight_flag.dat'
-WeiFileName = '../Data/dequant_data/prune_quant_extract_high/Weight_45_conv4a.float_weight_data.dat'
+# FlagActFileName = '../Data/dequant_data/prune_quant_extract_high/Activation_45_pool3b_flag.dat'
+# ActFileName = '../Data/dequant_data/prune_quant_extract_high/Activation_45_pool3b_data.dat'
+# FlagWeiFileName = '../Data/dequant_data/prune_quant_extract_high/Weight_45_conv4a.float_weight_flag.dat'
+# WeiFileName = '../Data/dequant_data/prune_quant_extract_high/Weight_45_conv4a.float_weight_data.dat'
+FlagActFileName = '../Data/dequant_data/prune_quant_extract_proportion/Activation_45_pool1_flag.dat'
+ActFileName = '../Data/dequant_data/prune_quant_extract_proportion/Activation_45_pool1_data.dat'
+FlagWeiFileName = '../Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_flag.dat'
+WeiFileName = '../Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_data.dat'
 
 #*********** write files  *****************************************
 PECRAM_DatWrFileName = '../Data/GenTest/PECRAM_DatWr_Ref.dat'
@@ -24,7 +28,7 @@ PECMAC_FlgWeiFileName = '../Data/GenTest/PECMAC_FlgWei_Ref.dat'
 NumChn = 32
 NumWei = 9
 NumBlk = 2
-NumFrm = 4
+NumFrm = 16
 KerSize = 3
 Stride = 2
 fl = 0
@@ -71,6 +75,7 @@ cnt_ACT = 0
 cnt_Flag = 0 # continously save one frame by one frame
 GBFFLGOFM_DatRd = ""
 GBFOFM_DatRd = ""
+
 cnt_wei = 0
 for cntfrm in range(0,NumFrm):
     # same weight per frame
@@ -295,8 +300,7 @@ for cntfrm in range(0,NumFrm):
     FLAG_MEM = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
     POOL_SPRS_MEM = ''
     POOL_FLAG_MEM = ''
-    GBFFLGOFM_DatRd = ""
-    GBFOFM_DatRd = ""
+
     for AddrRow in range ( 0, Len-2 - Stride + 1, Stride):
         AddrPooly = AddrRow / Stride
         for AddrCol in range ( 0, Len-2 - Stride + 1, Stride):
@@ -341,14 +345,18 @@ for cntfrm in range(0,NumFrm):
                 else:
                     FLAG_MEM[AddrPooly][AddrPoolx][cntPEB]  = 0
                 POOL_FLAG_MEM =  str(FLAG_MEM[AddrPooly][AddrPoolx][cntPEB] ) +POOL_FLAG_MEM  # PEB15 PEB1 PEB0
-            POOL_FLAG_MEMFile.write(POOL_FLAG_MEM+'\n')#二进制
+            POOL_FLAG_MEM0 = int(POOL_FLAG_MEM[0:8], 2)
+            POOL_FLAG_MEM1 = int(POOL_FLAG_MEM[8:16], 2)
+            POOL_FLAG_MEM_hex =  str(hex(POOL_FLAG_MEM0)).lstrip('0x').rstrip('L').zfill(2) + str(hex(POOL_FLAG_MEM1)).lstrip('0x').rstrip('L').zfill(2);
+            POOL_FLAG_MEMFile.write(POOL_FLAG_MEM_hex+'\n')#HEX
             if cnt_Flag < PORT_DATAWIDTH/NumPEB: #12
-                GBFFLGOFM_DatRd = POOL_FLAG_MEM + GBFFLGOFM_DatRd #shift right
+                GBFFLGOFM_DatRd = POOL_FLAG_MEM_hex + GBFFLGOFM_DatRd #shift right
                 cnt_Flag = cnt_Flag + 1
             else:
-                GBFFLGOFM_DatRdFile.write(GBFFLGOFM_DatRd+'\n')
-                cnt_Flag = 0
+                GBFFLGOFM_DatRdFile.write(GBFFLGOFM_DatRd+'\n') #HEX
+                cnt_Flag = 1
                 GBFFLGOFM_DatRd = ''
+                GBFFLGOFM_DatRd = POOL_FLAG_MEM_hex + GBFFLGOFM_DatRd #shift right
             #AddrPoolx = AddrPoolx + 1
         #AddrPooly = AddrPooly + 1;
 

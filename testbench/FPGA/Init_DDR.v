@@ -57,8 +57,8 @@ module  Init_DDR #(
             if( addr_r_BUS_1 == 0)
               // {CFG_LenRow,CFG_DepBlk,CFG_NumBlk,CFG_NumFrm,   CFG_NumPat,CFG_NumLay,CFG_POOL    }
               //                                                                       {fl, POOL_ValIFM, Stride}
-               //tmp = {4'd15,     5'd31,     5'd1,     5'd15,         8'd15,      8'd7,      9'd10};//Conv2
-              tmp = {4'd15,5'd31,5'd1,5'd3, 8'd0, 8'd7,      9'd10};
+               tmp = {4'd15,     5'd31,     5'd1,     5'd15,         8'd15,      8'd7,      9'd10};//Conv2
+              //tmp = {4'd15,    5'd31,     5'd1,      5'd3,          8'd0,         8'd7,      9'd10};
             else
               // tmp = DATA_RF_mem_1[addr_r_BUS_1];
               tmp = 0;
