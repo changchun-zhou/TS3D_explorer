@@ -20,7 +20,7 @@ module top_asyncFIFO_wr #(
     );
 
 reg [ TX_WIDTH    -1 : 0] wr_size;
-
+reg [ 4                   -1 : 0] O_config_data;
 always @ ( posedge clk_chip or negedge reset_n_chip ) begin
     if ( !reset_n_chip ) begin
         wr_size <= 0;
@@ -30,6 +30,7 @@ always @ ( posedge clk_chip or negedge reset_n_chip ) begin
             `IFCODE_OFM   :   wr_size <= `WR_SIZE_OFM;
             default       :   wr_size <= `WR_SIZE_FLGOFM;
         endcase
+        O_config_data <= config_data; // hold config_data to FPGA
     end
 end
 
@@ -224,7 +225,7 @@ always @(posedge clk_chip) begin : proc_pre_full_mkup_d
     pre_full_mkup_d <= pre_full_mkup;
 end
 
-assign IO_spi_data = ( O_spi_cs_n_d && O_spi_cs_n )? {config_data, 28'd0} : dout;// level O_spi_cs_n is OK
+assign IO_spi_data = ( O_spi_cs_n_d && O_spi_cs_n )? {O_config_data, 28'd0} : dout;// level O_spi_cs_n is OK
 assign wr_clk = clk_chip          ;
 // assign wr_en  = ( (wr_req && ~full)  || post_full_mkup ) && ~wr_done_wait_in;// add missed two clk
 // assign wr_en  = ( wr_req  || post_full_mkup ) && ~wr_done_wait_in;// add missed two clk

@@ -282,7 +282,7 @@ top_asyncFIFO_rd #(
 
             .config_ready  (IF_Rdy_wr),
             .config_paulse (IF_Req&&~IF_RdWr),
-            .config_data   (O_config_data),
+            .config_data   (IF_Cfg),
             .wr_ready      (RdyWr),/////////////////////////////////////////////////////////////////
             .wr_req        (ValWr),
             .wr_data       (DatWr)

@@ -299,10 +299,10 @@ packer_right #(
         .rst_n          (rst_n),
         .Reset          (1'b0),
         .Unpacked_EnWr  (SIPOOFM_En),
-        .Unpacked_RdyWr (OFM_Unpacked_RdyWr),
+        .Unpacked_RdyWr (OFM_Unpacked_RdyWr),//******** BUG1 : Unpacked_RdyWr is not used ************************
         .Unpacked_DatWr (SPRS_MEM[SPRS_Addr]),
         .Packed_RdyRd   (OFM_Packed_RdyRd),
-        .Packed_EnRd    (OFM_Packed_EnRd),
+        .Packed_EnRd    (OFM_Packed_EnRd),//*** Because of BUG1: EnRd must = RdyRd ** Detected by test_data_presim.v ***
         .Packed_DatRd   (GBFOFM_DatWr)
     );
 assign GBFOFM_EnWr = OFM_Packed_RdyRd && ~GBFOFM_EnRd;

@@ -104,7 +104,7 @@ module mem_controller_top_wr
 // generate
 // for ( g=0 ; g<NUM_AXI; g=g+1)
 // begin: AXI_GEN
-
+reg [ TX_SIZE_WIDTH  - 1 :0] FIFO_COUNT;
     wire                                    config_req;
     reg                                     rd_req;
     reg  [ TX_SIZE_WIDTH          - 1 : 0 ] rd_req_size;
@@ -256,14 +256,14 @@ module mem_controller_top_wr
           WR_WAIT : if(state_d == WR_WAIT) //
                       next_state = WR_DATA;
 
-          WR_DATA : if( wr_count == ( (wr_req_size << 1) - 3) ) //config_ready && tx_size == 0 &&
+          WR_DATA : if( wr_count == FIFO_COUNT - 3 ) //config_ready && tx_size == 0 &&
                       next_state = IDLE;
         endcase
       end
     always @(posedge clk or negedge reset) begin : proc_wr_count
       if(reset) begin
         wr_count <= 0;
-      end else if( wr_count == wr_req_size << 1) begin
+      end else if( wr_count == FIFO_COUNT ) begin
         wr_count <= 0;
       end else if( spi_fifo_push) begin
         wr_count <= wr_count + 1;
@@ -456,11 +456,12 @@ reg [TX_SIZE_WIDTH   - 1 :0] count_rd8;
         count_rd6 <= 0;
         count_rd7 <= 0;
         count_rd8 <= 0;
+        FIFO_COUNT <= 0;
       end else if( state == WAIT )begin // Cache config data
          case ( O_data_out[31:28])
-          `IFCODE_FLGOFM:  begin wr_req_size_config = `WR_SIZE_FLGOFM*`PORT_DATAWIDTH/AXI_DATA_W;   wr_addr_config = `FLGOFM_ADDR     + (`WR_SIZE_FLGOFM*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd0 ; count_rd0 <= count_rd0 + 1; end
+          `IFCODE_FLGOFM:  begin wr_req_size_config = `WR_SIZE_FLGOFM*`PORT_DATAWIDTH/AXI_DATA_W;   wr_addr_config = `FLGOFM_ADDR     + (`WR_SIZE_FLGOFM*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd0 ; count_rd0 <= count_rd0 + 1; FIFO_COUNT <= `WR_SIZE_FLGOFM; end
 
-          `IFCODE_OFM:  begin wr_req_size_config = `WR_SIZE_OFM*`PORT_DATAWIDTH/AXI_DATA_W;  wr_addr_config = `OFM_ADDR + (`WR_SIZE_OFM*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd2 ; count_rd2 <= count_rd2 + 1; end
+          `IFCODE_OFM:  begin wr_req_size_config = `WR_SIZE_OFM*`PORT_DATAWIDTH/AXI_DATA_W;  wr_addr_config = `OFM_ADDR + (`WR_SIZE_OFM*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd2 ; count_rd2 <= count_rd2 + 1; FIFO_COUNT <= `WR_SIZE_OFM; end
 
           default : begin wr_addr_config  <=  `OFM_ADDR ;
           end

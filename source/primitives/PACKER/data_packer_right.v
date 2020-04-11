@@ -62,10 +62,12 @@ generate
     begin
       if (!rst_n )
         dcount <= 0;
-      else if (Unpacked_EnWr) begin
-          dcount <= dcount + 1'b1;
-      end else if( Packed_EnRd || Reset)
+      else if( (Packed_EnRd&&~Unpacked_EnWr) || Reset)
           dcount <= 0;
+      else if( Packed_EnRd && Unpacked_EnWr )
+          dcount <= 1;
+      else if (Unpacked_EnWr)
+          dcount <= dcount + 1'b1;
     end
 
     reg [OUT_WIDTH-1:0] data;

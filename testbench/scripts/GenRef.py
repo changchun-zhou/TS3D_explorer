@@ -341,8 +341,9 @@ for cntfrm in range(0,NumFrm):
                         cnt_ACT = cnt_ACT + 1
                     else:
                         GBFOFM_DatRdFile.write(GBFOFM_DatRd+'\n')
-                        cnt_ACT = 0
+                        cnt_ACT = 1
                         GBFOFM_DatRd = ''
+                        GBFOFM_DatRd =POOL_SPRS_MEM + GBFOFM_DatRd;
                 else:
                     FLAG_MEM[AddrPooly][AddrPoolx][cntPEB]  = 0
                 POOL_FLAG_MEM =  str(FLAG_MEM[AddrPooly][AddrPoolx][cntPEB] ) +POOL_FLAG_MEM  # PEB15 PEB1 PEB0
