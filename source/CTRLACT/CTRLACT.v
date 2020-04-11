@@ -29,8 +29,8 @@ module  CTRLACT (
     output                                       CTRLACT_ValPsum,
     output                                      CTRLACT_ValCol,
     output                                       CTRLACT_FrtBlk, /// glitch: PEC0 -> PEC2 second BLK -> first Blk
-    // output                                       CTRLACT_FnhPat,
-    // output                                       CTRLACT_FnhIfm,
+    output                                       CTRLACT_FnhPat,
+    output                                       CTRLACT_FnhIfm,
     output                                       CTRLACT_FnhFrm,
     output                                       CTRLACT_EvenFrm,
     output                                          POOL_En,
@@ -57,6 +57,7 @@ wire                                                CTRLACT_LstActFrm;
 reg                                                 CTRLACT_FrtActFrm_d;
 wire                                                CTRLACT_FrtFrm;
 wire                                         CTRLACT_FrtActPat;
+reg                                          CTRLACT_FrtActPat_d;
 wire                                         CTRLACT_LstActPat;
 wire                                         CTRLACT_FrtActLay;
 wire                                         CTRLACT_LstActLay;
@@ -135,6 +136,14 @@ always @ ( posedge clk or negedge rst_n ) begin
         CTRLACT_FrtActFrm_d <= CTRLACT_FrtActFrm;
     end
 end
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        CTRLACT_FrtActPat_d <= 1;
+    end else begin
+        CTRLACT_FrtActPat_d <= CTRLACT_FrtActPat;
+    end
+end
+
 
 assign CTRLACT_FrtBlk = ~(|CntBlk);// CntBlk == 0;
 assign CTRLACT_FrtActFrm = CntBlk == 0 && CTRLACT_FrtActBlk;
@@ -155,6 +164,8 @@ end
 
 assign CTRLACT_LstActPat = CntFrm == CFG_NumFrm && CTRLACT_LstActFrm;
 assign CTRLACT_FrtActPat = CntFrm == 0 && CTRLACT_FrtActFrm;
+
+assign CTRLACT_FnhPat = CTRLACT_FrtActPat && ~CTRLACT_FrtActPat_d;
 
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin

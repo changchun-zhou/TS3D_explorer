@@ -305,7 +305,7 @@ packer_right #(
         .Packed_EnRd    (OFM_Packed_EnRd),//*** Because of BUG1: EnRd must = RdyRd ** Detected by test_data_presim.v ***
         .Packed_DatRd   (GBFOFM_DatWr)
     );
-assign GBFOFM_EnWr = OFM_Packed_RdyRd && ~GBFOFM_EnRd;
+assign GBFOFM_EnWr = OFM_Packed_RdyRd;// Write first, in IF.v exclude Wr and Rd;
 assign OFM_Packed_EnRd = GBFOFM_EnWr;
 // sipo
 // #( // INPUT PARAMETERS
@@ -337,7 +337,7 @@ packer_right #(
         .Packed_EnRd    (FLGOFM_Packed_EnRd),
         .Packed_DatRd   (GBFFLGOFM_DatWr)
     );
-assign GBFFLGOFM_EnWr = FLGOFM_Packed_RdyRd && ~GBFFLGOFM_EnRd;
+assign GBFFLGOFM_EnWr = FLGOFM_Packed_RdyRd;// Write first, in IF.v exclude Wr and Rd;
 assign FLGOFM_Packed_EnRd = GBFFLGOFM_EnWr;
 // ==================================================================
 

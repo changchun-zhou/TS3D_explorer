@@ -191,9 +191,9 @@ wire                    CCUCTRLWEI_Reset;
 // Logic Design :
 //=====================================================================================================================
 assign GBF_Val = GBFFLGWEI_Val && GBFWEI_Val && GBFFLGACT_Val && GBFACT_Val;
-assign Reset_WEI = CTRLACT_FnhFrm;
-assign Reset_ACT = 0;//CTRLACT_FnhLayer;
-assign Reset_OFM = 0;
+// assign Reset_WEI = CTRLACT_FnhFrm;
+// assign Reset_ACT = 0;//CTRLACT_FnhLayer;
+// assign Reset_OFM = 0;
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
@@ -209,7 +209,10 @@ CCU CCU(
     .Rst_Layer (Rst_Layer  ),
     .IF_Val (IF_Val),
     .CCUCTRLWEI_Start(CCUCTRLWEI_Start),
-    .CCUCTRLWEI_Reset(CCUCTRLWEI_Reset)
+    .CCUCTRLWEI_Reset(CCUCTRLWEI_Reset),
+    .Reset_WEI( Reset_WEI),
+    .Reset_ACT(Reset_ACT),
+    .Reset_OFM(Reset_OFM)
     );
 assign Reset = 0;
 CONFIG CONFIG

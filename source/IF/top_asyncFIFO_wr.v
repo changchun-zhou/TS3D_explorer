@@ -14,6 +14,7 @@ module top_asyncFIFO_wr #(
     output                                  config_ready  , //ASIC
     input                                   config_paulse , //ASIC paulse
     input [ 4            -1 : 0 ]           config_data   , //ASIC
+    input                                     GBF_Val,
     output                                  wr_ready      , //ASIC
     input                                   wr_req        , //ASIC
     input [ SPI_WIDTH    -1 : 0 ]           wr_data         //ASIC
@@ -67,7 +68,7 @@ wire                        post_full_mkup;
 localparam IDLE = 0, CONFIG = 1, WAIT = 2, RD_DATA = 3,  WR_DATA = 4, RESET_FIFO = 5;
 
 
-assign wr_ready = state >= CONFIG &&  ~full_ahead_d && ~wr_done_wait;
+assign wr_ready = state >= CONFIG &&  ~full_ahead_d && ~wr_done_wait && GBF_Val;
 assign config_ready = state           == IDLE ;
 
 always @(posedge clk_chip or negedge reset_n_chip) begin
@@ -109,8 +110,7 @@ always @(posedge clk_chip or negedge reset_n_chip) begin : proc_wr_count
     wr_count <= 0;
   end else if( wr_ready) begin
     wr_count <= wr_count + 1;
-  end else
-    wr_count <= wr_count;
+  end
 end
 
 // assign wr_done = wr_count == 2*32 -1;//pull down wr_ready: 32bx64/64

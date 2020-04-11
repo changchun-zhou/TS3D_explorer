@@ -21,7 +21,10 @@ module CCU (
     output                  Rst_Layer,// Rst_pat Rst_Frm,
     output                   IF_Val,
     output                  CCUCTRLWEI_Start,
-    output                  CCUCTRLWEI_Reset
+    output                  CCUCTRLWEI_Reset,
+    output                  Reset_WEI,
+    output                  Reset_ACT,
+    output                   Reset_OFM
 );
 //=====================================================================================================================
 // Constant Definition :
@@ -86,6 +89,9 @@ assign IF_Val = state != IDLE;
 assign CCUCTRLWEI_Start = state == WAITGBF && next_state == CMP || CTRLACT_FnhFrm_d;
 assign CCUCTRLWEI_Reset = CTRLACT_FnhFrm;
 
+assign Reset_WEI = CTRLACT_FnhFrm;
+assign Reset_ACT = 0;//CTRLACT_FnhLayer;
+assign Reset_OFM = 0;
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================

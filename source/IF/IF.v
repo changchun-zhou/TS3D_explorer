@@ -91,6 +91,7 @@ wire                        GBFOFM_EnRd_d;
 wire                        config_req_rd;
 wire                        config_req_wr;
 reg                         Reset_WEI_IF_CFG;
+wire                        GBFFIFO_Val;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -172,8 +173,10 @@ assign GBFACT_DatWr = O_config_data==IFCFG_ACT ? DatRd : 0;
 assign DatWr = O_config_data == IFCFG_FLGOFM? GBFFLGOFM_DatRd : GBFOFM_DatRd;
 assign ValWr = O_config_data == IFCFG_FLGOFM? GBFFLGOFM_EnRd_d : GBFOFM_EnRd_d;
 
-assign GBFFLGOFM_EnRd = O_config_data == IFCFG_FLGOFM && RdyWr;////////////////////// write part
-assign GBFOFM_EnRd = O_config_data == IFCFG_OFM && RdyWr;
+assign GBFFLGOFM_EnRd = O_config_data == IFCFG_FLGOFM && RdyWr;
+assign GBFOFM_EnRd       = O_config_data  == IFCFG_OFM        && RdyWr;
+assign GBFFIFO_Val           = (O_config_data == IFCFG_FLGOFM && ~GBFFLGOFM_EnWr)
+                                          || (O_config_data  == IFCFG_OFM  && ~GBFOFM_EnWr);// exclude Rd and Wr //////////////////// write part
 wire [`PORT_DATAWIDTH        -1 : 0] O_spi_data_rd;
 wire [`PORT_DATAWIDTH        -1 : 0] O_spi_data_wr;
 wire                                                    IF_Rdy_rd;
@@ -283,7 +286,8 @@ top_asyncFIFO_rd #(
             .config_ready  (IF_Rdy_wr),
             .config_paulse (IF_Req&&~IF_RdWr),
             .config_data   (IF_Cfg),
-            .wr_ready      (RdyWr),/////////////////////////////////////////////////////////////////
+            .GBF_Val        ( GBFFIFO_Val),
+            .wr_ready      (RdyWr),
             .wr_req        (ValWr),
             .wr_data       (DatWr)
         );
