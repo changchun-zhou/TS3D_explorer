@@ -91,6 +91,9 @@ wire                        GBFOFM_EnRd_d;
 wire                        config_req_rd;
 wire                        config_req_wr;
 reg                         Reset_WEI_IF_CFG;
+reg                         Reset_ACT_IF_CFG;
+reg                         Reset_OFM_IF_CFG;
+wire [ 3         - 1 : 0 ] Reset_IF_CFG;
 wire                        GBFFIFO_Val;
 //=====================================================================================================================
 // Logic Design :
@@ -204,6 +207,25 @@ always @ ( posedge clk or negedge rst_n ) begin
         Reset_WEI_IF_CFG <= 0;
     end
 end
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        Reset_ACT_IF_CFG <= 0;
+    end else if ( Reset_ACT ) begin
+        Reset_ACT_IF_CFG <= 1;
+    end else if ( IF_Req )begin//Fetched by _rd
+        Reset_ACT_IF_CFG <= 0;
+    end
+end
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        Reset_OFM_IF_CFG <= 0;
+    end else if ( Reset_OFM ) begin
+        Reset_OFM_IF_CFG <= 1;
+    end else if ( IF_Req )begin//Fetched by _wr
+        Reset_OFM_IF_CFG <= 0;
+    end
+end
+assign Reset_IF_CFG = {Reset_WEI_IF_CFG, Reset_ACT_IF_CFG, Reset_OFM_IF_CFG};
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
@@ -263,7 +285,7 @@ top_asyncFIFO_rd #(
         .config_ready  (IF_Rdy_rd),
         .config_paulse (IF_Req && IF_RdWr),
         .config_data   (IF_Cfg),
-        .Reset_WEI_IF_CFG ( Reset_WEI_IF_CFG),
+        .Reset_IF_CFG ( Reset_IF_CFG),
         .O_config_data (  ),
         .rd_req        (1'b1),
         .rd_valid      (ValRd),
@@ -286,6 +308,7 @@ top_asyncFIFO_rd #(
             .config_ready  (IF_Rdy_wr),
             .config_paulse (IF_Req&&~IF_RdWr),
             .config_data   (IF_Cfg),
+            .Reset_IF_CFG ( Reset_IF_CFG),
             .GBF_Val        ( GBFFIFO_Val),
             .wr_ready      (RdyWr),
             .wr_req        (ValWr),

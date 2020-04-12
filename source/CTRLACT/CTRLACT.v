@@ -13,7 +13,7 @@
 module  CTRLACT (
     input                                       clk     ,
     input                                       rst_n   ,
-    input                                       TOP_Sta,
+    input                                       Sta,// Restart ACT
 
     input [ `C_LOG_2(`LENROW)           - 1 : 0 ] CFG_LenRow, // +1 is real value
     input [ `BLK_WIDTH                  - 1 : 0 ] CFG_DepBlk,// +1 is real value
@@ -30,7 +30,7 @@ module  CTRLACT (
     output                                      CTRLACT_ValCol,
     output                                       CTRLACT_FrtBlk, /// glitch: PEC0 -> PEC2 second BLK -> first Blk
     output                                       CTRLACT_FnhPat,
-    output                                       CTRLACT_FnhIfm,
+    output                                       CTRLACT_FnhLay,
     output                                       CTRLACT_FnhFrm,
     output                                       CTRLACT_EvenFrm,
     output                                          POOL_En,
@@ -60,6 +60,7 @@ wire                                         CTRLACT_FrtActPat;
 reg                                          CTRLACT_FrtActPat_d;
 wire                                         CTRLACT_LstActPat;
 wire                                         CTRLACT_FrtActLay;
+reg                                          CTRLACT_FrtActLay_d;
 wire                                         CTRLACT_LstActLay;
 reg  [ `BLK_WIDTH                  - 1 : 0 ] CntBlk;
 reg  [ `FRAME_WIDTH                - 1 : 0 ] CntFrm;
@@ -94,7 +95,7 @@ end
 //     end
 // end
 
-assign CTRLACT_PlsFetch = TOP_Sta || ( CTRLACT_GetAct && 1'b1);//////////////////
+assign CTRLACT_PlsFetch = Sta || ( CTRLACT_GetAct && 1'b1);//////////////////
 
 // always @ ( posedge clk or negedge rst_n ) begin
 //     if ( !rst_n ) begin
@@ -129,22 +130,6 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
-always @ ( posedge clk or negedge rst_n ) begin
-    if ( !rst_n ) begin
-        CTRLACT_FrtActFrm_d <= 1;
-    end else begin
-        CTRLACT_FrtActFrm_d <= CTRLACT_FrtActFrm;
-    end
-end
-always @ ( posedge clk or negedge rst_n ) begin
-    if ( !rst_n ) begin
-        CTRLACT_FrtActPat_d <= 1;
-    end else begin
-        CTRLACT_FrtActPat_d <= CTRLACT_FrtActPat;
-    end
-end
-
-
 assign CTRLACT_FrtBlk = ~(|CntBlk);// CntBlk == 0;
 assign CTRLACT_FrtActFrm = CntBlk == 0 && CTRLACT_FrtActBlk;
 assign CTRLACT_LstActFrm = CntBlk == CFG_NumBlk && CTRLACT_LstActBlk;
@@ -170,7 +155,7 @@ assign CTRLACT_FnhPat = CTRLACT_FrtActPat && ~CTRLACT_FrtActPat_d;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         CntPat <= 0;
-    end else if ( CTRLACT_FrtActLay && CTRLACT_GetAct ) begin
+    end else if ( CTRLACT_LstActLay && CTRLACT_GetAct ) begin
         CntPat <= 0;
     end else if( CTRLACT_FrtActPat && CTRLACT_GetAct ) begin
         CntPat <= CntPat + 1;
@@ -189,9 +174,30 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 // assign FrtActEx =
+assign CTRLACT_FnhLay = CTRLACT_FrtActLay && CTRLACT_FrtActLay_d;
 
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        CTRLACT_FrtActFrm_d <= 1;
+    end else begin
+        CTRLACT_FrtActFrm_d <= CTRLACT_FrtActFrm;
+    end
+end
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        CTRLACT_FrtActPat_d <= 1;
+    end else begin
+        CTRLACT_FrtActPat_d <= CTRLACT_FrtActPat;
+    end
+end
 
-
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        CTRLACT_FrtActLay_d <= 1;
+    end else begin
+        CTRLACT_FrtActLay_d <= CTRLACT_FrtActLay;
+    end
+end
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================

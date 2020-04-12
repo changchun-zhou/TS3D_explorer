@@ -26,7 +26,7 @@ module mem_controller_tb;
     // parameter         OF_BASE_ADDR                      = 32'h0804_8000 ; //
     // parameter         OF_FLAG_BASE_ADDR                 = 32'h0805_0000 ; //4MB outfm
 
-parameter NumClk = 250000;
+parameter NumClk = 1000000;// 200000/ Patch
 
 wire                                        clk;
 wire                                        reset;

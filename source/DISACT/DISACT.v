@@ -13,7 +13,7 @@
 module DISACT (
     input                                           clk     ,
     input                                           rst_n   ,
-
+    input                                           Reset,
     input                                           CTRLACT_PlsFetch,
     // output                                          CTRLACT_GetAct,
     output                                          DISACT_RdyAct,
@@ -22,11 +22,11 @@ module DISACT (
     output       [ `DATA_WIDTH * `BLOCK_DEPTH-1 : 0] DISACT_Act,
     input                                           GBFACT_Val, //valid
     output                                          GBFACT_EnRd,
-    output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFACT_AddrRd,
+    // output reg  [ `GBFACT_ADDRWIDTH         -1 : 0] GBFACT_AddrRd,
     input       [ `DATA_WIDTH               -1 : 0] GBFACT_DatRd,// 8 * `DATA_WIDTH meets bandwidth; like WEI ////////////////////
     input                                           GBFFLGACT_Val, //valid
     output                                          GBFFLGACT_EnRd,
-    output reg  [ `GBFFLGACT_ADDRWIDTH         -1 : 0] GBFFLGACT_AddrRd,
+    // output reg  [ `GBFFLGACT_ADDRWIDTH         -1 : 0] GBFFLGACT_AddrRd,
     input       [ `BLOCK_DEPTH              -1 : 0] GBFFLGACT_DatRd
 
 );
@@ -73,11 +73,15 @@ always @(*) begin
                 else
                     next_state <= IDLE;
 
-      CHECKDATA:if( GBFACT_Val && GBFFLGACT_Val)
+      CHECKDATA: if( CTRLACT_PlsFetch )
+                    next_state <= CHECKDATA;
+                else if( GBFACT_Val && GBFFLGACT_Val)
                     next_state <= CFGACT;
                 else
                     next_state <= CHECKDATA;
-      CFGACT  : if( NearFnhPacker) //config finish
+      CFGACT  : if(CTRLACT_PlsFetch)
+                   next_state <= CHECKDATA;
+                 else if( NearFnhPacker) //config finish
                     next_state <= WAITGET;
                 else
                     next_state <= CFGACT;
@@ -117,15 +121,15 @@ assign PlsFetch = next_state == CFGACT && state == CHECKDATA;
 assign GBFVNACT_EnRd = PlsFetch;
 
 // Fetch ACT
-always @ ( posedge clk or negedge rst_n ) begin
-    if ( ~rst_n ) begin
-        GBFACT_AddrRd <= 0;
-    end else if( 1'b0 ) begin ////////////////////////////////////////
-        GBFACT_AddrRd <= 0;
-    end else if( GBFACT_EnRd) begin
-        GBFACT_AddrRd <= GBFACT_AddrRd + 1;
-    end
-end
+// always @ ( posedge clk or negedge rst_n ) begin
+//     if ( ~rst_n ) begin
+//         GBFACT_AddrRd <= 0;
+//     end else if( 1'b0 ) begin ////////////////////////////////////////
+//         GBFACT_AddrRd <= 0;
+//     end else if( GBFACT_EnRd) begin
+//         GBFACT_AddrRd <= GBFACT_AddrRd + 1;
+//     end
+// end
 assign GBFACT_EnRd = PACKER_ReqDat && GBFACT_Val ;
 
 always @ ( posedge clk or negedge rst_n ) begin
@@ -150,15 +154,15 @@ end
 wire PACKER_Sta;
 assign PACKER_Sta = PACKER_Sta_reg && |PACKER_Num;// When isn't zero, Sta
 // FLAG
-always @ ( posedge clk or negedge rst_n ) begin
-    if ( ~rst_n ) begin
-        GBFFLGACT_AddrRd <= 0;
-    end else if ( 1'b0 ) begin ///////////////////////////////////
-        GBFFLGACT_AddrRd <= 0;
-    end else if ( GBFFLGACT_EnRd ) begin
-        GBFFLGACT_AddrRd <= GBFFLGACT_AddrRd + 1;
-    end
-end
+// always @ ( posedge clk or negedge rst_n ) begin
+//     if ( ~rst_n ) begin
+//         GBFFLGACT_AddrRd <= 0;
+//     end else if ( 1'b0 ) begin ///////////////////////////////////
+//         GBFFLGACT_AddrRd <= 0;
+//     end else if ( GBFFLGACT_EnRd ) begin
+//         GBFFLGACT_AddrRd <= GBFFLGACT_AddrRd + 1;
+//     end
+// end
 
 assign DISACT_FlgAct = GBFFLGACT_DatRd;
 always @ ( posedge clk or negedge rst_n ) begin

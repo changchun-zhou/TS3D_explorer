@@ -94,6 +94,8 @@ wire                                                        CTRLACT_FrtActRow;
 wire                                                        CTRLACT_LstActRow;
 wire                                                        CTRLACT_LstActBlk;
 wire                                                        CTRLACT_FnhFrm;
+wire                                                        CTRLACT_FnhPat;
+wire                                                        CTRLACT_FnhLay;
 wire                                                        DISACT_RdyAct;
 wire                                                        DISACT_GetAct;
 wire  [ `BLOCK_DEPTH                                -1 : 0] DISACT_FlgAct;
@@ -194,6 +196,7 @@ assign GBF_Val = GBFFLGWEI_Val && GBFWEI_Val && GBFFLGACT_Val && GBFACT_Val;
 // assign Reset_WEI = CTRLACT_FnhFrm;
 // assign Reset_ACT = 0;//CTRLACT_FnhLayer;
 // assign Reset_OFM = 0;
+assign CTRLACT_Sta = TOP_Sta || Reset_ACT;
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
@@ -205,6 +208,8 @@ CCU CCU(
     .IFCFG_Val ( IFCFG_Val),
     .GBF_Val ( GBF_Val ),
     .CTRLACT_FnhFrm(CTRLACT_FnhFrm),
+    .CTRLACT_FnhPat    ( CTRLACT_FnhPat),
+    .CTRLACT_FnhLay    ( CTRLACT_FnhLay),
     .TOP_Sta ( TOP_Sta),
     .Rst_Layer (Rst_Layer  ),
     .IF_Val (IF_Val),
@@ -312,7 +317,7 @@ CTRLACT CTRLACT
   (
     .clk               (clk),
     .rst_n             (rst_n),
-    .TOP_Sta           (TOP_Sta),
+    .Sta           (CTRLACT_Sta),
     .CFG_LenRow        (CFG_LenRow),
     .CFG_DepBlk        (CFG_DepBlk),
     .CFG_NumBlk        (CFG_NumBlk),
@@ -328,6 +333,8 @@ CTRLACT CTRLACT
     .CTRLACT_ValCol     ( CTRLACT_ValCol),
     .CTRLACT_FrtBlk    (CTRLACT_FrtBlk),
     .CTRLACT_FnhFrm    (CTRLACT_FnhFrm),
+    .CTRLACT_FnhPat    ( CTRLACT_FnhPat),
+    .CTRLACT_FnhLay    ( CTRLACT_FnhLay),
     .CTRLACT_EvenFrm    (CTRLACT_EvenFrm),
 
     .POOL_En                   ( POOL_En),
@@ -338,6 +345,7 @@ DISACT DISACT
   (
     .clk              (clk),
     .rst_n            (rst_n),
+    .Reset          ( Reset_ACT),
     .CTRLACT_PlsFetch (CTRLACT_PlsFetch),
     // .CTRLACT_GetAct   (CTRLACT_GetAct),
     .DISACT_RdyAct    (DISACT_RdyAct),
@@ -346,20 +354,17 @@ DISACT DISACT
     .DISACT_Act       (DISACT_Act),
     .GBFACT_Val       (Unpacked_RdyRd),
     .GBFACT_EnRd      (Unpacked_EnRd),
-    .GBFACT_AddrRd    ( ),
+    // .GBFACT_AddrRd    ( ),
     .GBFACT_DatRd     (Unpacked_DatRd),
     .GBFFLGACT_Val    (FLGACT_Unpacked_RdyRd),
     .GBFFLGACT_EnRd   (FLGACT_Unpacked_EnRd),
-    .GBFFLGACT_AddrRd (),
+    // .GBFFLGACT_AddrRd (),
     .GBFFLGACT_DatRd  (FLGACT_Unpacked_DatRd)
-    // .GBFVNACT_Val     (GBFVNACT_Val),
-    // .GBFVNACT_EnRd    (GBFVNACT_EnRd),
-    // .GBFVNACT_AddrRd  (GBFVNACT_AddrRd),
-    // .GBFVNACT_DatRd   (GBFVNACT_DatRd)
   );
   POOL POOL(
     .clk     (clk),
     .rst_n (rst_n)  ,
+    .Reset_OFM ( Reset_OFM),
     .CFG_POOL(CFG_POOL)      ,
     .POOL_En(PEBPOOL_En[`NUMPEB -1]),  // paulse: the last PEB
     .POOL_ValFrm( POOL_ValFrm),
@@ -511,6 +516,8 @@ assign Packed_EnWr = GBFACT_EnRd_d;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFACT_AddrRd <= 0;
+    end else if( Reset_ACT ) begin
+        GBFACT_AddrRd <= 0;
     end else if ( GBFACT_EnRd ) begin ///////////////////
         GBFACT_AddrRd <= GBFACT_AddrRd + 1;
     end
@@ -567,6 +574,8 @@ assign GBFFLGACT_EnRd =ALLRdy_FLGACT && ~ALLRdy_FLGACT_d;//posedge
 assign FLGACT_Packed_EnWr = GBFFLGACT_EnRd_d;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
+        GBFFLGACT_AddrRd <= 0;
+    end else if ( Reset_ACT ) begin
         GBFFLGACT_AddrRd <= 0;
     end else if ( GBFFLGACT_EnRd ) begin
         GBFFLGACT_AddrRd <= GBFFLGACT_AddrRd + 1;

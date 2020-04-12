@@ -17,6 +17,9 @@ module CCU (
     input                       IFCFG_Val,
     input                   GBF_Val,
     input                   CTRLACT_FnhFrm,
+    input                   CTRLACT_FnhPat,
+    input                   CTRLACT_FnhLay,
+
     output                  TOP_Sta,
     output                  Rst_Layer,// Rst_pat Rst_Frm,
     output                   IF_Val,
@@ -90,7 +93,7 @@ assign CCUCTRLWEI_Start = state == WAITGBF && next_state == CMP || CTRLACT_FnhFr
 assign CCUCTRLWEI_Reset = CTRLACT_FnhFrm;
 
 assign Reset_WEI = CTRLACT_FnhFrm;
-assign Reset_ACT = 0;//CTRLACT_FnhLayer;
+assign Reset_ACT = CTRLACT_FnhPat;//CTRLACT_FnhLayer;
 assign Reset_OFM = 0;
 //=====================================================================================================================
 // Sub-Module :

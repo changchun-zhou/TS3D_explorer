@@ -13,6 +13,7 @@
 module POOL(
     input                                                                       clk     ,
     input                                                                       rst_n   ,
+    input                                                                       Reset_OFM,
     input [ 5 + 1+`POOL_KERNEL_WIDTH                -1 : 0] CFG_POOL      ,
     input                                                                            POOL_En,  // paulse: the last PEB finish
     input                                                                        POOL_ValFrm,
@@ -253,12 +254,16 @@ assign FnhSPRS = (&SPRS_Addr);
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFOFM_AddrWr <= 0;
+    end else if ( Reset_OFM ) begin
+        GBFOFM_AddrWr <= 0;
     end else if (  GBFOFM_EnWr) begin
         GBFOFM_AddrWr <= GBFOFM_AddrWr + 1;
     end
 end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
+        GBFFLGOFM_AddrWr <= 0;
+    end else if ( Reset_OFM ) begin
         GBFFLGOFM_AddrWr <= 0;
     end else if ( GBFFLGOFM_EnWr ) begin
         GBFFLGOFM_AddrWr <= GBFFLGOFM_AddrWr + 1;
