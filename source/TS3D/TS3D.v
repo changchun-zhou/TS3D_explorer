@@ -16,9 +16,10 @@ module TS3D (
     input                                       clk     ,
     input                                       rst_n   ,
     output                                     Reset,
-    output                                      Reset_WEI,
-    output                                      Reset_ACT,
-    output                                      Reset_OFM,
+    // output                                      Reset_WEI,
+    // output                                      Reset_IFM,
+    // output                                      Reset_OFM,
+    output  [ `IFSCHEDULE_WIDTH -1 : 0 ] IF_schedule,
     output                                      IF_Val,
     input                                           IF_RdDone,
     output                                      CFG_Req,
@@ -78,7 +79,14 @@ module TS3D (
 // wire [ `NUMPEB                      -1 : 0] POOLPEB_EnRd = 0;
 // wire                                        POOLPEB_AddrRd = 0;
 // wire                                        PEBPOOL_Dat;
-
+wire                                        Next_Patch  ; 
+wire                                        Next_FtrGrp ;
+wire                                        Next_Layer  ;
+wire                                        Reset_Patch ;
+wire                                        Reset_IFM   ;
+wire                                        Reset_FtrGrp;
+wire                                        Reset_FtrLay   ;
+wire                                        Reset_OFM   ; 
 reg                                                         TOP_Sta_reg;
 reg                                                         TOP_Sta_reg_d;
 wire                                                        TOP_Sta;
@@ -88,6 +96,8 @@ wire    [ `BLK_WIDTH                                -1 : 0] CFG_NumBlk;
 wire    [ `FRAME_WIDTH                              -1 : 0] CFG_NumFrm;
 wire    [ `PATCH_WIDTH                              -1 : 0] CFG_NumPat;
 wire    [ `LAYER_WIDTH                              -1 : 0] CFG_NumLay;
+wire  [ `FTRGRP_WIDTH                -1 : 0 ] CFG_NumFtrGrp;
+
 wire [ 5 + 1+`POOL_KERNEL_WIDTH                -1 : 0] CFG_POOL;
 wire                                                        CTRLACT_FrtBlk;
 wire                                                        CTRLACT_FrtActRow;
@@ -189,14 +199,27 @@ wire                    _GBFOFM_Val;
 wire                    GBFOFM_Val;
 wire                    CCUCTRLWEI_Start;
 wire                    CCUCTRLWEI_Reset;
+wire [ 6                                     - 1 : 0 ] CFG_LoopPty;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
 assign GBF_Val = GBFFLGWEI_Val && GBFWEI_Val && GBFFLGACT_Val && GBFACT_Val;
-// assign Reset_WEI = CTRLACT_FnhFrm;
-// assign Reset_ACT = 0;//CTRLACT_FnhLayer;
+// assign Reset_FtrLay = CTRLACT_FnhFrm;
+// assign Reset_IFM = 0;//CTRLACT_FnhLayer;
 // assign Reset_OFM = 0;
-assign CTRLACT_Sta = TOP_Sta || Reset_ACT;
+assign CTRLACT_Sta = TOP_Sta || Reset_Patch;
+assign IF_schedule =
+{
+Next_Patch,
+Next_FtrGrp ,
+Next_Layer ,
+Reset_Patch,
+Reset_IFM,
+Reset_FtrGrp,
+Reset_FtrLay ,
+Reset_OFM
+};
+
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
@@ -214,10 +237,10 @@ CCU CCU(
     .Rst_Layer (Rst_Layer  ),
     .IF_Val (IF_Val),
     .CCUCTRLWEI_Start(CCUCTRLWEI_Start),
-    .CCUCTRLWEI_Reset(CCUCTRLWEI_Reset),
-    .Reset_WEI( Reset_WEI),
-    .Reset_ACT(Reset_ACT),
-    .Reset_OFM(Reset_OFM)
+    .CCUCTRLWEI_Reset(CCUCTRLWEI_Reset)
+    // .Reset_FtrLay( Reset_FtrLay),
+    // .Reset_IFM(Reset_IFM),
+    // .Reset_OFM(Reset_OFM)
     );
 assign Reset = 0;
 CONFIG CONFIG
@@ -227,10 +250,12 @@ CONFIG CONFIG
     .Rst_Layer ( Rst_Layer),
     .IFCFG    ( IFCFG ),
     .IFCFG_Val (IFCFG_Val),
+    .CFG_LoopPty ( CFG_LoopPty ),
     .CFG_LenRow (CFG_LenRow),
     .CFG_DepBlk (CFG_DepBlk),
     .CFG_NumBlk (CFG_NumBlk),
     .CFG_NumFrm (CFG_NumFrm),
+    .CFG_NumFtrGrp ( CFG_NumFtrGrp),
     .CFG_NumPat (CFG_NumPat),
     .CFG_NumLay (CFG_NumLay),
     .CFG_POOL       ( CFG_POOL)
@@ -294,7 +319,7 @@ DISWEI DISWEI
     .GBFFLGWEI_EnRd   (FLGWEI_Packed_EnRd),
 //    .GBFFLGWEI_AddrRd ( ),
     .GBFFLGWEI_DatRd  (FLGWEI_Packed_DatRd_d),
-    .CTRLACT_FnhFrm   (CCUCTRLWEI_Reset)
+    .CTRLACT_FnhFrm   (Reset_FtrGrp)// Reset 
   );
   ReqGBF #(
     .DEPTH(2**`GBFWEI_ADDRWIDTH ),
@@ -303,7 +328,7 @@ DISWEI DISWEI
     ) ReqGBFWEI(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset_WEI ),
+    .Reset( Reset_FtrGrp ),
     .AddrWr(GBFWEI_AddrWr ),
     .AddrRd(GBFWEI_AddrRd ),
     .EnWr(GBFWEI_EnWr ),
@@ -318,11 +343,13 @@ CTRLACT CTRLACT
     .clk               (clk),
     .rst_n             (rst_n),
     .Sta           (CTRLACT_Sta),
+    .CFG_LoopPty ( CFG_LoopPty),
     .CFG_LenRow        (CFG_LenRow),
     .CFG_DepBlk        (CFG_DepBlk),
     .CFG_NumBlk        (CFG_NumBlk),
     .CFG_NumFrm        (CFG_NumFrm),
     .CFG_NumPat        (CFG_NumPat),
+    .CFG_NumFtrGrp  ( CFG_NumFtrGrp),
     .CFG_NumLay        (CFG_NumLay),
     .CTRLACT_PlsFetch  (CTRLACT_PlsFetch),
     .CTRLACT_GetAct    (CTRLACT_GetAct),
@@ -339,13 +366,21 @@ CTRLACT CTRLACT
 
     .POOL_En                   ( POOL_En),
     .POOL_ValFrm    ( POOL_ValFrm),
-    .POOL_ValDelta    ( POOL_ValDelta)
+    .POOL_ValDelta    ( POOL_ValDelta),
+    .Next_Patch ( Next_Patch ),
+    .Next_FtrGrp (Next_FtrGrp ),
+    .Next_Layer ( Next_Layer) ,
+    .Reset_Patch ( Reset_Patch),
+    .Reset_IFM  ( Reset_IFM),
+    .Reset_FtrGrp (Reset_FtrGrp ),
+    .Reset_FtrLay  ( Reset_FtrLay ),
+    .Reset_OFM ( Reset_OFM)
   );
 DISACT DISACT
   (
     .clk              (clk),
     .rst_n            (rst_n),
-    .Reset          ( Reset_ACT),
+    .Reset          ( Reset_Patch),
     .CTRLACT_PlsFetch (CTRLACT_PlsFetch),
     // .CTRLACT_GetAct   (CTRLACT_GetAct),
     .DISACT_RdyAct    (DISACT_RdyAct),
@@ -421,7 +456,7 @@ ReqGBF #(
     ) ReqGBFFLGWEI(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset_WEI ),
+    .Reset( Reset_FtrGrp ),
     .AddrWr(GBFFLGWEI_AddrWr ),
     .AddrRd(GBFFLGWEI_AddrRd ),
     .EnWr(GBFFLGWEI_EnWr ),
@@ -438,7 +473,7 @@ assign FLGWEI_Unpacked_EnWr = GBFFLGWEI_EnRd_d;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFFLGWEI_AddrRd <= 0;
-    end else if ( CTRLACT_FnhFrm) begin
+    end else if ( Reset_FtrGrp) begin
         GBFFLGWEI_AddrRd <= 0;
     end else if ( GBFFLGWEI_EnRd ) begin
         GBFFLGWEI_AddrRd <= GBFFLGWEI_AddrRd + 1;
@@ -448,7 +483,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         ValPacker <= 0;
-    end else if ( CTRLACT_FnhFrm)begin
+    end else if ( Reset_FtrGrp)begin
         ValPacker <= 0;
     end else if (TOP_Sta || CTRLACT_FnhFrm_d ) begin
         ValPacker <= 1;
@@ -500,7 +535,7 @@ ReqGBF #(
     ) ReqGBFACT(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset_ACT ),
+    .Reset( Reset_Patch ),
     .AddrWr(GBFACT_AddrWr ),
     .AddrRd(GBFACT_AddrRd ),
     .EnWr(GBFACT_EnWr ),
@@ -516,7 +551,7 @@ assign Packed_EnWr = GBFACT_EnRd_d;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFACT_AddrRd <= 0;
-    end else if( Reset_ACT ) begin
+    end else if( Reset_Patch ) begin
         GBFACT_AddrRd <= 0;
     end else if ( GBFACT_EnRd ) begin ///////////////////
         GBFACT_AddrRd <= GBFACT_AddrRd + 1;
@@ -560,7 +595,7 @@ ReqGBF #(
     ) ReqGBFFLGACT(
     .clk ( clk ),
     .rst_n( rst_n),
-    .Reset( Reset_ACT ),
+    .Reset( Reset_Patch ),
     .AddrWr(GBFFLGACT_AddrWr ),
     .AddrRd(GBFFLGACT_AddrRd ),
     .EnWr(GBFFLGACT_EnWr ),
@@ -575,7 +610,7 @@ assign FLGACT_Packed_EnWr = GBFFLGACT_EnRd_d;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFFLGACT_AddrRd <= 0;
-    end else if ( Reset_ACT ) begin
+    end else if ( Reset_Patch ) begin
         GBFFLGACT_AddrRd <= 0;
     end else if ( GBFFLGACT_EnRd ) begin
         GBFFLGACT_AddrRd <= GBFFLGACT_AddrRd + 1;

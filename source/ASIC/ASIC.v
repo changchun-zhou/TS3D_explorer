@@ -83,6 +83,7 @@ wire                                                config_req_rd0;
 wire                                                    OE_req_rd0;
 wire                                                IF_Val;
 wire                                                Switch_RdWr;
+wire [ `IFSCHEDULE_WIDTH -1 : 0 ] IF_schedule;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -145,9 +146,10 @@ wire IF_RdDone;
             .clk              (clk),
             .rst_n            (rst_n),
             .Reset            (Reset),
-            .Reset_WEI   ( Reset_WEI),
-            .Reset_ACT   ( Reset_ACT),
-            .Reset_OFM   ( Reset_OFM),
+            // .Reset_WEI   ( Reset_WEI),
+            // .Reset_ACT   ( Reset_ACT),
+            // .Reset_OFM   ( Reset_OFM),
+            .IF_schedule  ( IF_schedule  ),
             .IF_Val               ( IF_Val),
             .IF_RdDone ( IF_RdDone ),
             .CFG_Req          (CFG_Req),
@@ -226,9 +228,10 @@ TS3D  TS3D (
     .GBFFLGOFM_AddrWr        ( GBFFLGOFM_AddrWr       ),
 
     .Reset                   ( Reset                                                            ),
-            .Reset_WEI   ( Reset_WEI),
-            .Reset_ACT   ( Reset_ACT),
-            .Reset_OFM   ( Reset_OFM),
+            // .Reset_WEI   ( Reset_WEI),
+            // .Reset_ACT   ( Reset_ACT),
+            // .Reset_OFM   ( Reset_OFM),
+    .IF_schedule            (IF_schedule ),
     .CFG_Req                 ( CFG_Req                                                          ),
     .GBFWEI_EnRd             ( GBFWEI_EnRd                                                      ),
     .GBFFLGWEI_EnRd          ( GBFFLGWEI_EnRd                                                   ),

@@ -14,9 +14,10 @@ module IF(
     input                   clk     ,
     input                   rst_n   ,
     input                                       Reset,
-    input                                       Reset_WEI,
-    input                                       Reset_ACT,
-    input                                       Reset_OFM,
+    // input                                       Reset_WEI,
+    // input                                       Reset_ACT,
+    // input                                       Reset_OFM,
+    input  [`IFSCHEDULE_WIDTH  - 1 : 0 ] IF_schedule,
     input                                   IF_Val,
     input                                       CFG_Req,
     output                                  IF_RdDone,
@@ -76,6 +77,15 @@ localparam IFCFG_OFM = 4'd11;
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
+wire                                        Next_Patch  ; 
+wire                                        Next_FtrGrp ;
+wire                                        Next_Layer  ;
+wire                                        Reset_Patch ;
+wire                                        Reset_IFM   ;
+wire                                        Reset_FtrGrp;
+wire                                        Reset_FtrLay   ;
+wire                                        Reset_OFM   ; 
+
 wire                        IF_Rdy;
 wire                        IF_Req;
 wire [4         - 1:0]   IF_Cfg;
@@ -95,6 +105,7 @@ reg                         Reset_ACT_IF_CFG;
 reg                         Reset_OFM_IF_CFG;
 wire [ 3         - 1 : 0 ] Reset_IF_CFG;
 wire                        GBFFIFO_Val;
+reg  [ `IFSCHEDULE_WIDTH - 1 : 0 ] IF_schedule_lev;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
@@ -103,7 +114,7 @@ wire                        GBFFIFO_Val;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFFLGWEI_AddrWr <= 0;
-    end else if (Reset_WEI ) begin
+    end else if (Reset_FtrGrp ) begin
         GBFFLGWEI_AddrWr <= 0;
     end else if ( GBFFLGWEI_EnWr ) begin
         GBFFLGWEI_AddrWr <= GBFFLGWEI_AddrWr + 1;
@@ -112,7 +123,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFWEI_AddrWr <= 0;
-    end else if (Reset_WEI ) begin
+    end else if (Reset_FtrGrp ) begin
         GBFWEI_AddrWr <= 0;
     end else if ( GBFWEI_EnWr ) begin
         GBFWEI_AddrWr <= GBFWEI_AddrWr + 1;
@@ -121,7 +132,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFFLGACT_AddrWr <= 0;
-    end else if (Reset_ACT ) begin
+    end else if (Reset_Patch ) begin
         GBFFLGACT_AddrWr <= 0;
     end else if ( GBFFLGACT_EnWr ) begin
         GBFFLGACT_AddrWr <= GBFFLGACT_AddrWr + 1;
@@ -130,7 +141,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFACT_AddrWr <= 0;
-    end else if ( Reset_ACT) begin
+    end else if ( Reset_Patch) begin
         GBFACT_AddrWr <= 0;
     end else if ( GBFACT_EnWr ) begin
         GBFACT_AddrWr <= GBFACT_AddrWr + 1;
@@ -198,34 +209,31 @@ assign O_spi_data = Switch_RdWr ? O_spi_data_rd : O_spi_data_wr;
 assign config_req = Switch_RdWr ? config_req_rd : config_req_wr;
 assign IF_Rdy = Switch_RdWr ? IF_Rdy_rd: IF_Rdy_wr;
 
-always @ ( posedge clk or negedge rst_n ) begin
-    if ( !rst_n ) begin
-        Reset_WEI_IF_CFG <= 0;
-    end else if ( Reset_WEI ) begin
-        Reset_WEI_IF_CFG <= 1;
-    end else if ( IF_Req )begin//Fetched by _rd
-        Reset_WEI_IF_CFG <= 0;
-    end
-end
-always @ ( posedge clk or negedge rst_n ) begin
-    if ( !rst_n ) begin
-        Reset_ACT_IF_CFG <= 0;
-    end else if ( Reset_ACT ) begin
-        Reset_ACT_IF_CFG <= 1;
-    end else if ( IF_Req )begin//Fetched by _rd
-        Reset_ACT_IF_CFG <= 0;
-    end
-end
-always @ ( posedge clk or negedge rst_n ) begin
-    if ( !rst_n ) begin
-        Reset_OFM_IF_CFG <= 0;
-    end else if ( Reset_OFM ) begin
-        Reset_OFM_IF_CFG <= 1;
-    end else if ( IF_Req )begin//Fetched by _wr
-        Reset_OFM_IF_CFG <= 0;
-    end
-end
-assign Reset_IF_CFG = {Reset_WEI_IF_CFG, Reset_ACT_IF_CFG, Reset_OFM_IF_CFG};
+generate
+    genvar i;
+    for( i=0; i<`IFSCHEDULE_WIDTH; i=i+1 ) begin: IFSCHEDULE_GEN
+        always @ ( posedge clk or negedge rst_n ) begin
+            if ( !rst_n ) begin
+               IF_schedule_lev[i]  <= 0;
+            end else if ( IF_schedule[i] ) begin
+                IF_schedule_lev[i] <= IF_schedule[i];
+            end else if ( IF_Req ) begin
+                IF_schedule_lev[i]  <= 0;
+            end
+        end
+     end
+endgenerate
+assign {
+Next_Patch,
+Next_FtrGrp ,
+Next_Layer ,
+Reset_Patch,
+Reset_IFM,
+Reset_FtrGrp,
+Reset_FtrLay ,
+Reset_OFM
+} = IF_schedule;
+//assign Reset_IF_CFG = {Reset_WEI_IF_CFG, Reset_ACT_IF_CFG, Reset_OFM_IF_CFG};
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================
@@ -234,9 +242,9 @@ assign Reset_IF_CFG = {Reset_WEI_IF_CFG, Reset_ACT_IF_CFG, Reset_OFM_IF_CFG};
             .clk              (clk),
             .rst_n            (rst_n),
             .Reset            (Reset),
-            .Reset_WEI  ( Reset_WEI),
-            .Reset_ACT  ( Reset_ACT),
-            .Reset_OFM ( Reset_OFM),
+            .Reset_WEI  ( IF_schedule[1]||IF_schedule[2]||IF_schedule[6]||IF_schedule[5]),
+            .Reset_ACT  ( IF_schedule[3] || IF_schedule[4]||IF_schedule[7]||IF_schedule[5]),
+            .Reset_OFM ( IF_schedule[0]),
             .IF_Val             (IF_Val ),
             .CFG_Req          (CFG_Req),
             .GBFFLGWEI_AddrWr (GBFFLGWEI_AddrWr),
@@ -281,11 +289,10 @@ top_asyncFIFO_rd #(
         .O_spi_cs_n    (O_spi_cs_n),
         .config_req    (config_req_rd),
         .full          (near_full      ),
-
         .config_ready  (IF_Rdy_rd),
         .config_paulse (IF_Req && IF_RdWr),
         .config_data   (IF_Cfg),
-        .Reset_IF_CFG ( Reset_IF_CFG),
+        .IF_schedule ( IF_schedule_lev),
         .O_config_data (  ),
         .rd_req        (1'b1),
         .rd_valid      (ValRd),
@@ -308,7 +315,7 @@ top_asyncFIFO_rd #(
             .config_ready  (IF_Rdy_wr),
             .config_paulse (IF_Req&&~IF_RdWr),
             .config_data   (IF_Cfg),
-            .Reset_IF_CFG ( Reset_IF_CFG),
+            .IF_schedule ( IF_schedule_lev),
             .GBF_Val        ( GBFFIFO_Val),
             .wr_ready      (RdyWr),
             .wr_req        (ValWr),

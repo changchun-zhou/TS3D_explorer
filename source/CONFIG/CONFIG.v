@@ -5,7 +5,7 @@
 // Module : CONFIG
 // Author : CC zhou
 // Contact :
-// Date :   8 . 1 .2019
+// Date :   1 . 8 .2019
 //=======================================================
 // Description :
 //========================================================
@@ -16,11 +16,13 @@ module  CONFIG (
     input                                               Rst_Layer,
     input                                               IFCFG_Val,
     input [`PORT_DATAWIDTH          -1 : 0 ] IFCFG,
+    output [ 6                                     - 1 : 0 ] CFG_LoopPty,// Loop priority; patch ,Cout, Cin
     output [ `C_LOG_2(`LENROW)           - 1 : 0 ] CFG_LenRow, // +1 is real value
     output [ `BLK_WIDTH                  - 1 : 0 ] CFG_DepBlk,
     output [ `BLK_WIDTH                  - 1 : 0 ] CFG_NumBlk,
     output [ `FRAME_WIDTH                - 1 : 0 ] CFG_NumFrm,
     output [ `PATCH_WIDTH                - 1 : 0 ] CFG_NumPat,
+    output [ `FTRGRP_WIDTH                -1 : 0 ] CFG_NumFtrGrp,
     output [ `LAYER_WIDTH                - 1 : 0 ] CFG_NumLay,
     output [ 5 + 1+`POOL_KERNEL_WIDTH                -1 : 0] CFG_POOL
 );
@@ -43,8 +45,8 @@ wire  [ `PORT_DATAWIDTH          - 1 : 0 ] fifo_out;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
-
-assign {CFG_LenRow,CFG_DepBlk,CFG_NumBlk,CFG_NumFrm,CFG_NumPat,CFG_NumLay,CFG_POOL} = fifo_out;
+// Schedule of Every layer
+assign {CFG_LoopPty, CFG_LenRow,CFG_DepBlk,CFG_NumBlk,CFG_NumFrm,CFG_NumPat, CFG_NumFtrGrp, CFG_NumLay,CFG_POOL} = fifo_out;
 
 
 

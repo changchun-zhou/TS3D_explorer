@@ -540,18 +540,118 @@ endgenerate
     reg [ ADDR_W               -1 : 0 ] wr_addr_config;
     reg [ TX_SIZE_WIDTH        -1 : 0 ] wr_req_size_config;
 
-reg [TX_SIZE_WIDTH - 1:0] count_rd0;
-reg [TX_SIZE_WIDTH - 1:0] count_rd1;
-reg [TX_SIZE_WIDTH - 1:0] count_rd2;
-reg [TX_SIZE_WIDTH - 1:0] count_rd3;
-reg [TX_SIZE_WIDTH - 1:0] count_rd4;
-reg [TX_SIZE_WIDTH - 1:0] count_rd5;
-reg [TX_SIZE_WIDTH - 1:0] count_rd6;
-reg [TX_SIZE_WIDTH - 1:0] count_rd7;
-reg [TX_SIZE_WIDTH - 1:0] count_rd8;
-reg [TX_SIZE_WIDTH - 1:0] count_rd9;
+reg [TX_SIZE_WIDTH - 1:0] count_Layer;
+reg [TX_SIZE_WIDTH - 1:0] count_Patch;
+reg [TX_SIZE_WIDTH - 1:0] count_FtrGrp;
+
+reg [TX_SIZE_WIDTH - 1:0] count_Req_FLGWEI;
+reg [TX_SIZE_WIDTH - 1:0] count_Req_WEI;
+reg [TX_SIZE_WIDTH - 1:0] count_Req_FLGACT;
+reg [TX_SIZE_WIDTH - 1:0] count_Req_ACT;
 
 parameter BYTE_WIDTH = 8;
+
+wire [ ADDR_W  - 1 : 0 ] rd_addr_base_FtrGrp_FLGWEI;
+wire [ ADDR_W  - 1 : 0 ] rd_addr_base_FtrGrp_WEI;
+wire [ ADDR_W  - 1 : 0 ] rd_addr_base_Patch_FLGACT;
+wire [ ADDR_W  - 1 : 0 ] rd_addr_base_Patch_ACT;
+wire   Next_Patch;
+wire   Next_FtrGrp ;
+wire   Next_Layer ;
+wire   Reset_Patch;
+wire   Reset_IFM;
+wire   Reset_FtrGrp;
+wire   Reset_WEI ;
+wire   Reset_OFM;
+reg [ `IFSCHEDULE_WIDTH   - 1: 0] IF_schdule;
+assign {
+Next_Patch,
+Next_FtrGrp ,
+Next_Layer ,
+Reset_Patch,
+Reset_IFM,
+Reset_FtrGrp,
+Reset_WEI,
+Reset_OFM
+} = I_spi_data[27:20];// Only config Read
+
+// BaseAddr: 11 layers of C3D; 4 types of data
+reg [ ADDR_W   - 1 : 0 ] MEM_ADDR_BASE [0:1023];
+reg [ ADDR_W   - 1 : 0 ] MEM_ADDR_OFFSET [0:10][0:31];
+// always @ ( * ) begin
+//    if( reset) begin
+//        MEM_ADDR_BASE[1][0] <= `LAYER1_FLGWEI_DDR_BASE;
+//        MEM_ADDR_BASE[1][1] <= `LAYER1_WEI_DDR_BASE;
+//        MEM_ADDR_BASE[1][2] <= `LAYER1_FLGACT_DDR_BASE;
+//        MEM_ADDR_BASE[1][3] <= `LAYER1_ACT_DDR_BASE;
+
+//        MEM_ADDR_OFFSET[1][0] <= 3456;// 27 x 64 x 16 b = 27648 / 8
+//        MEM_ADDR_OFFSET[1][1] <= 27648;// 27 x 64 x 16 B ??????????????? by python ?????????????????????
+//        MEM_ADDR_OFFSET[1][2] <= 2048;// 16x16x64 b = 16384 /8
+//        MEM_ADDR_OFFSET[1][3] <= 16384;// 27 x 64 x 16 B ????????????????
+//    end
+// end
+
+initial begin 
+    $readmemh(`FILE_ADDR, MEM_ADDR_BASE);// Addr_base for every Patch/FtrGrp
+end
+
+always @ ( posedge clk or negedge reset ) begin
+    if ( reset ) begin
+      count_Layer   <= 1;// Conv2
+    end else if ( Next_Layer && next_state == WAIT) begin // paulse
+      count_Layer  <= count_Layer + 1;
+    end
+end
+
+always @ ( posedge clk or negedge reset ) begin
+    if ( reset ) begin
+       count_FtrGrp  <= 0;//current layer, the i-th FtrGroup
+    end else if ( Reset_WEI && next_state == WAIT ) begin
+       count_FtrGrp <= 0;
+    end else if ( Next_FtrGrp && next_state == WAIT ) begin
+       count_FtrGrp  <= count_FtrGrp + 1;
+    end
+end
+always @ ( posedge clk or negedge reset ) begin
+    if ( reset ) begin
+       count_Patch  <= 0;
+    end else if ( Reset_IFM && next_state == WAIT ) begin
+       count_Patch <= 0;
+    end else if ( Next_Patch && next_state == WAIT ) begin
+       count_Patch  <= count_Patch + 1 ;
+    end
+end
+wire [4 - 1 : 0] Which_RdWr;
+assign Which_RdWr = O_data_out[31:28];
+// assign rd_addr_base_FtrGrp_FLGWEI = MEM_ADDR_BASE[count_Layer][0] + MEM_ADDR_OFFSET[count_Layer][0] * count_FtrGrp;
+// assign rd_addr_base_FtrGrp_WEI    = MEM_ADDR_BASE[count_Layer][1] + MEM_ADDR_OFFSET[count_Layer][1] * count_FtrGrp;
+// assign rd_addr_base_Patch_FLGACT  = MEM_ADDR_BASE[count_Layer][2] + MEM_ADDR_OFFSET[count_Layer][2] * count_Patch;
+// assign rd_addr_base_Patch_ACT     = MEM_ADDR_BASE[count_Layer][3] + MEM_ADDR_OFFSET[count_Layer][3] * count_Patch;// Patch base Address
+assign rd_addr_base_FtrGrp_FLGWEI = MEM_ADDR_BASE[40+count_FtrGrp];
+assign rd_addr_base_FtrGrp_WEI    = MEM_ADDR_BASE[32+count_FtrGrp];
+assign rd_addr_base_Patch_FLGACT  = MEM_ADDR_BASE[16+count_Patch];
+assign rd_addr_base_Patch_ACT     = MEM_ADDR_BASE[count_Patch];// Patch base Address
+
+always @ ( posedge clk or negedge reset ) begin
+    if ( reset ) begin
+       count_Req_FLGWEI  <= 0;
+       count_Req_WEI  <= 0;
+       count_Req_FLGACT  <= 0;
+       count_Req_ACT  <= 0;
+    end else if ( next_state == WAIT ) begin //when Reset: before Config
+        count_Req_FLGWEI <= ( Reset_WEI || Reset_FtrGrp ) ? 0: count_Req_FLGWEI;
+        count_Req_WEI <= ( Reset_WEI || Reset_FtrGrp ) ?    0 : count_Req_WEI;
+        count_Req_FLGACT <= ( Reset_IFM || Reset_Patch ) ?  0 :count_Req_FLGACT;
+        count_Req_ACT <= ( Reset_IFM || Reset_Patch ) ?     0 :count_Req_ACT;
+        IF_schdule <= I_spi_data[27:20];
+    end else if ( state == WAIT ) begin //When add + 1: after Config
+         count_Req_FLGWEI <=  Which_RdWr == `IFCODE_FLGWEI ?  count_Req_FLGWEI + 1 : count_Req_FLGWEI;
+         count_Req_WEI <=  Which_RdWr == `IFCODE_WEI ? count_Req_WEI + 1 : count_Req_WEI;
+         count_Req_FLGACT <=  Which_RdWr == `IFCODE_FLGACT ? count_Req_FLGACT + 1 : count_Req_FLGACT;
+         count_Req_ACT <=  Which_RdWr == `IFCODE_ACT ? count_Req_ACT + 1 : count_Req_ACT;
+    end
+end
 
     always @(posedge clk or negedge reset) begin : proc_config_bus
       if(reset) begin
@@ -561,37 +661,36 @@ parameter BYTE_WIDTH = 8;
         wr_req_config       <= 0;
         wr_addr_config      <= 0;
         wr_req_size_config  <= 0;
-        count_rd0 <= 0;
-        count_rd1 <= 0;
-        count_rd2 <= 0;
-        count_rd3 <= 0;
-        count_rd4 <= 0;
-        count_rd5 <= 0;
-        count_rd6 <= 0;
-        count_rd7 <= 0;
-        count_rd8 <= 0;
-        count_rd9 <= 0;
         which_write <= 0;
       end else if( state == WAIT )begin
-          which_write <= O_data_out[31:28];
-         rd_req_config      <= 1;
+          which_write <= Which_RdWr;
+          rd_req_config      <= 1;
          // rd_req_size_config <= 22; // ff
-        case(O_data_out[31:28])
-          `IFCODE_CFG:  begin rd_req_size_config = `RD_SIZE_CFG*`PORT_DATAWIDTH/AXI_DATA_W;   rd_addr_config = `CFG_ADDR     + (`RD_SIZE_CFG*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd0 ; count_rd0 <= count_rd0 + 1;
-                count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 = (O_data_out[27]? 0:count_rd8);end
+        case(Which_RdWr)
+          `IFCODE_CFG:  begin rd_req_size_config = `RD_SIZE_CFG*`PORT_DATAWIDTH/AXI_DATA_W;
+                rd_addr_config = `CFG_ADDR;//     + (`RD_SIZE_CFG*`PORT_DATAWIDTH/BYTE_WIDTH) ;// only once
+                end
 
-          `IFCODE_ACT:  begin rd_req_size_config = `RD_SIZE_ACT*`PORT_DATAWIDTH/AXI_DATA_W;  rd_addr_config = `ACT_ADDR + (`RD_SIZE_ACT*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd2 ; count_rd2 <= count_rd2 + 1;
-                count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 = (O_data_out[27]? 0:count_rd8); end
+          `IFCODE_ACT:  begin rd_req_size_config = `RD_SIZE_ACT*`PORT_DATAWIDTH/AXI_DATA_W;
+                rd_addr_config =  rd_addr_base_Patch_ACT + (`RD_SIZE_ACT*`PORT_DATAWIDTH/BYTE_WIDTH) *count_Req_ACT;
+                end
 
-          `IFCODE_FLGACT:  begin rd_req_size_config = `RD_SIZE_FLGACT*`PORT_DATAWIDTH/AXI_DATA_W;   rd_addr_config =  `FLGACT_ADDR + (`RD_SIZE_FLGACT*`PORT_DATAWIDTH/BYTE_WIDTH)*count_rd4 ; count_rd4 <= count_rd4 + 1; count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 = (O_data_out[27]? 0:count_rd8); end
+          `IFCODE_FLGACT:  begin rd_req_size_config = `RD_SIZE_FLGACT*`PORT_DATAWIDTH/AXI_DATA_W;
+               rd_addr_config = rd_addr_base_Patch_FLGACT + (`RD_SIZE_FLGACT*`PORT_DATAWIDTH/BYTE_WIDTH)*count_Req_FLGACT;
+              end
 
-          `IFCODE_WEI:  begin   rd_req_size_config = `RD_SIZE_WEI*`PORT_DATAWIDTH/AXI_DATA_W; rd_addr_config = `WEI_ADDR + (`RD_SIZE_WEI*`PORT_DATAWIDTH/BYTE_WIDTH)*(O_data_out[27]? 0:count_rd6)  ; count_rd6 <= (O_data_out[27]? 0:count_rd6)  + 1; count_rd8 = (O_data_out[27]? 0:count_rd8);end
+          `IFCODE_WEI:  begin   rd_req_size_config = `RD_SIZE_WEI*`PORT_DATAWIDTH/AXI_DATA_W;
+                rd_addr_config = rd_addr_base_FtrGrp_WEI + (`RD_SIZE_WEI*`PORT_DATAWIDTH/BYTE_WIDTH)*count_Req_WEI  ;
+              end
 
-          `IFCODE_FLGWEI:  begin rd_req_size_config = `RD_SIZE_FLGWEI*`PORT_DATAWIDTH/AXI_DATA_W;    rd_addr_config = `FLGWEI_ADDR + (`RD_SIZE_FLGWEI*`PORT_DATAWIDTH/BYTE_WIDTH)  *(O_data_out[27]? 0:count_rd8)  ; count_rd6 = (O_data_out[27]? 0:count_rd6); count_rd8 <= (O_data_out[27]? 0:count_rd8)  + 1; end
-          default:  begin rd_req_size_config = 0;     rd_addr_config = `ACT_ADDR; end
+          `IFCODE_FLGWEI:  begin rd_req_size_config = `RD_SIZE_FLGWEI*`PORT_DATAWIDTH/AXI_DATA_W;
+                rd_addr_config = rd_addr_base_FtrGrp_FLGWEI + (`RD_SIZE_FLGWEI*`PORT_DATAWIDTH/BYTE_WIDTH)  *count_Req_FLGWEI  ;
+              end
+          default:  begin rd_req_size_config = 0;     rd_addr_config = `ACT_ADDR;
+                         end
         endcase
          // rd_addr_config     <= ACT_BASE_ADDR;
-         case ( O_data_out[31:28])
+         case ( Which_RdWr)
           // 4'b0_000 : rd_addr_config <= ACT_BASE_ADDR       + O_data_out[27:10];
           // 4'b0_001 : rd_addr_config <= ACT_FLAG_BASE_ADDR  + O_data_out[27:10];
           // 4'b0_010 : rd_addr_config <= WEI_BASE_ADDR       + O_data_out[27:10];

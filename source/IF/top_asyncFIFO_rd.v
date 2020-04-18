@@ -17,7 +17,7 @@ module top_asyncFIFO_rd #(
     output                                  config_ready  , //ASIC
     input                                   config_paulse , //ASIC pull up
     input [ 4              -1 : 0 ]         config_data   , //ASIC
-    input [ 3              -1 : 0 ]     Reset_IF_CFG,
+    input [ `IFSCHEDULE_WIDTH             -1 : 0 ]     IF_schedule,
     output reg [ 4               - 1 : 0 ]O_config_data,
     input                                   rd_req        ,
     output                                  rd_valid      , //ASIC
@@ -31,7 +31,7 @@ reg [ RX_WIDTH          - 1 : 0 ] rd_count      ;
 //wire                        rd_done       ;
 reg O_spi_cs_n_sync, O_spi_cs_n_2, O_spi_cs_n_1;
 reg [ 3         - 1 : 0 ]   state         ;  //ASIC
-reg [ 3        - 1  : 0]    O_Reset;
+reg [ `IFSCHEDULE_WIDTH        - 1  : 0]    O_IF_schedule;
 localparam IDLE = 0, CONFIG = 1, WAIT = 2, RD_DATA = 3,  WR_DATA = 4, RESET_FIFO = 5;
 
 assign config_ready = state           == IDLE ;
@@ -82,7 +82,7 @@ reg [ RX_WIDTH          - 1 : 0 ] rd_size      ;
 always @( posedge clk_chip or negedge reset_n_chip) begin : proc_rd_size
   if(!reset_n_chip) begin
     rd_size <= 43;
-    O_Reset <=0;
+    O_IF_schedule <=0;
   end else if ( config_paulse) begin
     case(config_data)
       `IFCODE_CFG:  rd_size <= `RD_SIZE_CFG;
@@ -93,7 +93,7 @@ always @( posedge clk_chip or negedge reset_n_chip) begin : proc_rd_size
       default:  rd_size   <= 2048;
     endcase
     O_config_data <= config_data;
-    O_Reset <= Reset_IF_CFG;
+    O_IF_schedule <= IF_schedule;
     end
 end
 
@@ -120,8 +120,8 @@ wire                            rd_en ;
 wire [ SPI_WIDTH      - 1 : 0 ] dout  ;
 wire                            empty ;
 // wire                            full  ;
-
-assign O_spi_data = {O_config_data,O_Reset,25'd0};
+wire [ 28-`IFSCHEDULE_WIDTH -1 : 0] Zero = 0;
+assign O_spi_data = {O_config_data,O_IF_schedule, Zero};
 
 assign wr_clk = O_spi_sck  ;
 assign wr_en  = !O_spi_cs_n;

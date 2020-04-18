@@ -14,19 +14,19 @@ module top_asyncFIFO_wr #(
     output                                  config_ready  , //ASIC
     input                                   config_paulse , //ASIC paulse
     input [ 4            -1 : 0 ]           config_data   , //ASIC
-    input [ 3            -1 : 0 ]        Reset_IF_CFG,
+    input [ `IFSCHEDULE_WIDTH            -1 : 0 ]        IF_schedule,
     input                                     GBF_Val,
     output                                  wr_ready      , //ASIC
     input                                   wr_req        , //ASIC
     input [ SPI_WIDTH    -1 : 0 ]           wr_data         //ASIC
     );
-reg [ 3                     - 1 : 0] O_Reset;
+reg [ `IFSCHEDULE_WIDTH                     - 1 : 0] O_IF_schedule;
 reg [ TX_WIDTH    -1 : 0] wr_size;
 reg [ 4                   -1 : 0] O_config_data;
 always @ ( posedge clk_chip or negedge reset_n_chip ) begin
     if ( !reset_n_chip ) begin
         wr_size <= 0;
-        O_Reset <= 0;
+        O_IF_schedule <= 0;
     end else if ( config_paulse ) begin
          case( config_data)
             `IFCODE_FLGOFM:   wr_size <= `WR_SIZE_FLGOFM;
@@ -34,7 +34,7 @@ always @ ( posedge clk_chip or negedge reset_n_chip ) begin
             default       :   wr_size <= `WR_SIZE_FLGOFM;
         endcase
         O_config_data <= config_data; // hold config_data to FPGA
-        O_Reset         <= Reset_IF_CFG;
+        O_IF_schedule        <= IF_schedule;
     end
 end
 
@@ -227,8 +227,8 @@ reg pre_full_mkup_d;
 always @(posedge clk_chip) begin : proc_pre_full_mkup_d
     pre_full_mkup_d <= pre_full_mkup;
 end
-
-assign IO_spi_data = ( O_spi_cs_n_d && O_spi_cs_n )? {O_config_data, O_Reset, 25'd0} : dout;// level O_spi_cs_n is OK
+wire [ 28-`IFSCHEDULE_WIDTH -1 : 0] Zero = 0;
+assign IO_spi_data = ( O_spi_cs_n_d && O_spi_cs_n )? {O_config_data, O_IF_schedule, Zero} : dout;// level O_spi_cs_n is OK
 assign wr_clk = clk_chip          ;
 // assign wr_en  = ( (wr_req && ~full)  || post_full_mkup ) && ~wr_done_wait_in;// add missed two clk
 // assign wr_en  = ( wr_req  || post_full_mkup ) && ~wr_done_wait_in;// add missed two clk

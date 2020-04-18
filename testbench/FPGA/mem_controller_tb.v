@@ -7,7 +7,7 @@ module mem_controller_tb;
   localparam integer ADDR_W            = 32;
   localparam integer AXI_DATA_W        = 64;
   parameter integer WSTRB_W            = AXI_DATA_W/8 ;
-  localparam integer TX_SIZE_WIDTH     = 30;
+  localparam integer TX_SIZE_WIDTH     = 30;// extra size
   parameter integer SPI_WIDTH          = 96;
   parameter integer DATA_WIDTH         = 8 ;
   // parameter integer DDR_BATCH = 11;

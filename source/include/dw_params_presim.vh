@@ -9,7 +9,6 @@
 `define CLOCK_PERIOD_ASIC 10 // 10ns clock period
 `define DELAY_SRAM // define with SRAM Sim= presim
 
-
 // ****************************************************************************
 // Hyper-parameter
 // ****************************************************************************
@@ -23,7 +22,7 @@
 // ****************************************************************************
 `define BLOCK_DEPTH 32
 `define KERNEL_SIZE 9
-`define MAX_DEPTH 1024 // c3d 512 i3d 1024
+`define MAX_DEPTH 8192 // c3d's conv:512 i3d's conv:1024; fc: 8192
 `define LENROW 16
 `define LENPSUM 14
 `define POOL_KERNEL_WIDTH 3 // 2 3 7
@@ -32,6 +31,7 @@
 // ************* Config parameters *****************
 `define FRAME_WIDTH 5
 `define PATCH_WIDTH 8
+`define FTRGRP_WIDTH `C_LOG_2( `MAX_DEPTH /  `NUMPEB )
 `define BLK_WIDTH   `C_LOG_2(1024/`BLOCK_DEPTH)   //ONLY FOR CONV, FC? 5
 `define LAYER_WIDTH 8 //256 layers
 `define NUM_CFG_WIDTH `LAYER_WIDTH
@@ -53,7 +53,9 @@
 `define GBFOFM_ADDRWIDTH  8 // 8b
 `define GBFFLGOFM_ADDRWIDTH  `C_LOG_2(`LENPSUM*`LENPSUM*`NUMPEB/(`PORT_DATAWIDTH))//5
 // PEL parameter
-`define PSUM_WIDTH (`DATA_WIDTH *2 + `C_LOG_2(`KERNEL_SIZE*`MAX_DEPTH) )//29
+`define PSUM_WIDTH 30 // Because of test_data_presim
+//(`DATA_WIDTH *2 + `C_LOG_2(`KERNEL_SIZE*`MAX_DEPTH) )//29
+
 `define BUSPEC_WIDTH (8 + `BLOCK_DEPTH + `DATA_WIDTH * `BLOCK_DEPTH)
 `define BUSPEB_WIDTH `BUSPEC_WIDTH
 
@@ -62,6 +64,8 @@
 // ****************************************************************************
 // Interface parameter
 // ****************************************************************************
+`define IFSCHEDULE_WIDTH 8
+
 `define REQ_CNT_WIDTH 10 // Max time of GBF overflowing
 `define ASYSFIFO_ADDRWIDTH 5
 
@@ -74,7 +78,7 @@
 `define IFCODE_OFM 11
 `define IFCODE_EMPTY 15
 
-`define RD_SIZE_CFG 2**`NUM_CFG_WIDTH //12B x 256
+`define RD_SIZE_CFG 2**`NUM_CFG_WIDTH //12B x 256 all layers of NNs
 `define RD_SIZE_FLGWEI  2**`GBFFLGWEI_ADDRWIDTH * 3/4//24
 `define RD_SIZE_WEI 2**`GBFWEI_ADDRWIDTH * 3/4
 `define RD_SIZE_FLGACT 2** `GBFFLGACT_ADDRWIDTH * 3/4//24
@@ -84,13 +88,54 @@
 
 // C3D DDR ADDR Allocation
 // 12MB
-`define ACT_ADDR        32'h0800_0000  // Max 3MB=> 40_0000
-`define FLGACT_ADDR     32'h0840_0000 // Max 8_0000
-`define WEI_ADDR        32'h0848_0000 // Max 7MB => 80_0000
-`define FLGWEI_ADDR     32'h08d0_0000 // Max 1MB => 10_0000
-`define CFG_ADDR        32'h08e0_0000 // 12B 000c
-`define OFM_ADDR 32'h08e0_1000 // Max 3MB => 40_0000
-`define FLGOFM_ADDR 32'h0930_0000 // Max 8_0000
+
+// Layer base ADDR
+`define ACT_ADDR        32'h0800_0000  // Max 6MB=> 60_0000
+//`define FLGACT_ADDR     32'h0860_0000 // Max 1MB 8_0000
+//`define WEI_ADDR        32'h0880_0000 // Max 32MB => 200_0000
+//`define FLGWEI_ADDR     32'h0A80_0000 // Max 4MB => 40_0000
+`define CFG_ADDR        32'h0AC0_0000 // 256 Layer 256x12 = 3072 < 2KB  _0800
+`define OFM_ADDR 32'h0AC0_0800 // Max 6MB => 60_0000
+`define FLGOFM_ADDR 32'h0B20_0800 // Max 1MB 10_0000
+
+`define LAYER0_ACT_DDR_BASE 32'h0800_0000
+`define LAYER1_ACT_DDR_BASE 32'h080A_5600
+`define LAYER2_ACT_DDR_BASE 32'h0841_7600
+`define LAYER3_ACT_DDR_BASE 32'h084F_3E00
+`define LAYER4_ACT_DDR_BASE 32'h086A_CE00
+`define LAYER5_ACT_DDR_BASE 32'h086E_4000
+`define LAYER6_ACT_DDR_BASE 32'h0875_2400
+`define LAYER7_ACT_DDR_BASE 32'h0876_0080
+
+`define LAYER0_FLGACT_DDR_BASE 32'h0809_3000
+`define LAYER1_FLGACT_DDR_BASE 32'h083B_5600
+`define LAYER2_FLGACT_DDR_BASE 32'h084D_B600
+`define LAYER3_FLGACT_DDR_BASE 32'h0867_BE00
+`define LAYER4_FLGACT_DDR_BASE 32'h086D_DE00
+`define LAYER5_FLGACT_DDR_BASE 32'h0874_6000
+`define LAYER6_FLGACT_DDR_BASE 32'h0875_E800
+`define LAYER7_FLGACT_DDR_BASE 32'h0876_C480
+
+
+`define LAYER0_WEI_DDR_BASE 32'h0880_0000
+`define LAYER1_WEI_DDR_BASE 32'h0880_16C8
+`define LAYER2_WEI_DDR_BASE 32'h0883_E2C8
+`define LAYER3_WEI_DDR_BASE 32'h0893_12C8
+`define LAYER4_WEI_DDR_BASE 32'h08B1_72C8
+`define LAYER5_WEI_DDR_BASE 32'h08EE_32C8
+`define LAYER6_WEI_DDR_BASE 32'h0967_B2C8
+`define LAYER7_WEI_DDR_BASE 32'h09E1_32C8
+
+
+`define LAYER0_FLGWEI_DDR_BASE 32'h0880_1440
+`define LAYER1_FLGWEI_DDR_BASE 32'h0883_76C8
+`define LAYER2_FLGWEI_DDR_BASE 32'h0891_62C8
+`define LAYER3_FLGWEI_DDR_BASE 32'h08AE_12C8
+`define LAYER4_FLGWEI_DDR_BASE 32'h08E7_72C8
+`define LAYER5_FLGWEI_DDR_BASE 32'h095A_32C8
+`define LAYER6_FLGWEI_DDR_BASE 32'h09D3_B2C8
+`define LAYER7_FLGWEI_DDR_BASE 32'h0A4D_32C8
+
 
 // **********************************************************************
 // Test File
@@ -101,6 +146,7 @@
 `define FILE_GBFACT "../testbench/Data/dequant_data/prune_quant_extract_proportion/Activation_45_pool1_data.dat"
 `define FILE_GBFFLGOFM "../testbench/Data/GenTest/RAM_GBFFLGOFM_12B.dat"
 `define FILE_GBFOFM "../testbench/Data/GenTest/RAM_GBFOFM_12B.dat"
+`define FILE_ADDR "../testbench/Data/dequant_data/prune_quant_extract_proportion/Patch_DDR_BASE_File.dat"
 //-----------------------------------------------------------
 //Simple Log2 calculation function
 //-----------------------------------------------------------

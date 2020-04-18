@@ -29,7 +29,7 @@ NumChn = 32
 NumWei = 9
 NumBlk = 2
 NumFrm = 16
-NumPat = 4
+NumPat = 16
 KerSize = 3
 Stride = 2
 fl = 0
@@ -104,8 +104,8 @@ for cntPat in range(0, NumPat):
                         # *************************************************************************
                         if cnt_Flag_hex == 0:
                             FlgAct_hex = FlagActFile.readline().rstrip('\n') # 12B
-                        PECMAC_FlgAct = FlgAct_hex[8*(cnt_Flag_hex):8*(cnt_Flag_hex)+8] #4B
-                        PECMAC_FlgAct = int(PECMAC_FlgAct,16)
+                        PECMAC_FlgAct_hex = FlgAct_hex[8*(cnt_Flag_hex):8*(cnt_Flag_hex)+8] #4B
+                        PECMAC_FlgAct = int(PECMAC_FlgAct_hex,16)
                         PECMAC_FlgAct = str(bin(PECMAC_FlgAct)).lstrip('0b').zfill(NumChn)
                         if cnt_Flag_hex == 2:
                             cnt_Flag_hex = 0
@@ -113,7 +113,8 @@ for cntPat in range(0, NumPat):
                             cnt_Flag_hex += 1
                         #***************************************************************************
 
-                        PECMAC_FlgActFile.write(PECMAC_FlgAct)
+                        PECMAC_FlgActFile.write(PECMAC_FlgAct_hex)
+                        PECMAC_FlgActFile.write('\n')
                         #FlagActFile.read(1)
                         for i in range (0, NumChn):
                             if PECMAC_FlgAct[i] == '1' :#ch0
@@ -151,7 +152,7 @@ for cntPat in range(0, NumPat):
                         PECMAC_ActFile.write(PECMAC_Act)
 
                         PECMAC_ActFile.write('\n')
-                        PECMAC_FlgActFile.write('\n')
+
 
                 for cntPEB in range(0, NumPEB):
                     for cntPEC in range (0, NumPEC):

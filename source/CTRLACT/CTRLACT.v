@@ -14,12 +14,13 @@ module  CTRLACT (
     input                                       clk     ,
     input                                       rst_n   ,
     input                                       Sta,// Restart ACT
-
+    input [ 6                            -1 : 0 ] CFG_LoopPty,
     input [ `C_LOG_2(`LENROW)           - 1 : 0 ] CFG_LenRow, // +1 is real value
     input [ `BLK_WIDTH                  - 1 : 0 ] CFG_DepBlk,// +1 is real value
     input [ `BLK_WIDTH                  - 1 : 0 ] CFG_NumBlk,
     input [ `FRAME_WIDTH                - 1 : 0 ] CFG_NumFrm,
     input [ `PATCH_WIDTH                - 1 : 0 ] CFG_NumPat,
+    input [ `FTRGRP_WIDTH             - 1 : 0 ] CFG_NumFtrGrp,
     input [ `LAYER_WIDTH                - 1 : 0 ] CFG_NumLay,
     output                                       CTRLACT_PlsFetch,
     input                                        CTRLACT_GetAct,
@@ -30,12 +31,21 @@ module  CTRLACT (
     output                                      CTRLACT_ValCol,
     output                                       CTRLACT_FrtBlk, /// glitch: PEC0 -> PEC2 second BLK -> first Blk
     output                                       CTRLACT_FnhPat,
+    output                                       CTRLACT_FnhFtrGrp,
     output                                       CTRLACT_FnhLay,
     output                                       CTRLACT_FnhFrm,
     output                                       CTRLACT_EvenFrm,
     output                                          POOL_En,
     output                                         POOL_ValDelta,
-    output                                         POOL_ValFrm
+    output                                         POOL_ValFrm,
+    output                                         Next_Patch,
+    output                                          Next_FtrGrp,
+    output                                          Next_Layer,
+    output                                          Reset_FtrGrp,
+    output                                          Reset_FtrLay,
+    output                                          Reset_Patch,
+    output                                          Reset_IFM,
+    output                                          Reset_OFM
 
 );
 //=====================================================================================================================
@@ -52,22 +62,34 @@ module  CTRLACT (
 reg  [ `C_LOG_2(`LENROW)           - 1 : 0 ] CntAct;
 reg  [ `C_LOG_2(`LENROW)           - 1 : 0 ] CntRow;
 wire                                                CTRLACT_FrtActBlk;
+
 wire                                                CTRLACT_FrtActFrm;
 wire                                                CTRLACT_LstActFrm;
 reg                                                 CTRLACT_FrtActFrm_d;
 wire                                                CTRLACT_FrtFrm;
+
 wire                                         CTRLACT_FrtActPat;
 reg                                          CTRLACT_FrtActPat_d;
 wire                                         CTRLACT_LstActPat;
+
+wire                                         CTRLACT_FrtActFtrGrp;
+reg                                          CTRLACT_FrtActFtrGrp_d;
+wire                                        CTRLACT_LstActFtrGrp;
+
 wire                                         CTRLACT_FrtActLay;
 reg                                          CTRLACT_FrtActLay_d;
 wire                                         CTRLACT_LstActLay;
+
 reg  [ `BLK_WIDTH                  - 1 : 0 ] CntBlk;
 reg  [ `FRAME_WIDTH                - 1 : 0 ] CntFrm;
 reg  [ `PATCH_WIDTH                - 1 : 0 ] CntPat;
+reg [ `FTRGRP_WIDTH               - 1 : 0 ] CntFtrGrp;
 reg  [ `LAYER_WIDTH                - 1 : 0 ] CntLay;
-
+reg                                         Loop;
 wire                                         Restart = 0; ////////////////////////////////
+
+parameter PATCH = 3;
+parameter FTRGRP = 2;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================PEB
@@ -87,23 +109,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
-// always @ ( posedge clk or negedge rst_n ) begin
-//     if ( ~rst_n ) begin
-//         CTRLACT_PlsFetch <= 0;
-//     end else if ( TOP_Sta || CTRLACT_GetAct ) begin
-//          <= ;
-//     end
-// end
-
 assign CTRLACT_PlsFetch = Sta || ( CTRLACT_GetAct && 1'b1);//////////////////
-
-// always @ ( posedge clk or negedge rst_n ) begin
-//     if ( !rst_n ) begin
-//         CTRLACT_LstActRow <= 0;
-//     end else if (  ) begin
-//         CTRLACT_LstActRow <= ;
-//     end
-// end
 assign CTRLACT_LstActRow = CntAct == CFG_LenRow;
 assign CTRLACT_FrtActRow = CntAct == 0;
 assign CTRLACT_ValCol = CntAct >= 2;
@@ -157,14 +163,63 @@ always @ ( posedge clk or negedge rst_n ) begin
         CntPat <= 0;
     end else if ( CTRLACT_LstActLay && CTRLACT_GetAct ) begin
         CntPat <= 0;
-    end else if( CTRLACT_FrtActPat && CTRLACT_GetAct ) begin
+    end else if( CTRLACT_LstActPat && CTRLACT_GetAct && Loop == PATCH ) begin
         CntPat <= CntPat + 1;
     end
 end
 
-assign CTRLACT_FrtActLay = CntPat == 0 && CTRLACT_FrtActPat;
-assign CTRLACT_LstActLay = CntPat == CFG_NumPat && CTRLACT_LstActPat;
+assign CTRLACT_LstActFtrGrp = CntFrm == CFG_NumFrm && CTRLACT_LstActFrm;
+assign CTRLACT_FrtActFtrGrp = CntFrm == 0 && CTRLACT_FrtActFrm;
+assign CTRLACT_FnhFtrGrp = CTRLACT_FrtActFtrGrp && ~CTRLACT_FrtActFtrGrp_d;
 always @ ( posedge clk or negedge rst_n ) begin
+    if ( ~rst_n ) begin
+        CntFtrGrp <= 0;
+    end else if ( CTRLACT_LstActLay && CTRLACT_GetAct ) begin
+        CntFtrGrp <= 0;
+    end else if( CTRLACT_LstActFtrGrp && CTRLACT_GetAct && Loop == FTRGRP ) begin
+        CntFtrGrp <= CntFtrGrp + 1;
+    end
+end
+wire PatchLoop_First = CFG_LoopPty[5:4] > CFG_LoopPty[3:2];
+wire FtrGrpLoop_First = CFG_LoopPty[5:4] < CFG_LoopPty[3:2];
+
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+       Loop  <= 0;
+    end else if ( PatchLoop_First &&  CntPat != CFG_NumPat
+                   || FtrGrpLoop_First && CntFtrGrp == CFG_NumFtrGrp  ) begin
+       Loop  <= PATCH ;
+    end else if (FtrGrpLoop_First && CntFtrGrp != CFG_NumFtrGrp
+                    || PatchLoop_First &&  CntPat == CFG_NumPat ) begin
+       Loop <= FTRGRP;
+    end
+end
+
+
+// Paulse
+assign Next_FtrGrp =  PatchLoop_First && CntPat ==  CFG_NumPat && CTRLACT_FnhPat
+                                  || FtrGrpLoop_First && CTRLACT_FnhFtrGrp;
+assign Next_Patch = PatchLoop_First && CTRLACT_FnhPat
+                                  || FtrGrpLoop_First && CntFtrGrp == CFG_NumFtrGrp && CTRLACT_FnhFtrGrp;
+assign Next_Layer = CntPat == CFG_NumPat && CntFtrGrp == CFG_NumFtrGrp && ( CTRLACT_FnhPat || CTRLACT_FnhFtrGrp );// CTRLACT_FnhFtrGrp
+
+assign Reset_FtrGrp =  CTRLACT_FnhFrm; // Must be high when Reset_FtrLay && ~Next_FtrGrp  // Reset a Filter Group
+assign Reset_FtrLay = FtrGrpLoop_First && Next_Patch;//Reset all Filter when new Patch
+
+assign Reset_Patch = CTRLACT_FnhFtrGrp; // ** Must be high when Reset_IFM && ~Next_Patch;
+assign Reset_IFM = PatchLoop_First && Next_FtrGrp ; // Reset IFM When new FilterGroup
+
+assign Reset_OFM = 0;
+
+
+assign CTRLACT_FrtActLay = CntPat == 0 && ( CTRLACT_FrtActPat||CTRLACT_FrtActFtrGrp );
+
+// Loop Patch && finish all Filter Groups || Loop Filter Group && finish all Patches
+assign CTRLACT_LstActLay = PatchLoop_First  &&  CntFtrGrp == CFG_NumFtrGrp  && CntPat == CFG_NumPat && CTRLACT_LstActPat
+                                               || FtrGrpLoop_First  &&   CntPat == CFG_NumPat && CntFtrGrp == CFG_NumFtrGrp && CTRLACT_LstActFtrGrp;
+
+always @ ( posedge clk or negedge rst_n ) begin
+
     if ( ~rst_n ) begin
         CntLay <= 0;
     end else if ( Restart ) begin
@@ -190,7 +245,13 @@ always @ ( posedge clk or negedge rst_n ) begin
         CTRLACT_FrtActPat_d <= CTRLACT_FrtActPat;
     end
 end
-
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        CTRLACT_FrtActFtrGrp_d <= 1;
+    end else begin
+        CTRLACT_FrtActFtrGrp_d <= CTRLACT_FrtActFtrGrp;
+    end
+end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         CTRLACT_FrtActLay_d <= 1;
