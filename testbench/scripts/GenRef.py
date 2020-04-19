@@ -67,7 +67,7 @@ CNVOUT_Psum2File   = open(CNVOUT_Psum2FileName, 'w')
 PECRAM_DatWrFile   = open(PECRAM_DatWrFileName, 'w')
 PECMAC_WeiFile    = open (PECMAC_WeiFileName,'w')
 CNVOUT_Psum1File   = open(CNVOUT_Psum1FileName, 'w')
-
+GBFFLGACT_DatWrFile = open(GBFFLGACT_DatWrFileName,'w')
 Psum2 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ] for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
 Psum1 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ]for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
 Psum0 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ]for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
@@ -79,6 +79,9 @@ GBFFLGOFM_DatRd = ""
 GBFOFM_DatRd = ""
 
 cnt_wei = 0
+cnt_GBFFLGACT = 0
+GBFFLGACT = ""
+cntPat_last = 0
 for cntPat in range(0, NumPat):
     for cntfrm in range(0,NumFrm):
         # same weight per frame
@@ -108,6 +111,27 @@ for cntPat in range(0, NumPat):
                         PECMAC_FlgAct_hex = FlgAct_hex[8*(cnt_Flag_hex):8*(cnt_Flag_hex)+8] #4B
                         PECMAC_FlgAct = int(PECMAC_FlgAct_hex,16)
                         PECMAC_FlgAct = str(bin(PECMAC_FlgAct)).lstrip('0b').zfill(NumChn)
+
+                        # ****************************
+                        GBFFLGACT = GBFFLGACT + PECMAC_FlgAct
+                        cnt_GBFFLGACT += 1
+                        if cnt_GBFFLGACT % 3 == 0:  
+                            GBFFLGACT_DatWrFile.write( GBFFLGACT + '\n' )
+                            GBFFLGACT = ""
+                        else:
+                            if cntPat != cntPat_last:
+                                if cnt_GBFFLGACT % 3 == 1:
+                                    GBFFLGACT += "0123456789abcdef"
+                                    cnt_GBFFLGACT += 2
+                                elif cnt_GBFFLGACT% 3 == 2:
+                                    GBFFLGACT += "01234567"
+                                    cnt_GBFFLGACT += 1
+                                GBFFLGACT_DatWrFile.write(GBFFLGACT + '\n' )
+                                GBFFLGACT = ""
+
+                        # *****************************
+                        cntPat_last = cntPat
+
                         if cnt_Flag_hex == 2:
                             cnt_Flag_hex = 0
                         else:
