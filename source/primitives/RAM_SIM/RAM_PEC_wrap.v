@@ -49,6 +49,7 @@ assign Addr = write_en ? addr_w : addr_r;
 
 // ******************* Delay for sim ********************************************
 wire [ SRAM_DEPTH_BIT          -1 : 0] A;
+wire [ SRAM_DEPTH_BIT          -1 : 0] A_range;
 wire [ SRAM_WIDTH              -1 : 0] DI;
 wire [ 1                      -1 : 0] WEB;
 wire                                   CSB;
@@ -82,9 +83,9 @@ always @ ( posedge clk) begin
         DO_d <= DO;
 end
 // ******************************************************************************
-
+assign A_range = A<196 ? A : 0;//range to 0-195
 SYLA55_196X30X1CM2 RAM_PEC0(
-    .A                   (  A               ),
+    .A                   (  A_range               ),
     .DO                  (  DO            ),
     .DI                  (  DI             ),
     .DVSE                (  1'b0                ),

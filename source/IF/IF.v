@@ -16,7 +16,7 @@ module IF(
     input                                       Reset,
     // input                                       Reset_WEI,
     // input                                       Reset_ACT,
-    // input                                       Reset_OFM,
+    // input                                       Reset_OFM_lev,
     input  [`IFSCHEDULE_WIDTH  - 1 : 0 ] IF_schedule,
     input                                   IF_Val,
     input                                       CFG_Req,
@@ -77,14 +77,14 @@ localparam IFCFG_OFM = 4'd11;
 //=====================================================================================================================
 // Variable Definition :
 //=====================================================================================================================
-wire                                        Next_Patch  ; 
-wire                                        Next_FtrGrp ;
-wire                                        Next_Layer  ;
-wire                                        Reset_Patch ;
-wire                                        Reset_IFM   ;
-wire                                        Reset_FtrGrp;
-wire                                        Reset_FtrLay   ;
-wire                                        Reset_OFM   ; 
+wire                                        Next_Patch_lev  ; 
+wire                                        Next_FtrGrp_lev ;
+wire                                        Next_Layer_lev  ;
+wire                                        Reset_Patch_lev ;
+wire                                        Reset_IFM_lev   ;
+wire                                        Reset_FtrGrp_lev;
+wire                                        Reset_FtrLay_lev   ;
+wire                                        Reset_OFM_lev   ; 
 
 wire                        IF_Rdy;
 wire                        IF_Req;
@@ -114,7 +114,7 @@ reg  [ `IFSCHEDULE_WIDTH - 1 : 0 ] IF_schedule_lev;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFFLGWEI_AddrWr <= 0;
-    end else if (Reset_FtrGrp ) begin
+    end else if (Reset_FtrGrp_lev ) begin
         GBFFLGWEI_AddrWr <= 0;
     end else if ( GBFFLGWEI_EnWr ) begin
         GBFFLGWEI_AddrWr <= GBFFLGWEI_AddrWr + 1;
@@ -123,7 +123,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFWEI_AddrWr <= 0;
-    end else if (Reset_FtrGrp ) begin
+    end else if (Reset_FtrGrp_lev ) begin
         GBFWEI_AddrWr <= 0;
     end else if ( GBFWEI_EnWr ) begin
         GBFWEI_AddrWr <= GBFWEI_AddrWr + 1;
@@ -132,7 +132,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFFLGACT_AddrWr <= 0;
-    end else if (Reset_Patch ) begin
+    end else if (Reset_Patch_lev ) begin
         GBFFLGACT_AddrWr <= 0;
     end else if ( GBFFLGACT_EnWr ) begin
         GBFFLGACT_AddrWr <= GBFFLGACT_AddrWr + 1;
@@ -141,7 +141,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFACT_AddrWr <= 0;
-    end else if ( Reset_Patch) begin
+    end else if ( Reset_Patch_lev) begin
         GBFACT_AddrWr <= 0;
     end else if ( GBFACT_EnWr ) begin
         GBFACT_AddrWr <= GBFACT_AddrWr + 1;
@@ -150,7 +150,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFFLGOFM_AddrRd <= 0;
-    end else if ( Reset_OFM) begin
+    end else if ( Reset_OFM_lev) begin
         GBFFLGOFM_AddrRd <= 0;
     end else if ( GBFFLGOFM_EnRd ) begin
         GBFFLGOFM_AddrRd <= GBFFLGOFM_AddrRd + 1;
@@ -159,7 +159,7 @@ end
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         GBFOFM_AddrRd <= 0;
-    end else if ( Reset_OFM) begin
+    end else if ( Reset_OFM_lev) begin
         GBFOFM_AddrRd <= 0;
     end else if ( GBFOFM_EnRd ) begin
         GBFOFM_AddrRd <= GBFOFM_AddrRd + 1;
@@ -224,15 +224,16 @@ generate
      end
 endgenerate
 assign {
-Next_Patch,
-Next_FtrGrp ,
-Next_Layer ,
-Reset_Patch,
-Reset_IFM,
-Reset_FtrGrp,
-Reset_FtrLay ,
-Reset_OFM
-} = IF_schedule;
+Next_Patch_lev,
+Next_FtrGrp_lev ,
+Next_Layer_lev ,
+Reset_Patch_lev,
+Reset_IFM_lev,
+Reset_FtrGrp_lev,
+Reset_FtrLay_lev ,
+Reset_OFM_lev
+} = IF_schedule | IF_schedule_lev;
+
 //assign Reset_IF_CFG = {Reset_WEI_IF_CFG, Reset_ACT_IF_CFG, Reset_OFM_IF_CFG};
 //=====================================================================================================================
 // Sub-Module :

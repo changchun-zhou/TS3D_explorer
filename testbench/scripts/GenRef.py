@@ -22,6 +22,7 @@ PECMAC_FlgActFileName='../Data/GenTest/PECMAC_FlgAct_Gen.dat'
 POOL_SPRS_MEMFileName='../Data/GenTest/POOL_SPRS_MEM_Ref.dat'
 POOL_FLAG_MEMFileName='../Data/GenTest/POOL_FLAG_MEM_Ref.dat'
 GBFFLGOFM_DatRdFileName = '../Data/GenTest/RAM_GBFFLGOFM_12B.dat'
+GBFFLGACT_DatWrFileName = '../Data/GenTest/GBFFLGACT_DatWr.dat'
 GBFOFM_DatRdFileName = '../Data/GenTest/RAM_GBFOFM_12B.dat'
 PECMAC_WeiFileName = '../Data/GenTest/PECMAC_Wei_Ref.dat'
 PECMAC_FlgWeiFileName = '../Data/GenTest/PECMAC_FlgWei_Ref.dat'
@@ -111,7 +112,7 @@ for cntPat in range(0, NumPat):
                             cnt_Flag_hex = 0
                         else:
                             cnt_Flag_hex += 1
-                        #***************************************************************************
+                        # ***************************************************************************
 
                         PECMAC_FlgActFile.write(PECMAC_FlgAct_hex)
                         PECMAC_FlgActFile.write('\n')
