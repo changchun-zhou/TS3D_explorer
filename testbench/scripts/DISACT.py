@@ -1,0 +1,94 @@
+import numpy as np
+import random
+import os
+
+def DISACT( cntPat, actrow, actcol,
+            actBlk, FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,
+            FlagActFile, GBFFLGACT_DatWrFile, PECMAC_FlgActFile, ActFile, GBFACT_DatWrFile, PECMAC_ActFile,
+            Len, NumChn ):
+    #actBlk = [[[ 0 for x in range (0,NumChn)] for y in range (0,Len)] for z in range(0,Len)]
+    PECMAC_Act = ''
+    #PECMAC_FlgAct  = FlagActFile.read(NumChn) # == DISACT_FlgAct
+    # *************************************************************************
+    if cnt_Flag_hex == 0:
+        FlgAct_hex = FlagActFile.readline().rstrip('\n') # 12B
+    PECMAC_FlgAct_hex = FlgAct_hex[8*(cnt_Flag_hex):8*(cnt_Flag_hex)+8] #4B
+    PECMAC_FlgAct = int(PECMAC_FlgAct_hex,16)
+    PECMAC_FlgAct = str(bin(PECMAC_FlgAct)).lstrip('0b').zfill(NumChn)
+
+    # ****************************
+    
+    cnt_GBFFLGACT += 1
+    if cnt_GBFFLGACT % 3 == 1 and cnt_GBFFLGACT != 1:  
+        GBFFLGACT_DatWrFile.write(GBFFLGACT + '\n' )
+        GBFFLGACT = ""
+    else:
+        if cntPat != cntPat_last:
+            print("GBFFLGACT_DatWr next patch line:", cnt_GBFFLGACT/12)
+            if cnt_GBFFLGACT % 3 == 0: # current data is third of last patch line
+                GBFFLGACT += "01"*4
+                cnt_GBFFLGACT += 1 #Mean: is first of new line
+            elif cnt_GBFFLGACT% 3 == 2:
+                GBFFLGACT += "01"*8
+                cnt_GBFFLGACT += 2 #Mean: is first of new line
+            GBFFLGACT_DatWrFile.write(GBFFLGACT + '\n' )
+            GBFFLGACT = ""
+    GBFFLGACT = GBFFLGACT + PECMAC_FlgAct_hex
+    cntPat_last = cntPat #when First data of Patch is write, updata Patch_last
+    # *****************************
+    
+
+    if cnt_Flag_hex == 2:
+        cnt_Flag_hex = 0
+    else:
+        cnt_Flag_hex += 1
+    # ***************************************************************************
+
+    PECMAC_FlgActFile.write(PECMAC_FlgAct_hex)
+    PECMAC_FlgActFile.write('\n')
+    #FlagActFile.read(1)
+    for i in range (0, NumChn):
+        if PECMAC_FlgAct[i] == '1' :#ch0
+            act = ActFile.read(2)
+
+            # ***********************************************
+            cnt_GBFACT += 1 # mean: the count of File
+            if cnt_GBFACT % 12 == 1 and cnt_GBFACT != 1: # when turn line
+                GBFACT_DatWrFile.write('\n')
+            elif cntPat != cntPat_last_GBFACT: # complete the current line
+                print("GBFACT_DatWr next patch line:", cnt_GBFACT/12)
+                if cnt_GBFACT % 12 == 0:
+                    Zero = "01"*( 1) 
+                    cnt_GBFACT += 1
+                else:
+                    Zero = "01"*( 13 - cnt_GBFACT % 12) 
+                    cnt_GBFACT +=  13 - cnt_GBFACT % 12
+                GBFACT_DatWrFile.write(Zero+'\n')# turn to next line
+            GBFACT_DatWrFile.write(act) 
+            cntPat_last_GBFACT = cntPat # When new patch's first data, update patch
+            # ************************************************
+            
+            if cnt_act_col == 11:
+                ActFile.read(1)
+                cnt_act_col = 0
+            else:
+                cnt_act_col += 1
+
+            cntActError = cntActError + 1
+            PECMAC_Act = PECMAC_Act + act
+            if act == '':
+                print('error')
+                print(cntActError)
+        else :
+            act = "00"
+            PECMAC_Act = "00" + PECMAC_Act
+    # transfer to not sparsity: one demensional row
+        act = int(act,16)
+        if act >127:
+            act = act -256
+        actBlk[actrow][actcol][i] = act
+    PECMAC_ActFile.write(PECMAC_Act)
+
+    PECMAC_ActFile.write('\n')
+
+    return  actBlk, FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError
