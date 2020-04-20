@@ -23,6 +23,8 @@ POOL_SPRS_MEMFileName='../Data/GenTest/POOL_SPRS_MEM_Ref.dat'
 POOL_FLAG_MEMFileName='../Data/GenTest/POOL_FLAG_MEM_Ref.dat'
 GBFFLGOFM_DatRdFileName = '../Data/GenTest/RAM_GBFFLGOFM_12B.dat'
 GBFFLGACT_DatWrFileName = '../Data/GenTest/GBFFLGACT_DatWr.dat'
+GBFACT_DatWrFileName = '../Data/GenTest/GBFACT_DatWr.dat'
+GBFWEI_DatWrFileName = '../Data/GenTest/GBFWEI_DatWr.dat'
 GBFOFM_DatRdFileName = '../Data/GenTest/RAM_GBFOFM_12B.dat'
 PECMAC_WeiFileName = '../Data/GenTest/PECMAC_Wei_Ref.dat'
 PECMAC_FlgWeiFileName = '../Data/GenTest/PECMAC_FlgWei_Ref.dat'
@@ -68,6 +70,8 @@ PECRAM_DatWrFile   = open(PECRAM_DatWrFileName, 'w')
 PECMAC_WeiFile    = open (PECMAC_WeiFileName,'w')
 CNVOUT_Psum1File   = open(CNVOUT_Psum1FileName, 'w')
 GBFFLGACT_DatWrFile = open(GBFFLGACT_DatWrFileName,'w')
+GBFACT_DatWrFile = open(GBFACT_DatWrFileName,'w')
+GBFWEI_DatWrFile = open(GBFWEI_DatWrFileName,'w')
 Psum2 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ] for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
 Psum1 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ]for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
 Psum0 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ]for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
@@ -82,6 +86,15 @@ cnt_wei = 0
 cnt_GBFFLGACT = 0
 GBFFLGACT = ""
 cntPat_last = 0
+
+cnt_GBFACT = 0
+GBFACT = ""
+cntPat_last_GBFACT = 0
+#cntPat_GBFACT = 0
+
+cnt_GBFWEI = 0;
+#cntPat_GBFWEI = 0
+cntPat_last_GBFWEI = 0
 for cntPat in range(0, NumPat):
     for cntfrm in range(0,NumFrm):
         # same weight per frame
@@ -113,24 +126,26 @@ for cntPat in range(0, NumPat):
                         PECMAC_FlgAct = str(bin(PECMAC_FlgAct)).lstrip('0b').zfill(NumChn)
 
                         # ****************************
-                        GBFFLGACT = GBFFLGACT + PECMAC_FlgAct
+                        
                         cnt_GBFFLGACT += 1
-                        if cnt_GBFFLGACT % 3 == 0:  
-                            GBFFLGACT_DatWrFile.write( GBFFLGACT + '\n' )
+                        if cnt_GBFFLGACT % 3 == 1 and cnt_GBFFLGACT != 1:  
+                            GBFFLGACT_DatWrFile.write(GBFFLGACT + '\n' )
                             GBFFLGACT = ""
                         else:
                             if cntPat != cntPat_last:
-                                if cnt_GBFFLGACT % 3 == 1:
-                                    GBFFLGACT += "0123456789abcdef"
-                                    cnt_GBFFLGACT += 2
+                                print("GBFFLGACT_DatWr next patch line:", cnt_GBFFLGACT/12)
+                                if cnt_GBFFLGACT % 3 == 0: # current data is third of last patch line
+                                    GBFFLGACT += "01"*4
+                                    cnt_GBFFLGACT += 1 #Mean: is first of new line
                                 elif cnt_GBFFLGACT% 3 == 2:
-                                    GBFFLGACT += "01234567"
-                                    cnt_GBFFLGACT += 1
+                                    GBFFLGACT += "01"*8
+                                    cnt_GBFFLGACT += 2 #Mean: is first of new line
                                 GBFFLGACT_DatWrFile.write(GBFFLGACT + '\n' )
                                 GBFFLGACT = ""
-
+                        GBFFLGACT = GBFFLGACT + PECMAC_FlgAct_hex
+                        cntPat_last = cntPat #when First data of Patch is write, updata Patch_last
                         # *****************************
-                        cntPat_last = cntPat
+                        
 
                         if cnt_Flag_hex == 2:
                             cnt_Flag_hex = 0
@@ -144,6 +159,24 @@ for cntPat in range(0, NumPat):
                         for i in range (0, NumChn):
                             if PECMAC_FlgAct[i] == '1' :#ch0
                                 act = ActFile.read(2)
+
+                                # ***********************************************
+                                cnt_GBFACT += 1 # mean: the count of File
+                                if cnt_GBFACT % 12 == 1 and cnt_GBFACT != 1: # when turn line
+                                    GBFACT_DatWrFile.write('\n')
+                                elif cntPat != cntPat_last_GBFACT: # complete the current line
+                                    print("GBFACT_DatWr next patch line:", cnt_GBFACT/12)
+                                    if cnt_GBFACT % 12 == 0:
+                                        Zero = "01"*( 1) 
+                                        cnt_GBFACT += 1
+                                    else:
+                                        Zero = "01"*( 13 - cnt_GBFACT % 12) 
+                                        cnt_GBFACT +=  13 - cnt_GBFACT % 12
+                                    GBFACT_DatWrFile.write(Zero+'\n')# turn to next line
+                                GBFACT_DatWrFile.write(act) 
+                                cntPat_last_GBFACT = cntPat # When new patch's first data, update patch
+                                # ************************************************
+                                
                                 if cnt_act_col == 11:
                                     ActFile.read(1)
                                     cnt_act_col = 0
@@ -209,6 +242,24 @@ for cntPat in range(0, NumPat):
                                     else :
                                         ColWei = ColWei + 1 #cnt
                                     wei = WeiFile.read(2)
+
+                                    # ***********************************************
+                                    cnt_GBFWEI += 1 # mean: the count of File
+                                    if cnt_GBFWEI % 12 == 1 and cnt_GBFWEI != 1: # when turn line
+                                        GBFWEI_DatWrFile.write('\n')
+                                    elif cntPat != cntPat_last_GBFWEI: # complete the current line
+                                        print("GBFWEI_DatWr next patch line:", cnt_GBFWEI/12)
+                                        if cnt_GBFWEI % 12 == 0:
+                                            Zero = "01"*( 1) 
+                                            cnt_GBFWEI += 1
+                                        else:
+                                            Zero = "01"*( 13 - cnt_GBFWEI % 12) 
+                                            cnt_GBFWEI +=  13 - cnt_GBFWEI % 12
+                                        GBFWEI_DatWrFile.write(Zero+'\n')# turn to next line
+                                    GBFWEI_DatWrFile.write(wei) 
+                                    cntPat_last_GBFWEI = cntPat # When new patch's first data, update patch
+                                    # ************************************************
+
                                     cnt_wei += 1
 
                                     """
