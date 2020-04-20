@@ -1,8 +1,6 @@
 ﻿import numpy as np
 import random
 import os
-import PEC
-import POOL
 #*********** read files *******************************************
 # FlagActFileName = '../Data/dequant_data/prune_quant_extract_high/Activation_45_pool3b_flag.dat'
 # ActFileName = '../Data/dequant_data/prune_quant_extract_high/Activation_45_pool3b_data.dat'
@@ -74,8 +72,8 @@ CNVOUT_Psum1File   = open(CNVOUT_Psum1FileName, 'w')
 GBFFLGACT_DatWrFile = open(GBFFLGACT_DatWrFileName,'w')
 GBFACT_DatWrFile = open(GBFACT_DatWrFileName,'w')
 GBFWEI_DatWrFile = open(GBFWEI_DatWrFileName,'w')
-#Psum2 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ] for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
-#Psum1 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ]for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
+Psum2 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ] for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
+Psum1 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ]for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
 Psum0 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ]for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
 FRMPOOL = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
 DELTA = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
@@ -109,9 +107,9 @@ for cntPat in range(0, NumPat):
                 PECMAC_Wei_wr = ''
                 PECMAC_FlgWei_wr = ''
                 actBlk = [[[ 0 for x in range (0,NumChn)] for y in range (0,Len)] for z in range(0,Len)]
-                CNVOUT_Psum2_PEL =[['' for x in range ( 0, Len)] for y in range(0,Len)]
-                CNVOUT_Psum1_PEL =[['' for x in range ( 0, Len)] for y in range(0,Len)]
-                CNVOUT_Psum0_PEL = [['' for x in range ( 0, Len)] for y in range(0,Len)]
+                #CNVOUT_Psum2_PEL =[['' for x in range ( 0, Len)] for y in range(0,Len)]
+                #CNVOUT_Psum1_PEL =[['' for x in range ( 0, Len)] for y in range(0,Len)]
+                #CNVOUT_Psum0_PEL = [['' for x in range ( 0, Len)] for y in range(0,Len)]
                 PECRAM_DatWr_PEL = [['' for x in range ( 0, Len-2)] for y in range(0,Len-2)]
                 RAMPEC_DatRd_PEL = [['' for x in range ( 0, Len-2)] for y in range(0,Len-2)]
 
@@ -184,6 +182,17 @@ for cntPat in range(0, NumPat):
                                     cnt_act_col = 0
                                 else:
                                     cnt_act_col += 1
+                                #ActFile.read(1)
+                                """# *************************************************************************
+                                if cnt_act_hex == 0:
+                                    Act_hex = ActFile.readline().rstrip('\n') # 12B
+                                act = Act_hex[2*(11-cnt_act_hex):2*(11-cnt_act_hex)+2] #4B ch0
+                                if cnt_act_hex == 11:
+                                    cnt_act_hex = 0
+                                else:
+                                    cnt_act_hex += 1
+                                #***************************************************************************
+                                """
 
                                 cntActError = cntActError + 1
                                 PECMAC_Act = PECMAC_Act + act
@@ -253,6 +262,19 @@ for cntPat in range(0, NumPat):
 
                                     cnt_wei += 1
 
+                                    """
+                                    if cnt_wei_hex == 0:
+                                        Wei_hex_array = ''
+                                        #Wei_hex = WeiFile.readline().rstrip('\n') # 12B
+                                        Wei_hex_array = Wei_hex_array + WeiFile.readline().rstrip('\n')
+                                        Wei_hex_array = Wei_hex_array + WeiFile.readline().rstrip('\n')
+                                        Wei_hex_array = Wei_hex_array + WeiFile.readline().rstrip('\n')
+                                    wei = Wei_hex_array[2*cnt_wei_hex:2*cnt_wei_hex+2] #4B
+                                    if cnt_wei_hex == 3:
+                                        cnt_wei_hex = 0
+                                    else:
+                                        cnt_wei_hex += 1
+                                    """
                                     #if cntPEB==0 and cntPEC ==0 and j == NumWei - 1:
                                     PECMAC_Wei_1 = PECMAC_Wei_1 + wei
                                     #print("j k wei:",j,k,wei)
@@ -273,13 +295,73 @@ for cntPat in range(0, NumPat):
 
                         # ***************** PEC **********************************************************
                         # Input: actBlk PECMAC_Wei Psum0(accum) PECRAM_DatWr_PEL RAMPEC_DatRd_PEL ; File, Len, NumWei,cntBlk, frm, PEB,PEC,
-                        # input \ iterate \ File \ constan
+                        # MACAW
+                        acc = [ [ [0 for x in range (0,NumWei)] for y in range(0, Len)] for z in range(0, Len)]
+                        for actrow in range(0, Len) :
+                            for actcol in range(0, Len):
+                                for j in range(0, NumWei):
+                                    for m in range (0, NumChn):
+                                        acc[actrow][actcol][j] = acc[actrow][actcol][j] + actBlk[actrow][actcol][m] * PECMAC_Wei[j][m]
+                        
+                        # CONVROW
+                        CNVOUT_Psum2 = [['' for x in range ( 0, Len)] for y in range(0,Len)]
+                        CNVOUT_Psum1 = [['' for x in range ( 0, Len)] for y in range(0,Len)]
+                        CNVOUT_Psum0 = [['' for x in range ( 0, Len)] for y in range(0,Len)]
+                        #PECRAM_DatWr = [['' for x in range ( 0, Len-2)] for y in range(0,Len-2)]
+                        for psumrow in range(0, Len):
+                            for psumcol in range(0, Len-2):
 
-                        RAMPEC_DatRd_PEL, PECRAM_DatWr_PEL, Psum0 = \
-                            PEC.PEC(actBlk, PECMAC_Wei, 
-                                    Psum0, PECRAM_DatWr_PEL, RAMPEC_DatRd_PEL, 
-                                    CNVOUT_Psum1File, CNVOUT_Psum2File,
-                                    Len,NumBlk, NumWei, NumChn,  NumPEB, NumPEC,cntfrm,cntBlk, cntPEB,cntPEC )
+                                if cntBlk == 0:
+                                    if cntfrm == 0 or cntPEC == 0:# first frame or PEC0
+                                        temp_RAMPEC_DatRd = 0;
+                                    elif cntPEC == 2: #PEC2 RAMPEC_DatRd2 = DatRd1 + DatRd2/3
+                                        temp_RAMPEC_DatRd = Psum0[NumBlk-1][cntPEB][cntPEC-1][psumrow][psumcol] +Psum0[NumBlk-1][cntPEB][cntPEC][psumrow][psumcol] ;
+                                    else:
+                                        temp_RAMPEC_DatRd = Psum0[NumBlk-1][cntPEB][cntPEC-1][psumrow][psumcol];
+                                else:# add previous Psum of previous blk# first frame or PEC0
+                                    temp_RAMPEC_DatRd = Psum0[cntBlk-1][cntPEB][cntPEC][psumrow][psumcol];
+
+                                if psumrow < Len-2:
+                                    Psum2[cntBlk][cntPEB][cntPEC][psumrow][psumcol] = temp_RAMPEC_DatRd + acc[psumrow][psumcol][0] + acc[psumrow][psumcol+1][1] + acc[psumrow][psumcol+2][2];
+                                if psumrow >= 1 and psumrow < Len-1: # 1-14
+                                    Psum1[cntBlk][cntPEB][cntPEC][psumrow-1][psumcol]  = 0 + acc[psumrow][psumcol][3] + acc[psumrow][psumcol+1][4] + acc[psumrow][psumcol+2][5] + Psum2[cntBlk][cntPEB][cntPEC][psumrow -1][psumcol];
+                                if psumrow >= 2:
+                                    Psum0[cntBlk][cntPEB][cntPEC][psumrow-2][psumcol] =  0  + acc[psumrow][psumcol][6] + acc[psumrow][psumcol+1][7] + acc[psumrow][psumcol+2][8] + Psum1[cntBlk][cntPEB][cntPEC][psumrow -2][psumcol];
+
+                                    if Psum0[cntBlk][cntPEB][cntPEC][psumrow-2][psumcol] < 0:
+                                         # PSUM_WIDTH = 30b
+                                         temp_PECRAM_DatWr = hex(Psum0[cntBlk][cntPEB][cntPEC][psumrow-2][psumcol] & 0x3fffffff)
+                                         PECRAM_DatWr_PEL[psumrow-2][psumcol] = PECRAM_DatWr_PEL[psumrow-2][psumcol] + ((str(temp_PECRAM_DatWr).lstrip('0x')).rstrip('L'));
+                                    else:
+                                        temp_PECRAM_DatWr = hex(Psum0[cntBlk][cntPEB][cntPEC][psumrow-2][psumcol]&0x3fffffff )
+                                        PECRAM_DatWr_PEL[psumrow-2][psumcol] = PECRAM_DatWr_PEL[psumrow-2][psumcol] + ((str(temp_PECRAM_DatWr).lstrip('0x')).rstrip('L')).zfill(8);
+                                if psumrow < Len-2:
+                                    if temp_RAMPEC_DatRd < 0:
+                                        temp_RAMPEC_DatRd = hex(temp_RAMPEC_DatRd & 0x3fffffff )
+                                        RAMPEC_DatRd_PEL[psumrow][psumcol] = RAMPEC_DatRd_PEL[psumrow][psumcol] +((str(temp_RAMPEC_DatRd).lstrip('0x')).rstrip('L'));
+                                    else:
+                                        temp_RAMPEC_DatRd = hex(temp_RAMPEC_DatRd & 0x3fffffff )
+                                        RAMPEC_DatRd_PEL[psumrow][psumcol] = RAMPEC_DatRd_PEL[psumrow][psumcol] + ((str(temp_RAMPEC_DatRd).lstrip('0x')).rstrip('L')).zfill(8);
+                                if Psum2[cntBlk][cntPEB][cntPEC][psumrow][psumcol] < 0:
+                                    temp_CNVOUT_Psum2 = hex(Psum2[cntBlk][cntPEB][cntPEC][psumrow] [psumcol]& 0x3fffffff)
+                                    CNVOUT_Psum2_PEL[psumrow][psumcol] = CNVOUT_Psum2_PEL[psumrow][psumcol] + ((str(temp_CNVOUT_Psum2).lstrip('0x')).rstrip('L'));
+                                else:
+                                    temp_CNVOUT_Psum2 = hex(Psum2[cntBlk][cntPEB][cntPEC][psumrow][psumcol] & 0x3fffffff)
+                                    CNVOUT_Psum2_PEL[psumrow][psumcol] = CNVOUT_Psum2_PEL[psumrow][psumcol] + ((str(temp_CNVOUT_Psum2).lstrip('0x')).rstrip('L')).zfill(8);
+                                #if psumrow >=2:
+                                CNVOUT_Psum2File.write(CNVOUT_Psum2_PEL[psumrow][psumcol]+'\n')
+                                CNVOUT_Psum2_PEL = [['' for x in range ( 0, Len)] for y in range(0,Len)]
+                                if psumrow >= 1 and psumrow < Len-1:
+                                    if Psum1[cntBlk][cntPEB][cntPEC][psumrow-1][psumcol] < 0:
+                                        temp_CNVOUT_Psum1 = hex(Psum1[cntBlk][cntPEB][cntPEC][psumrow-1] [psumcol]& 0x3fffffff)
+                                        CNVOUT_Psum1_PEL[psumrow][psumcol] = CNVOUT_Psum1_PEL[psumrow][psumcol] + ((str(temp_CNVOUT_Psum2).lstrip('0x')).rstrip('L'));
+                                    else:
+                                        temp_CNVOUT_Psum1 = hex(Psum1[cntBlk][cntPEB][cntPEC][psumrow-1][psumcol] & 0x3fffffff)
+                                        CNVOUT_Psum1_PEL[psumrow][psumcol] = CNVOUT_Psum1_PEL[psumrow][psumcol] + ((str(temp_CNVOUT_Psum2).lstrip('0x')).rstrip('L')).zfill(8);
+                                    #if psumrow >=2:
+                                    CNVOUT_Psum1File.write(CNVOUT_Psum1_PEL[psumrow][psumcol]+'\n')
+                                    CNVOUT_Psum1_PEL = [['' for x in range ( 0, Len)] for y in range(0,Len)]
+                            CNVOUT_Psum1File.write('\n')
                         # Output: RAMPEC_DatRd_PEL PECRAM_DatWr_PEL Psum0
                         # ****** End PEC ***************************
 
@@ -300,10 +382,71 @@ for cntPat in range(0, NumPat):
                             RAMPEC_DatRdFile.write(RAMPEC_DatRd_PEL[psumrow][psumcol]+'\n')
                             PECRAM_DatWrFile.write(PECRAM_DatWr_PEL[psumrow][psumcol]+'\n')
 
-        # ************* POOL *****************************
-        FRMPOOL, DELTA, cnt_ACT, cnt_Flag, GBFOFM_DatRd, GBFFLGOFM_DatRd = \
-            POOL.POOL(  Psum0,fl,
-                        FRMPOOL, DELTA, cnt_ACT, cnt_Flag, GBFOFM_DatRd, GBFFLGOFM_DatRd,
-                        POOL_SPRS_MEMFile, GBFOFM_DatRdFile, POOL_FLAG_MEMFile, GBFFLGOFM_DatRdFile,
-                        Len, Stride, NumBlk, NumPEB, NumPEC, PORT_DATAWIDTH, cntfrm )
+        print(cntfrm)
+        POOL_MEM = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
+        SPRS = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
+        FLAG_MEM = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
+        POOL_SPRS_MEM = ''
+        POOL_FLAG_MEM = ''
+
+        for AddrRow in range ( 0, Len-2 - Stride + 1, Stride):
+            AddrPooly = AddrRow / Stride
+            for AddrCol in range ( 0, Len-2 - Stride + 1, Stride):
+                AddrPoolx = AddrCol / Stride
+                POOL_FLAG_MEM = ""
+                for cntPEB in range (0, NumPEB):
+                    for cnt_pooly in range (0, Stride):
+                        for cnt_poolx in range (0, Stride):
+                            PELPOOL_Dat =Psum0[NumBlk -1][cntPEB][NumPEC -1][AddrRow + cnt_pooly][AddrCol+cnt_poolx]
+                            if  PELPOOL_Dat > 0:
+                                PELPOOL_Dat = '{:030b}'.format(PELPOOL_Dat)
+                                ReLU = '0' +  PELPOOL_Dat[23-fl : 30-fl]
+                            elif PELPOOL_Dat <= 0 :
+                                ReLU = '{:08b}'.format(0)
+                            else:
+                                print("PELPOOL_Dat ERROR")
+                            ReLU = int(ReLU,2)
+                            if ReLU > POOL_MEM[AddrPooly][AddrPoolx][cntPEB] :
+                                POOL_MEM[AddrPooly][AddrPoolx][cntPEB] = ReLU;
+                    # if cntfrm == 1 or cntfrm == 3: # Pooling frame
+                    if cntfrm % 2 == 1:
+                        if FRMPOOL[AddrPooly][AddrPoolx][cntPEB] > POOL_MEM[AddrPooly][AddrPoolx][cntPEB] :
+                            POOL_MEM[AddrPooly][AddrPoolx][cntPEB] = FRMPOOL[AddrPooly][AddrPoolx][cntPEB];
+                    elif cntfrm % 2 == 0: # 0 , 2
+                            FRMPOOL[AddrPooly][AddrPoolx][cntPEB] = POOL_MEM[AddrPooly][AddrPoolx][cntPEB] # update frame for pool_frame
+                    SPRS[AddrPooly][AddrPoolx][cntPEB] = POOL_MEM[AddrPooly][AddrPoolx][cntPEB] - DELTA[AddrPooly][AddrPoolx][cntPEB]
+                    DELTA[AddrPooly][AddrPoolx][cntPEB] = POOL_MEM[AddrPooly][AddrPoolx][cntPEB];# update frame for delta
+                    if SPRS[AddrPooly][AddrPoolx][cntPEB] != 0:
+                        FLAG_MEM[AddrPooly][AddrPoolx][cntPEB]  = 1
+
+                        if SPRS[AddrPooly][AddrPoolx][cntPEB] > 0:
+                            POOL_SPRS_MEM = ((str(hex(SPRS[AddrPooly][AddrPoolx][cntPEB])).lstrip('0x')).rstrip('L')).zfill(2)
+                        else: # neg [-127, 0)
+                            POOL_SPRS_MEM = ((str(hex(SPRS[AddrPooly][AddrPoolx][cntPEB]+256)).lstrip('0x')).rstrip('L')).zfill(2)
+                        POOL_SPRS_MEMFile.write(POOL_SPRS_MEM+'\n')
+                        if cnt_ACT < PORT_DATAWIDTH/8 : #12B
+                            GBFOFM_DatRd =POOL_SPRS_MEM + GBFOFM_DatRd;
+                            cnt_ACT = cnt_ACT + 1
+                        else:
+                            GBFOFM_DatRdFile.write(GBFOFM_DatRd+'\n')
+                            cnt_ACT = 1
+                            GBFOFM_DatRd = ''
+                            GBFOFM_DatRd =POOL_SPRS_MEM + GBFOFM_DatRd;
+                    else:
+                        FLAG_MEM[AddrPooly][AddrPoolx][cntPEB]  = 0
+                    POOL_FLAG_MEM =  str(FLAG_MEM[AddrPooly][AddrPoolx][cntPEB] ) +POOL_FLAG_MEM  # PEB15 PEB1 PEB0
+                POOL_FLAG_MEM0 = int(POOL_FLAG_MEM[0:8], 2)
+                POOL_FLAG_MEM1 = int(POOL_FLAG_MEM[8:16], 2)
+                POOL_FLAG_MEM_hex =  str(hex(POOL_FLAG_MEM0)).lstrip('0x').rstrip('L').zfill(2) + str(hex(POOL_FLAG_MEM1)).lstrip('0x').rstrip('L').zfill(2);
+                POOL_FLAG_MEMFile.write(POOL_FLAG_MEM_hex+'\n')#HEX
+                if cnt_Flag < PORT_DATAWIDTH/NumPEB: #12
+                    GBFFLGOFM_DatRd = POOL_FLAG_MEM_hex + GBFFLGOFM_DatRd #shift right
+                    cnt_Flag = cnt_Flag + 1
+                else:
+                    GBFFLGOFM_DatRdFile.write(GBFFLGOFM_DatRd+'\n') #HEX
+                    cnt_Flag = 1
+                    GBFFLGOFM_DatRd = ''
+                    GBFFLGOFM_DatRd = POOL_FLAG_MEM_hex + GBFFLGOFM_DatRd #shift right
+                #AddrPoolx = AddrPoolx + 1
+            #AddrPooly = AddrPooly + 1;
 

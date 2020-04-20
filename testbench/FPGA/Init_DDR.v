@@ -79,6 +79,7 @@ module  Init_DDR #(
           for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<19; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin//
             tmp = DATA_RF_mem_1[addr_r_BUS_1];
             for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
+              // save like file LSB MSB is correct: becase DISWEI/ACT fetch from left to right
               mem_controller_tb.S_HP_RD0[0].u_axim_driver.ddr_ram[ddr_idx] = tmp[DATA_WIDTH*i +: DATA_WIDTH];
               //if( addr_r_BUS_1 < 10)
                 //$display (" S_HP_RD0 DATA_RF_mem_1 DDR_RAM[%h] = %b", ddr_idx, mem_controller_tb.S_HP_RD0[0].u_axim_driver.ddr_ram[ddr_idx]);
