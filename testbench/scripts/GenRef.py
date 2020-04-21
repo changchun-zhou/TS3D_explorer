@@ -29,6 +29,9 @@ GBFFLGOFM_DatRdFileName = '../Data/GenTest/RAM_GBFFLGOFM_12B.dat'
 GBFFLGACT_DatWrFileName = '../Data/GenTest/GBFFLGACT_DatWr.dat'
 GBFACT_DatWrFileName = '../Data/GenTest/GBFACT_DatWr.dat'
 GBFWEI_DatWrFileName = '../Data/GenTest/GBFWEI_DatWr.dat'
+GBFWEI_FrtGrpAddrFileName = '../Data/GenTest/GBFWEI_FrtGrpAddr.dat'
+GBFFLGACT_PatchAddrFileName = '../Data/GenTest/GBFFLGACT_PatchAddr.dat'
+GBFACT_PatchAddrFileName = '../Data/GenTest/GBFACT_PatchAddr.dat'
 GBFOFM_DatRdFileName = '../Data/GenTest/RAM_GBFOFM_12B.dat'
 PECMAC_WeiFileName = '../Data/GenTest/PECMAC_Wei_Ref.dat'
 PECMAC_FlgWeiFileName = '../Data/GenTest/PECMAC_FlgWei_Ref.dat'
@@ -37,6 +40,8 @@ NumWei = 9
 NumBlk = 2
 NumFrm = 16
 NumPat = 16
+NumFtrGrp = 8
+NumLay = 7
 KerSize = 3
 Stride = 2
 fl = 0
@@ -52,12 +57,12 @@ cnt_Flag_hex = 0
 cntActError = 0
 cnt_act_hex = 0
 cnt_act_col = 0
-# def int2hex (dat_int, width):
-#     dat_hex = '{:0widthb}'.format(dat_int)
-#     return dat_hex
 
 FlagActFile        = open (FlagActFileName,        'r')
 ActFile            = open (ActFileName,            'r')
+FlagWeiFile = open(FlagWeiFileName, 'r')
+WeiFile =     open(WeiFileName, 'r')
+
 PECMAC_ActFile     = open (PECMAC_ActFileName,     'w')
 PECMAC_FlgActFile  = open (PECMAC_FlgActFileName,  'w')
 POOL_SPRS_MEMFile  = open (POOL_SPRS_MEMFileName,  'w')
@@ -74,6 +79,10 @@ CNVOUT_Psum1File   = open(CNVOUT_Psum1FileName, 'w')
 GBFFLGACT_DatWrFile = open(GBFFLGACT_DatWrFileName,'w')
 GBFACT_DatWrFile = open(GBFACT_DatWrFileName,'w')
 GBFWEI_DatWrFile = open(GBFWEI_DatWrFileName,'w')
+GBFWEI_FrtGrpAddrFile = open(GBFWEI_FrtGrpAddrFileName,'w')
+GBFFLGACT_PatchAddrFile = open(GBFFLGACT_PatchAddrFileName,'w')
+GBFACT_PatchAddrFile = open(GBFACT_PatchAddrFileName,'w')
+
 #Psum2 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ] for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
 #Psum1 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ]for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
 Psum0 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ]for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
@@ -97,17 +106,40 @@ cntPat_last_GBFACT = 0
 cnt_GBFWEI = 0;
 #cntPat_GBFWEI = 0
 cntPat_last_GBFWEI = 0
-for cntPat in range(0, NumPat):
-    for cntfrm in range(0,NumFrm):
-        # same weight per frame
-        with open(FlagWeiFileName, 'r') as FlagWeiFile,\
-            open(WeiFileName, 'r') as WeiFile:
-            cnt_Flagwei_hex = 0
-            cnt_wei_hex = 0
-            ColWei = 0
-            for cntBlk in range (0, NumBlk ):
+
+PECMAC_Wei = [[[[[[ 0 for x in range (0,NumChn)] for y in range(0, NumWei) ] 
+                      for z in range (NumPEC)  ] for m in range(NumPEB   ) ]
+                      for n in range (NumBlk  )] for o in range(NumFtrGrp )]
+# for cntLay in range(0, NumLay):
+for cntFtrGrp in range( 0, NumFtrGrp):
+
+    # same weight per frame/patch: 3 frameS of FtrGrp(3 PEC)
+    cnt_Flagwei_hex = 0
+    #cnt_wei_hex = 0
+    ColWei = 0
+    for cntBlk in range (0, NumBlk ):
+        PECMAC_Wei_wr = ''
+        PECMAC_FlgWei_wr = ''
+        for cntPEB in range(0, NumPEB):
+            for cntPEC in range (0, NumPEC):
+
+                PECMAC_Wei[cntFtrGrp][cntBlk][cntPEB][cntPEC], cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cntPat_last_GBFWEI,PECMAC_Wei_wr= \
+                    DISWEI.DISWEI(  cntFtrGrp,  
+                                    cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cntPat_last_GBFWEI,PECMAC_Wei_wr,
+                                    FlagWeiFile, WeiFile, GBFWEI_DatWrFile,GBFWEI_FrtGrpAddrFile,
+                                    NumWei,NumChn )
+                # Every PEC a line: WEI0(0000ch1 ch31) WEI1
+                PECMAC_WeiFile.write(PECMAC_Wei_wr )
+                PECMAC_WeiFile.write('\n')
                 PECMAC_Wei_wr = ''
-                PECMAC_FlgWei_wr = ''
+        #Block0:[[Chn0-31]wei0-wei8]PEC0-PEC47 \n
+        PECMAC_FlgWeiFile.write(PECMAC_FlgWei_wr+'\n')
+
+    for cntPat in range(0, NumPat):
+        for cntfrm in range(0,NumFrm):
+
+            for cntBlk in range (0, NumBlk ):
+
                 actBlk = [[[ 0 for x in range (0,NumChn)] for y in range (0,Len)] for z in range(0,Len)]
                 CNVOUT_Psum2_PEL =[['' for x in range ( 0, Len)] for y in range(0,Len)]
                 CNVOUT_Psum1_PEL =[['' for x in range ( 0, Len)] for y in range(0,Len)]
@@ -122,36 +154,21 @@ for cntPat in range(0, NumPat):
                         actBlk, FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError = \
                             DISACT.DISACT( cntPat, actrow, actcol,
                             actBlk, FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,
-                            FlagActFile, GBFFLGACT_DatWrFile, PECMAC_FlgActFile, ActFile, GBFACT_DatWrFile, PECMAC_ActFile,
+                            FlagActFile, GBFFLGACT_DatWrFile, PECMAC_FlgActFile, ActFile, GBFACT_DatWrFile, PECMAC_ActFile,GBFFLGACT_PatchAddrFile,GBFACT_PatchAddrFile,
                             Len, NumChn )
 
                 for cntPEB in range(0, NumPEB):
                     for cntPEC in range (0, NumPEC):
 
-                        PECMAC_Wei, cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cntPat_last_GBFWEI,PECMAC_Wei_wr= \
-                            DISWEI.DISWEI(  cntPat,  
-                                            cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cntPat_last_GBFWEI,PECMAC_Wei_wr,
-                                            FlagWeiFile, WeiFile, GBFWEI_DatWrFile,
-                                            NumWei,NumChn )
- 
                         # ***************** PEC **********************************************************
-                        # Input: actBlk PECMAC_Wei Psum0(accum) PECRAM_DatWr_PEL RAMPEC_DatRd_PEL ; File, Len, NumWei,cntBlk, frm, PEB,PEC,
-                        # input \ iterate \ File \ constan
-
                         RAMPEC_DatRd_PEL, PECRAM_DatWr_PEL, Psum0 = \
-                            PEC.PEC(actBlk, PECMAC_Wei, 
+                            PEC.PEC(actBlk, PECMAC_Wei[cntFtrGrp][cntBlk][cntPEB][cntPEC], 
                                     Psum0, PECRAM_DatWr_PEL, RAMPEC_DatRd_PEL, 
                                     CNVOUT_Psum1File, CNVOUT_Psum2File,
                                     Len,NumBlk, NumWei, NumChn,  NumPEB, NumPEC,cntfrm,cntBlk, cntPEB,cntPEC )
                         # Output: RAMPEC_DatRd_PEL PECRAM_DatWr_PEL Psum0
                         # ****** End PEC ***************************
 
-                        # Every PEC a line: WEI0(0000ch1 ch31) WEI1
-                        PECMAC_WeiFile.write(PECMAC_Wei_wr )
-                        PECMAC_WeiFile.write('\n')
-                        PECMAC_Wei_wr = ''
-                #Block0:[[Chn0-31]wei0-wei8]PEC0-PEC47 \n
-                PECMAC_FlgWeiFile.write(PECMAC_FlgWei_wr+'\n')
                 # save first block then second block
                 for psumrow in range(0, Len):
                     for psumcol in range(0,Len):
@@ -163,10 +180,10 @@ for cntPat in range(0, NumPat):
                             RAMPEC_DatRdFile.write(RAMPEC_DatRd_PEL[psumrow][psumcol]+'\n')
                             PECRAM_DatWrFile.write(PECRAM_DatWr_PEL[psumrow][psumcol]+'\n')
 
-        # ************* POOL *****************************
-        FRMPOOL, DELTA, cnt_ACT, cnt_Flag, GBFOFM_DatRd, GBFFLGOFM_DatRd = \
-            POOL.POOL(  Psum0,fl,
-                        FRMPOOL, DELTA, cnt_ACT, cnt_Flag, GBFOFM_DatRd, GBFFLGOFM_DatRd,
-                        POOL_SPRS_MEMFile, GBFOFM_DatRdFile, POOL_FLAG_MEMFile, GBFFLGOFM_DatRdFile,
-                        Len, Stride, NumBlk, NumPEB, NumPEC, PORT_DATAWIDTH, cntfrm )
+            # ************* POOL *****************************
+            FRMPOOL, DELTA, cnt_ACT, cnt_Flag, GBFOFM_DatRd, GBFFLGOFM_DatRd = \
+                POOL.POOL(  Psum0,fl,
+                            FRMPOOL, DELTA, cnt_ACT, cnt_Flag, GBFOFM_DatRd, GBFFLGOFM_DatRd,
+                            POOL_SPRS_MEMFile, GBFOFM_DatRdFile, POOL_FLAG_MEMFile, GBFFLGOFM_DatRdFile,
+                            Len, Stride, NumBlk, NumPEB, NumPEC, PORT_DATAWIDTH, cntfrm )
 

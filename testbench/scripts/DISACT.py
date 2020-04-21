@@ -4,7 +4,7 @@ import os
 
 def DISACT( cntPat, actrow, actcol,
             actBlk, FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,
-            FlagActFile, GBFFLGACT_DatWrFile, PECMAC_FlgActFile, ActFile, GBFACT_DatWrFile, PECMAC_ActFile,
+            FlagActFile, GBFFLGACT_DatWrFile, PECMAC_FlgActFile, ActFile, GBFACT_DatWrFile, PECMAC_ActFile,GBFFLGACT_PatchAddrFile,GBFACT_PatchAddrFile,
             Len, NumChn ):
     #actBlk = [[[ 0 for x in range (0,NumChn)] for y in range (0,Len)] for z in range(0,Len)]
     PECMAC_Act = ''
@@ -24,15 +24,19 @@ def DISACT( cntPat, actrow, actcol,
         GBFFLGACT = ""
     else:
         if cntPat != cntPat_last:
-            print("GBFFLGACT_DatWr next patch line:", cnt_GBFFLGACT/12)
+            
             if cnt_GBFFLGACT % 3 == 0: # current data is third of last patch line
-                GBFFLGACT += "01"*4
+                GBFFLGACT += "xx"*4
                 cnt_GBFFLGACT += 1 #Mean: is first of new line
             elif cnt_GBFFLGACT% 3 == 2:
-                GBFFLGACT += "01"*8
+                GBFFLGACT += "xx"*8
                 cnt_GBFFLGACT += 2 #Mean: is first of new line
             GBFFLGACT_DatWrFile.write(GBFFLGACT + '\n' )
             GBFFLGACT = ""
+    if cntPat != cntPat_last: # complete the current line
+        print("GBFFLGACT_DatWr next patch line:", cnt_GBFFLGACT/3) # Addr ( 0 begin)
+        GBFFLGACT_PatchAddrFile.write( str(hex(cnt_GBFFLGACT/3)).lstrip('0x').rstrip('L').zfill(8) +'\n')
+
     GBFFLGACT = GBFFLGACT + PECMAC_FlgAct_hex
     cntPat_last = cntPat #when First data of Patch is write, updata Patch_last
     # *****************************
@@ -56,14 +60,18 @@ def DISACT( cntPat, actrow, actcol,
             if cnt_GBFACT % 12 == 1 and cnt_GBFACT != 1: # when turn line
                 GBFACT_DatWrFile.write('\n')
             elif cntPat != cntPat_last_GBFACT: # complete the current line
-                print("GBFACT_DatWr next patch line:", cnt_GBFACT/12)
+                
                 if cnt_GBFACT % 12 == 0:
-                    Zero = "01"*( 1) 
+                    Zero = "xx"*( 1) 
                     cnt_GBFACT += 1
                 else:
-                    Zero = "01"*( 13 - cnt_GBFACT % 12) 
+                    Zero = "xx"*( 13 - cnt_GBFACT % 12) 
                     cnt_GBFACT +=  13 - cnt_GBFACT % 12
                 GBFACT_DatWrFile.write(Zero+'\n')# turn to next line
+            if cntPat != cntPat_last_GBFACT: # complete the current line
+                print("GBFACT_DatWr next patch line:", cnt_GBFACT/12) # Addr ( 0 begin)
+                GBFACT_PatchAddrFile.write( str(hex(cnt_GBFACT/12)).lstrip('0x').rstrip('L').zfill(8) +'\n')
+
             GBFACT_DatWrFile.write(act) 
             cntPat_last_GBFACT = cntPat # When new patch's first data, update patch
             # ************************************************

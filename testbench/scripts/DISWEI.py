@@ -4,7 +4,7 @@ import os
 
 def DISWEI( cntPat,  
             cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cntPat_last_GBFWEI,PECMAC_Wei_wr,
-            FlagWeiFile, WeiFile, GBFWEI_DatWrFile,
+            FlagWeiFile, WeiFile, GBFWEI_DatWrFile, GBFWEI_FrtGrpAddrFile,
             NumWei,NumChn ):
     PECMAC_Wei = [ [ 0 for x in range (0,NumChn)] for y in range(0, NumWei) ]
     PECMAC_FlgWei = [ [ 0 for x in range (0,NumChn)] for y in range(0, NumWei) ]
@@ -41,14 +41,17 @@ def DISWEI( cntPat,
                 if cnt_GBFWEI % 12 == 1 and cnt_GBFWEI != 1: # when turn line
                     GBFWEI_DatWrFile.write('\n')
                 elif cntPat != cntPat_last_GBFWEI: # complete the current line
-                    print("GBFWEI_DatWr next patch line:", cnt_GBFWEI/12)
+                    
                     if cnt_GBFWEI % 12 == 0:
-                        Zero = "01"*( 1) 
+                        Zero = "xx"*( 1) 
                         cnt_GBFWEI += 1
                     else:
-                        Zero = "01"*( 13 - cnt_GBFWEI % 12) 
+                        Zero = "xx"*( 13 - cnt_GBFWEI % 12) 
                         cnt_GBFWEI +=  13 - cnt_GBFWEI % 12
                     GBFWEI_DatWrFile.write(Zero+'\n')# turn to next line
+                if cntPat != cntPat_last_GBFWEI: # complete the current line
+                    print("GBFWEI_DatWr next patch line:", cnt_GBFWEI/12) # Addr ( 0 begin)
+                    GBFWEI_FrtGrpAddrFile.write( str(hex(cnt_GBFWEI/12)).lstrip('0x').rstrip('L').zfill(8) +'\n')
                 GBFWEI_DatWrFile.write(wei) 
                 cntPat_last_GBFWEI = cntPat # When new patch's first data, update patch
                 # ************************************************
@@ -69,8 +72,5 @@ def DISWEI( cntPat,
                 wei = wei - 256
             PECMAC_Wei[j][k] = wei
         PECMAC_Wei_wr = PECMAC_Wei_wr + PECMAC_Wei_1
-    #if cntPEB==0 and cntPEC ==0:
-        #PECMAC_WeiFile.write(PECMAC_Wei_wr )
-        #PECMAC_WeiFile.write('\n')
 
     return PECMAC_Wei, cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cntPat_last_GBFWEI,PECMAC_Wei_wr

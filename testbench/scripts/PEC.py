@@ -32,6 +32,7 @@ def PEC( actBlk, PECMAC_Wei,
             if cntBlk == 0:
                 if cntfrm == 0 or cntPEC == 0:# first frame or PEC0
                     temp_RAMPEC_DatRd = 0;
+                # accum across frame(PEC) temperal
                 elif cntPEC == 2: #PEC2 RAMPEC_DatRd2 = DatRd1 + DatRd2/3
                     temp_RAMPEC_DatRd = Psum0[NumBlk-1][cntPEB][cntPEC-1][psumrow][psumcol] +Psum0[NumBlk-1][cntPEB][cntPEC][psumrow][psumcol] ;
                 else:
