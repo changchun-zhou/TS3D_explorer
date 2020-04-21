@@ -29,6 +29,7 @@ GBFFLGOFM_DatRdFileName = '../Data/GenTest/RAM_GBFFLGOFM_12B.dat'
 GBFFLGACT_DatWrFileName = '../Data/GenTest/GBFFLGACT_DatWr.dat'
 GBFACT_DatWrFileName = '../Data/GenTest/GBFACT_DatWr.dat'
 GBFWEI_DatWrFileName = '../Data/GenTest/GBFWEI_DatWr.dat'
+GBFFLGWEI_FrtGrpAddrFileName = '../Data/GenTest/GBFFLGWEI_FrtGrpAddr.dat'
 GBFWEI_FrtGrpAddrFileName = '../Data/GenTest/GBFWEI_FrtGrpAddr.dat'
 GBFFLGACT_PatchAddrFileName = '../Data/GenTest/GBFFLGACT_PatchAddr.dat'
 GBFACT_PatchAddrFileName = '../Data/GenTest/GBFACT_PatchAddr.dat'
@@ -40,7 +41,7 @@ NumWei = 9
 NumBlk = 2
 NumFrm = 16
 NumPat = 16
-NumFtrGrp = 8
+NumFtrGrp = 4
 NumLay = 7
 KerSize = 3
 Stride = 2
@@ -79,6 +80,7 @@ CNVOUT_Psum1File   = open(CNVOUT_Psum1FileName, 'w')
 GBFFLGACT_DatWrFile = open(GBFFLGACT_DatWrFileName,'w')
 GBFACT_DatWrFile = open(GBFACT_DatWrFileName,'w')
 GBFWEI_DatWrFile = open(GBFWEI_DatWrFileName,'w')
+GBFFLGWEI_FrtGrpAddrFile = open(GBFFLGWEI_FrtGrpAddrFileName,'w')
 GBFWEI_FrtGrpAddrFile = open(GBFWEI_FrtGrpAddrFileName,'w')
 GBFFLGACT_PatchAddrFile = open(GBFFLGACT_PatchAddrFileName,'w')
 GBFACT_PatchAddrFile = open(GBFACT_PatchAddrFileName,'w')
@@ -104,29 +106,32 @@ cntPat_last_GBFACT = 0
 #cntPat_GBFACT = 0
 
 cnt_GBFWEI = 0;
+cnt_GBFFLGWEI = 0;
 #cntPat_GBFWEI = 0
 cntPat_last_GBFWEI = 0
+cntPat_last_GBFFLGWEI = 0
+
+ColWei = 0
+cnt_Flagwei_hex = 0
 
 PECMAC_Wei = [[[[[[ 0 for x in range (0,NumChn)] for y in range(0, NumWei) ] 
                       for z in range (NumPEC)  ] for m in range(NumPEB   ) ]
                       for n in range (NumBlk  )] for o in range(NumFtrGrp )]
+
 # for cntLay in range(0, NumLay):
 for cntFtrGrp in range( 0, NumFtrGrp):
-
     # same weight per frame/patch: 3 frameS of FtrGrp(3 PEC)
-    cnt_Flagwei_hex = 0
-    #cnt_wei_hex = 0
-    ColWei = 0
+
     for cntBlk in range (0, NumBlk ):
         PECMAC_Wei_wr = ''
         PECMAC_FlgWei_wr = ''
         for cntPEB in range(0, NumPEB):
             for cntPEC in range (0, NumPEC):
 
-                PECMAC_Wei[cntFtrGrp][cntBlk][cntPEB][cntPEC], cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cntPat_last_GBFWEI,PECMAC_Wei_wr= \
+                PECMAC_Wei[cntFtrGrp][cntBlk][cntPEB][cntPEC], cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI,cnt_GBFFLGWEI, cntPat_last_GBFWEI,cntPat_last_GBFFLGWEI,PECMAC_Wei_wr= \
                     DISWEI.DISWEI(  cntFtrGrp,  
-                                    cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cntPat_last_GBFWEI,PECMAC_Wei_wr,
-                                    FlagWeiFile, WeiFile, GBFWEI_DatWrFile,GBFWEI_FrtGrpAddrFile,
+                                    cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cnt_GBFFLGWEI, cntPat_last_GBFWEI,cntPat_last_GBFFLGWEI,PECMAC_Wei_wr,
+                                    FlagWeiFile, WeiFile, GBFWEI_DatWrFile,GBFWEI_FrtGrpAddrFile,GBFFLGWEI_FrtGrpAddrFile, 
                                     NumWei,NumChn )
                 # Every PEC a line: WEI0(0000ch1 ch31) WEI1
                 PECMAC_WeiFile.write(PECMAC_Wei_wr )
@@ -134,6 +139,9 @@ for cntFtrGrp in range( 0, NumFtrGrp):
                 PECMAC_Wei_wr = ''
         #Block0:[[Chn0-31]wei0-wei8]PEC0-PEC47 \n
         PECMAC_FlgWeiFile.write(PECMAC_FlgWei_wr+'\n')
+
+# for cntLay in range(0, NumLay):
+for cntFtrGrp in range( 0, NumFtrGrp):
 
     for cntPat in range(0, NumPat):
         for cntfrm in range(0,NumFrm):

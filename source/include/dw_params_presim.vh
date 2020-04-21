@@ -141,9 +141,15 @@
 // Test File
 // *********************************************************************************
 `define FILE_GBFFLGWEI "../testbench/Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_flag.dat"
+`define FILE_GBFFLGWEI_FTRGRPADDR "../testbench/Data/GenTest/GBFFLGWEI_FrtGrpAddr.dat"
 `define FILE_GBFWEI "../testbench/Data/GenTest/GBFWEI_DatWr.dat"
+`define FILE_GBFWEI_FTRGRPADDR "../testbench/Data/GenTest/GBFWEI_FtrGrpAddr.dat"
+
 `define FILE_GBFFLGACT "../testbench/Data/GenTest/GBFFLGACT_DatWr.dat"
+`define FILE_GBFFLGACT_FTRGRPADDR "../testbench/Data/GenTest/GBFFLGACT_FtrGrpAddr.dat"
 `define FILE_GBFACT "../testbench/Data/GenTest/GBFACT_DatWr.dat"
+`define FILE_GBFACT_FTRGRPADDR "../testbench/Data/GenTest/GBFACT_FtrGrpAddr.dat"
+
 `define FILE_GBFFLGOFM "../testbench/Data/GenTest/RAM_GBFFLGOFM_12B.dat"
 `define FILE_GBFOFM "../testbench/Data/GenTest/RAM_GBFOFM_12B.dat"
 `define FILE_ADDR "../testbench/Data/dequant_data/prune_quant_extract_proportion/Patch_DDR_BASE_File.dat"
