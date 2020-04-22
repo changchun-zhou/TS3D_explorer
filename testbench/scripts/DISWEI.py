@@ -47,7 +47,7 @@ def DISWEI( cntPat,
                 cnt_GBFWEI += 1 # mean: the count of File
                 if cnt_GBFWEI % 12 == 1 and cnt_GBFWEI != 1: # when turn line
                     GBFWEI_DatWrFile.write('\n')
-                elif cntPat != cntPat_last_GBFWEI: # complete the current line
+                elif cntPat != cntPat_last_GBFWEI and cntPat_last_GBFWEI != -1: # complete the current line
                     
                     if cnt_GBFWEI % 12 == 0:
                         Zero = "xx"*( 1) 

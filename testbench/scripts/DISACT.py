@@ -23,7 +23,7 @@ def DISACT( cntPat, actrow, actcol,
         GBFFLGACT_DatWrFile.write(GBFFLGACT + '\n' )
         GBFFLGACT = ""
     else:
-        if cntPat != cntPat_last:
+        if cntPat != cntPat_last and cntPat_last != -1:
             
             if cnt_GBFFLGACT % 3 == 0: # current data is third of last patch line
                 GBFFLGACT += "xx"*4
@@ -59,7 +59,7 @@ def DISACT( cntPat, actrow, actcol,
             cnt_GBFACT += 1 # mean: the count of File
             if cnt_GBFACT % 12 == 1 and cnt_GBFACT != 1: # when turn line
                 GBFACT_DatWrFile.write('\n')
-            elif cntPat != cntPat_last_GBFACT: # complete the current line
+            elif cntPat != cntPat_last_GBFACT and cntPat_last_GBFACT != -1: # complete the current line
                 
                 if cnt_GBFACT % 12 == 0:
                     Zero = "xx"*( 1) 

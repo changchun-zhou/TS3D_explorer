@@ -98,18 +98,18 @@ FlgAct_hex = ''
 cnt_wei = 0
 cnt_GBFFLGACT = 0
 GBFFLGACT = ""
-cntPat_last = 0
+cntPat_last = -1
 
 cnt_GBFACT = 0
 GBFACT = ""
-cntPat_last_GBFACT = 0
+cntPat_last_GBFACT = -1
 #cntPat_GBFACT = 0
 
 cnt_GBFWEI = 0;
 cnt_GBFFLGWEI = 0;
 #cntPat_GBFWEI = 0
-cntPat_last_GBFWEI = 0
-cntPat_last_GBFFLGWEI = 0
+cntPat_last_GBFWEI = -1
+cntPat_last_GBFFLGWEI = -1
 
 ColWei = 0
 cnt_Flagwei_hex = 0
