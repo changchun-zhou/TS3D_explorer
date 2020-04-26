@@ -152,12 +152,14 @@ wire                                        NXTPEC_ValPsum0;
 wire                                        NXTPEC_ValPsum1;
 wire        BusyRd0, BusyRd1, BusyRd2, BusyRd3;
 wire PEBPEC_BusyRd0, PEBPEC_BusyRd1, PEBPEC_BusyRd2;
+wire                                        CTRLPEB_FrtFrm;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
 
 assign CTRLPEB_FrtBlk = INBUS_LSTPEB[ `BUSPEB_WIDTH -1]; // ahead
-assign CTRLPEB_EvenFrm = OUTBUS_NXTPEB[ `BUSPEB_WIDTH-2];// delay
+assign CTRLPEB_FrtFrm = INBUS_LSTPEB[ `BUSPEB_WIDTH -2]; // ahead
+assign CTRLPEB_EvenFrm = OUTBUS_NXTPEB[ `BUSPEB_WIDTH-3];// delay
 /*always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         FlgRAM2 <= 0;
@@ -166,14 +168,14 @@ assign CTRLPEB_EvenFrm = OUTBUS_NXTPEB[ `BUSPEB_WIDTH-2];// delay
     end
 end*/
 assign FlgRAM2 = ~CTRLPEB_EvenFrm;
-reg  CTRLPEB_FrtFrm;
-always @ ( posedge clk or negedge rst_n ) begin
-    if ( !rst_n ) begin
-        CTRLPEB_FrtFrm <= 1;
-    end else if ( ~CTRLPEB_EvenFrm  ) begin // TOP_Sta,  <= 1; ///////////////////////////////////////////////////////////////////////
-        CTRLPEB_FrtFrm  <=0 ;
-    end
-end
+// reg  CTRLPEB_FrtFrm;
+// always @ ( posedge clk or negedge rst_n ) begin
+//     if ( !rst_n ) begin
+//         CTRLPEB_FrtFrm <= 1;
+//     end else if ( ~CTRLPEB_EvenFrm  ) begin // TOP_Sta,  <= 1; ///////////////////////////////////////////////////////////////////////
+//         CTRLPEB_FrtFrm  <=0 ;
+//     end
+// end
 reg   CTRLPEB_FrtBlk_d;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin

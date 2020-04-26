@@ -137,8 +137,10 @@ reg  [ `DATA_WIDTH * `BLOCK_DEPTH               -1 : 0] PECMAC_Wei8;
 wire                                                                              PlsFnhAll_d;
 wire                                                                              PlsFnhAll_dd;
 wire                                                        LSTPEC_FrtBlk;
+wire                                                        LSTPEC_FrtFrm;
 wire                                                        LSTPEC_EvenFrm;
 reg                                                          FrtBlk;
+reg                                                          FrtFrm;
 reg                                                             EvenFrm;
 reg                                                                     ValCol_d;
 wire                                            _PECRAM_EnRd;
@@ -147,6 +149,7 @@ wire                                            _PECRAM_EnRd;
 //=====================================================================================================================
 assign  {
 LSTPEC_FrtBlk,
+LSTPEC_FrtFrm,
 LSTPEC_EvenFrm,
 LSTPEC_FrtActRow   ,
 LSTPEC_LstActRow   ,
@@ -159,6 +162,7 @@ PEBPEC_Act}=INBUS_LSTPEC;
 assign NXTPEC_GetAct = INBUS_NXTPEC;
 assign OUTBUS_NXTPEC = {
 FrtBlk,
+FrtFrm,
 EvenFrm,
 FrtActRow   ,
 LstActRow   ,
@@ -356,6 +360,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         ValPsum <= 0;
         ValCol <= 0;
         FrtBlk <=1;
+        FrtFrm <=1;
         EvenFrm <= 1;
         NXTPEC_FrtActRow <= 0;
         NXTPEC_LstActRow <= 0;
@@ -367,6 +372,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         PECMAC_FlgAct    <= PEBPEC_FlgAct;
         PECMAC_Act       <= PEBPEC_Act;
         FrtBlk            <= LSTPEC_FrtBlk;
+        FrtFrm            <= LSTPEC_FrtFrm;
         EvenFrm            <= LSTPEC_EvenFrm;// ********* EvenFrm
         FrtActRow        <=LSTPEC_FrtActRow;
         LstActRow        <=LSTPEC_LstActRow;

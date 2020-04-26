@@ -19,6 +19,7 @@ module PEL (
     output [  `PSUM_WIDTH * `NUMPEB -1 : 0] PELPOOL_Dat,
 
     input                                                           CTRLACT_FrtBlk,
+    input                                                           CTRLACT_FrtFrm,
     input                                                           CTRLPEB_FnhFrm,
     input                                                           CTRLACT_FrtActRow,
     input                                                           CTRLACT_LstActRow,
@@ -54,6 +55,7 @@ wire                                                          OUTBUS_ACT;
 assign CTRLACT_GetAct = OUTBUS_ACT;
 assign INBUS_ACT = {
 CTRLACT_FrtBlk,
+CTRLACT_FrtFrm,
 CTRLPEB_FnhFrm,
 CTRLACT_FrtActRow,
 CTRLACT_LstActRow,

@@ -72,7 +72,7 @@ module  Init_DDR #(
           end
 
           ddr_idx = (`LAYER1_ACT_DDR_BASE-32'h0800_0000) ;
-          $readmemh(`FILE_DDR_ACT, DATA_RF_mem_1);
+          $readmemh(`FILE_GBFACT, DATA_RF_mem_1);
           // C_LOG_2(2**12 * 12 ) = 12 + C_LOG_2(12)   = _C000
           // Total : 49, 152 = 49KB:
           // Conv2: 64 x 16 x 56 x 56 = 3, 211, 264 = 3MB => + 2**22 = 40_0000
@@ -88,7 +88,7 @@ module  Init_DDR #(
           end
 
           ddr_idx = (`LAYER1_FLGACT_DDR_BASE-32'h0800_0000);
-          $readmemh(`FILE_DDR_FLGACT, Flag_RF_mem_1);
+          $readmemh(`FILE_GBFFLGACT, Flag_RF_mem_1);
           for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<16; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
             tmp = Flag_RF_mem_1[addr_r_BUS_1];
             for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
@@ -99,7 +99,7 @@ module  Init_DDR #(
             end
           end
           ddr_idx = (`LAYER1_WEI_DDR_BASE-32'h0800_0000) ;
-          $readmemh(`FILE_DDR_WEI, DATA_RF_mem_WEI_1);
+          $readmemh(`FILE_GBFWEI, DATA_RF_mem_WEI_1);
           for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<19; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
             tmp = DATA_RF_mem_WEI_1[addr_r_BUS_1];
             for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin
@@ -110,7 +110,7 @@ module  Init_DDR #(
             end
           end
           ddr_idx = (`LAYER1_FLGWEI_DDR_BASE-32'h0800_0000) ;
-          $readmemh(`FILE_DDR_FLGWEI, Flag_RF_mem_WEI_1);
+          $readmemh(`FILE_GBFFLGWEI, Flag_RF_mem_WEI_1);
           for( addr_r_BUS_1 = 0; addr_r_BUS_1 < 1<<16; addr_r_BUS_1 = addr_r_BUS_1 + 1 ) begin
             tmp = Flag_RF_mem_WEI_1[addr_r_BUS_1];
             for( i=0; i<(`PORT_DATAWIDTH/DATA_WIDTH); i = i+1) begin

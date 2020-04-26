@@ -56,7 +56,7 @@
 `define PSUM_WIDTH 30 // Because of test_data_presim
 //(`DATA_WIDTH *2 + `C_LOG_2(`KERNEL_SIZE*`MAX_DEPTH) )//29
 
-`define BUSPEC_WIDTH (8 + `BLOCK_DEPTH + `DATA_WIDTH * `BLOCK_DEPTH)
+`define BUSPEC_WIDTH (9 + `BLOCK_DEPTH + `DATA_WIDTH * `BLOCK_DEPTH)
 `define BUSPEB_WIDTH `BUSPEC_WIDTH
 
 // DISWEI parameter
@@ -141,14 +141,16 @@
 // Test File
 // *********************************************************************************
 
-`define FILE_DDR_ADDR "../testbench/Data/GenTest/Patch_DDR_BASE_File.dat"
-// THE layer's activations and weights are continous
-`define FILE_DDR_ACT "../testbench/Data/dequant_data/prune_quant_extract_proportion/Activation_45_pool1_data.dat"
-`define FILE_DDR_FLGACT "../testbench/Data/dequant_data/prune_quant_extract_proportion/Activation_45_pool1_flag.dat"
-`define FILE_DDR_WEI "../testbench/Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_data.dat"
-`define FILE_DDR_FLGWEI "../testbench/Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_flag.dat"
+// *********** THE layer's activations and weights are continous ******************
+
+// `define FILE_DDR_ACT "../testbench/Data/dequant_data/prune_quant_extract_proportion/Activation_45_pool1_data.dat"
+// `define FILE_DDR_FLGACT "../testbench/Data/dequant_data/prune_quant_extract_proportion/Activation_45_pool1_flag.dat"
+// `define FILE_DDR_WEI "../testbench/Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_data.dat"
+// `define FILE_DDR_FLGWEI "../testbench/Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_flag.dat"
 
 // THE layer's activations and weights are split(every patch)
+`define FILE_DDR_ADDR "../testbench/Data/GenTest/Patch_DDR_BASE_File.dat"
+
 `define FILE_GBFFLGWEI "../testbench/Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_flag.dat"
 `define FILE_GBFFLGWEI_FTRGRPADDR "../testbench/Data/GenTest/GBFFLGWEI_FrtGrpAddr.dat"
 `define FILE_GBFWEI "../testbench/Data/GenTest/GBFWEI_DatWr.dat"

@@ -30,6 +30,7 @@ module  CTRLACT (
     output                                       CTRLACT_ValPsum,
     output                                      CTRLACT_ValCol,
     output                                       CTRLACT_FrtBlk, /// glitch: PEC0 -> PEC2 second BLK -> first Blk
+    output                                       CTRLACT_FrtFrm,
     output                                       CTRLACT_FnhPat,
     output                                       CTRLACT_FnhFtrGrp,
     output                                       CTRLACT_FnhLay,
@@ -66,7 +67,6 @@ wire                                                CTRLACT_FrtActBlk;
 wire                                                CTRLACT_FrtActFrm;
 wire                                                CTRLACT_LstActFrm;
 reg                                                 CTRLACT_FrtActFrm_d;
-wire                                                CTRLACT_FrtFrm;
 
 wire                                         CTRLACT_FrtActPat;
 reg                                          CTRLACT_FrtActPat_d;
@@ -85,7 +85,7 @@ reg  [ `FRAME_WIDTH                - 1 : 0 ] CntFrm;
 reg  [ `PATCH_WIDTH                - 1 : 0 ] CntPat;
 reg [ `FTRGRP_WIDTH               - 1 : 0 ] CntFtrGrp;
 reg  [ `LAYER_WIDTH                - 1 : 0 ] CntLay;
-reg                                         Loop;
+reg  [ 2  - 1: 0 ]                           Loop;
 wire                                         Restart = 0; ////////////////////////////////
 
 parameter PATCH = 3;
@@ -137,6 +137,7 @@ always @ ( posedge clk or negedge rst_n ) begin
 end
 
 assign CTRLACT_FrtBlk = ~(|CntBlk);// CntBlk == 0;
+
 assign CTRLACT_FrtActFrm = CntBlk == 0 && CTRLACT_FrtActBlk;
 assign CTRLACT_LstActFrm = CntBlk == CFG_NumBlk && CTRLACT_LstActBlk;
 // paulse to exchange Pingpong SRAM_PEC2/3
@@ -224,7 +225,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         CntLay <= 0;
     end else if ( Restart ) begin
         CntLay <= 0;
-    end else if ( CTRLACT_FrtActLay ) begin
+    end else if ( CTRLACT_LstActLay && CTRLACT_GetAct ) begin
         CntLay <= CntLay + 1;
     end
 end

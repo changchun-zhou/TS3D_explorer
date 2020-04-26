@@ -19,6 +19,9 @@ def DISACT( cntPat, actrow, actcol,
     # ****************************
     
     cnt_GBFFLGACT += 1 #4B
+    if cntPat != cntPat_last: # complete the current line
+        PECMAC_FLGACT_PatchAddrFile.write( str(hex(cnt_GBFFLGACT -1)).lstrip('0x').rstrip('L').zfill(8) +'\n')
+
     if cnt_GBFFLGACT % 3 == 1 and cnt_GBFFLGACT != 1:  
         GBFFLGACT_DatWrFile.write(GBFFLGACT + '\n' )
         GBFFLGACT = ""
@@ -37,7 +40,6 @@ def DISACT( cntPat, actrow, actcol,
         print("GBFFLGACT_DatWr next patch line:", cnt_GBFFLGACT/3) # Addr ( 0 begin)
         print("PECMAC_FlgAct next patch line:", cnt_GBFFLGACT -1) # Addr ( 0 begin)
         GBFFLGACT_PatchAddrFile.write( str(hex(cnt_GBFFLGACT/3)).lstrip('0x').rstrip('L').zfill(8) +'\n')
-        PECMAC_FLGACT_PatchAddrFile.write( str(hex(cnt_GBFFLGACT -1)).lstrip('0x').rstrip('L').zfill(8) +'\n')
         DDR_ADDR[2][cntPat] = (cnt_GBFFLGACT - 1)*4 #begin addr
     GBFFLGACT = GBFFLGACT + PECMAC_FlgAct_hex
     cntPat_last = cntPat #when First data of Patch is write, updata Patch_last

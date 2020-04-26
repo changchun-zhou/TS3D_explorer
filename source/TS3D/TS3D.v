@@ -100,6 +100,7 @@ wire  [ `FTRGRP_WIDTH                -1 : 0 ] CFG_NumFtrGrp;
 
 wire [ 5 + 1+`POOL_KERNEL_WIDTH                -1 : 0] CFG_POOL;
 wire                                                        CTRLACT_FrtBlk;
+wire                                                        CTRLACT_FrtFrm;
 wire                                                        CTRLACT_FrtActRow;
 wire                                                        CTRLACT_LstActRow;
 wire                                                        CTRLACT_LstActBlk;
@@ -271,6 +272,7 @@ PEL PEL
     .POOLPEB_AddrRd      (POOLPEL_AddrRd),
     .PELPOOL_Dat         (PELPOOL_Dat),
     .CTRLACT_FrtBlk      (CTRLACT_FrtBlk), // Modify to pass FrtBlk for every PEC
+    .CTRLACT_FrtFrm      (CTRLACT_FrtFrm), // Modify to pass FrtBlk for every PEC
     .CTRLACT_FrtActRow   (CTRLACT_FrtActRow),
     .CTRLACT_LstActRow   (CTRLACT_LstActRow),
     .CTRLACT_LstActBlk   (CTRLACT_LstActBlk),
@@ -359,6 +361,7 @@ CTRLACT CTRLACT
     .CTRLACT_ValPsum   (CTRLACT_ValPsum),
     .CTRLACT_ValCol     ( CTRLACT_ValCol),
     .CTRLACT_FrtBlk    (CTRLACT_FrtBlk),
+    .CTRLACT_FrtFrm   (CTRLACT_FrtFrm ),
     .CTRLACT_FnhFrm    (CTRLACT_FnhFrm),
     .CTRLACT_FnhPat    ( CTRLACT_FnhPat),
     .CTRLACT_FnhLay    ( CTRLACT_FnhLay),
