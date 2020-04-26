@@ -563,6 +563,7 @@ unpacker_left #(
     )data_unpacker_GBFACT(
     .clk (clk),
     .rst_n(rst_n),
+    .Reset(Reset_Patch),
     .Packed_RdyWr(Packed_RdyWr),
     .Packed_EnWr(Packed_EnWr),
     .Packed_DatWr(GBFACT_DatRd),
@@ -622,6 +623,7 @@ unpacker_left #(
     )data_unpacker_GBFFLGACT(
     .clk (clk),
     .rst_n(rst_n),
+    .Reset(Reset_Patch),
     .Packed_RdyWr(FLGACT_Packed_RdyWr),
     .Packed_EnWr(FLGACT_Packed_EnWr),
     .Packed_DatWr(GBFFLGACT_DatRd),

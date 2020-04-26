@@ -109,7 +109,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
-assign CTRLACT_PlsFetch = Sta || ( CTRLACT_GetAct && 1'b1);//////////////////
+assign CTRLACT_PlsFetch = Sta || ( CTRLACT_GetAct && ~CTRLACT_LstActPat);//////////////////
 assign CTRLACT_LstActRow = CntAct == CFG_LenRow;
 assign CTRLACT_FrtActRow = CntAct == 0;
 assign CTRLACT_ValCol = CntAct >= 2;

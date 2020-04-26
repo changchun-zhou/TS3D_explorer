@@ -140,19 +140,42 @@
 // **********************************************************************
 // Test File
 // *********************************************************************************
+
+`define FILE_DDR_ADDR "../testbench/Data/GenTest/Patch_DDR_BASE_File.dat"
+// THE layer's activations and weights are continous
+`define FILE_DDR_ACT "../testbench/Data/dequant_data/prune_quant_extract_proportion/Activation_45_pool1_data.dat"
+`define FILE_DDR_FLGACT "../testbench/Data/dequant_data/prune_quant_extract_proportion/Activation_45_pool1_flag.dat"
+`define FILE_DDR_WEI "../testbench/Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_data.dat"
+`define FILE_DDR_FLGWEI "../testbench/Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_flag.dat"
+
+// THE layer's activations and weights are split(every patch)
 `define FILE_GBFFLGWEI "../testbench/Data/dequant_data/prune_quant_extract_proportion/Weight_45_conv2.float_weight_flag.dat"
 `define FILE_GBFFLGWEI_FTRGRPADDR "../testbench/Data/GenTest/GBFFLGWEI_FrtGrpAddr.dat"
 `define FILE_GBFWEI "../testbench/Data/GenTest/GBFWEI_DatWr.dat"
 `define FILE_GBFWEI_FTRGRPADDR "../testbench/Data/GenTest/GBFWEI_FtrGrpAddr.dat"
 
 `define FILE_GBFFLGACT "../testbench/Data/GenTest/GBFFLGACT_DatWr.dat"
-`define FILE_GBFFLGACT_FTRGRPADDR "../testbench/Data/GenTest/GBFFLGACT_FtrGrpAddr.dat"
+`define FILE_GBFFLGACT_PATCHADDR "../testbench/Data/GenTest/GBFFLGACT_FtrGrpAddr.dat"
 `define FILE_GBFACT "../testbench/Data/GenTest/GBFACT_DatWr.dat"
-`define FILE_GBFACT_FTRGRPADDR "../testbench/Data/GenTest/GBFACT_FtrGrpAddr.dat"
+`define FILE_GBFACT_PATCHADDR "../testbench/Data/GenTest/GBFACT_FtrGrpAddr.dat"
 
 `define FILE_GBFFLGOFM "../testbench/Data/GenTest/RAM_GBFFLGOFM_12B.dat"
 `define FILE_GBFOFM "../testbench/Data/GenTest/RAM_GBFOFM_12B.dat"
-`define FILE_ADDR "../testbench/Data/dequant_data/prune_quant_extract_proportion/Patch_DDR_BASE_File.dat"
+
+
+`define FILE_PECMAC_FLGACT "../testbench/Data/GenTest/PECMAC_FlgAct_Gen.dat"
+`define FILE_PECMAC_FLGACT_PATCHADDR "../testbench/Data/GenTest/PECMAC_FLGACT_PatchAddr.dat"
+
+`define FILE_PECMAC_ACT "../testbench/Data/GenTest/PECMAC_Act_Gen.dat"
+`define FILE_PECMAC_ACT_PATCHADDR `FILE_PECMAC_FLGACT_PATCHADDR // same line number
+
+`define FILE_PECMAC_FLGWEI "../testbench/Data/GenTest/PECMAC_FlgWei_Ref.dat"
+`define FILE_PECMAC_FLGWEI_FTRGRPADDR "../Data/GenTest/PECMAC_FLGWEI_FtrGrpAddr.dat"
+
+`define FILE_PECMAC_WEI "../testbench/Data/GenTest/PECMAC_Wei_Ref.dat"
+`define FILE_PECMAC_WEI_FTRGRPADDR "../Data/GenTest/PECMAC_WEI_FtrGrpAddr.dat"
+
+
 //-----------------------------------------------------------
 //Simple Log2 calculation function
 //-----------------------------------------------------------

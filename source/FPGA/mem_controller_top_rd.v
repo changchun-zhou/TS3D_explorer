@@ -225,6 +225,7 @@ unpacker #(
     )data_unpacker_rd(
     .clk (clk),
     .rst_n(~reset),
+    .Reset(1'b0),
     .Packed_RdyWr(Rdunpacker_Packed_RdyWr),
     .Packed_EnWr(Rdunpacker_Packed_EnWr),
     .Packed_DatWr(RdPacker_Packed_DatRd),
@@ -593,7 +594,7 @@ reg [ ADDR_W   - 1 : 0 ] MEM_ADDR_OFFSET [0:10][0:31];
 // end
 
 initial begin 
-    $readmemh(`FILE_ADDR, MEM_ADDR_BASE);// Addr_base for every Patch/FtrGrp
+    $readmemh(`FILE_DDR_ADDR, MEM_ADDR_BASE);// Addr_base for every Patch/FtrGrp
 end
 
 always @ ( posedge clk or negedge reset ) begin

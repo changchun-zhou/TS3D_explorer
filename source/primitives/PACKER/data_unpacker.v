@@ -13,6 +13,7 @@ module unpacker #(
 (
   input  wire                                         clk,
   input  wire                                         rst_n,
+  input  wire                                         Reset,
   output wire                                         Packed_RdyWr, //req
   input  wire  [ IN_WIDTH             -1 : 0 ]        Packed_DatWr,
   input  wire                                         Packed_EnWr, //enable
@@ -41,6 +42,8 @@ reg [IN_WIDTH-1:0] data;
 
 always @(posedge clk or negedge rst_n)
   if (!rst_n)
+    rd_count <= MAX_READS;
+  else if ( Reset )
     rd_count <= MAX_READS;
   else if (Packed_EnWr)
     rd_count <= 0;

@@ -3,7 +3,7 @@ import random
 import os
 
 def DISWEI( cntPat,  
-            cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cnt_GBFFLGWEI,cntPat_last_GBFWEI,cntPat_last_GBFFLGWEI,PECMAC_Wei_wr,
+            cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cnt_GBFFLGWEI,cntPat_last_GBFWEI,cntPat_last_GBFFLGWEI,PECMAC_Wei_wr,DDR_ADDR,
             FlagWeiFile, WeiFile, GBFWEI_DatWrFile, GBFWEI_FrtGrpAddrFile, GBFFLGWEI_FrtGrpAddrFile,
             NumWei,NumChn ):
     PECMAC_Wei = [ [ 0 for x in range (0,NumChn)] for y in range(0, NumWei) ]
@@ -17,7 +17,8 @@ def DISWEI( cntPat,
             cnt_GBFFLGWEI = cnt_GBFFLGWEI + 1
             if cntPat != cntPat_last_GBFFLGWEI: # complete the current line
                 print("GBFFLGWEI_DatWr next patch line:", cnt_GBFFLGWEI-1 ) # Addr ( 0 begin)
-                GBFFLGWEI_FrtGrpAddrFile.write( str(hex(cnt_GBFFLGWEI-1)).lstrip('0x').rstrip('L').zfill(8) +'\n')
+                GBFFLGWEI_FrtGrpAddrFile.write( str(hex(cnt_GBFFLGWEI -1)).lstrip('0x').rstrip('L').zfill(8) +'\n')
+                DDR_ADDR[0][cntPat] = (cnt_GBFFLGWEI-1)*12 #begin addr
             cntPat_last_GBFFLGWEI = cntPat
          
         PECMAC_FlgWei_item_hex = FlgWei_hex[8*cnt_Flagwei_hex:8*cnt_Flagwei_hex+8] #4B
@@ -59,6 +60,7 @@ def DISWEI( cntPat,
                 if cntPat != cntPat_last_GBFWEI: # complete the current line
                     print("GBFWEI_DatWr next patch line:", cnt_GBFWEI/12) # Addr ( 0 begin)
                     GBFWEI_FrtGrpAddrFile.write( str(hex(cnt_GBFWEI/12)).lstrip('0x').rstrip('L').zfill(8) +'\n')
+                    DDR_ADDR[1][cntPat] = cnt_GBFWEI - 1 #begin addr
 
                 GBFWEI_DatWrFile.write(wei) 
                 cntPat_last_GBFWEI = cntPat # When new patch's first data, update patch
@@ -81,4 +83,4 @@ def DISWEI( cntPat,
             PECMAC_Wei[j][k] = wei
         PECMAC_Wei_wr = PECMAC_Wei_wr + PECMAC_Wei_1
 
-    return PECMAC_Wei, cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cnt_GBFFLGWEI, cntPat_last_GBFWEI,cntPat_last_GBFFLGWEI,PECMAC_Wei_wr
+    return PECMAC_Wei, cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cnt_GBFFLGWEI, cntPat_last_GBFWEI,cntPat_last_GBFFLGWEI,PECMAC_Wei_wr,DDR_ADDR,
