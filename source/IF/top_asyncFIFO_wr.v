@@ -121,7 +121,7 @@ end
 always @(posedge clk_chip or negedge reset_n_chip) begin : proc_wr_done_wait
     if(~reset_n_chip) begin
         wr_done_wait <= 0;
-    end else if( wr_count >= wr_size -1 && ~full_ahead_d)begin
+    end else if( wr_count >= wr_size -1 && ~full_ahead_d && wr_ready)begin// timing graph
         wr_done_wait <= 1; //Control wr_ready
     end else if( state == IDLE ) begin
         wr_done_wait <= 0;

@@ -126,8 +126,8 @@ PECMAC_Wei = [[[[[[ 0 for x in range (0,NumChn)] for y in range(0, NumWei) ]
                       for n in range (NumBlk  )] for o in range(NumFtrGrp )]
 
 # for cntLay in range(0, NumLay):
-# Only 4 FtrGrp
-for cntFtrGrp in range( 4):
+
+for cntFtrGrp in range( NumFtrGrp):
     # same weight per frame/patch: 3 frameS of FtrGrp(3 PEC)
     # 0 2 4 6
     PECMAC_FLGWEI_FtrGrpAddrFile.write(str(hex(NumBlk * cntFtrGrp)).lstrip('0x').rstrip('L').zfill(8) +'\n')
@@ -151,39 +151,65 @@ for cntFtrGrp in range( 4):
         #Block0:[[Chn0-31]wei0-wei8]PEC0-PEC47 \n
         PECMAC_FlgWeiFile.write(PECMAC_FlgWei_wr+'\n')
 
-# for cntLay in range(0, NumLay):
-for cntFtrGrp in range( 4):
 
-    for cntPat in range(2):# 2 patch
+actBlk = [[[
+            [[[ 0 for x in range (0,NumChn)] for y in range (0,Len)] for z in range(0,Len)]
+                  for m in range (0,NumBlk)] for n in range (NumFrm)]for o in range (NumPat)]    
+for cntPat in range(15):# 
+    for cntfrm in range(0,NumFrm):
+        for cntBlk in range (0, NumBlk ):
+            #Fetch a block activation
+            for actrow in range(0, Len) :
+                for actcol in range(0, Len):
+
+                    actBlk[cntPat][cntfrm][cntBlk], FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,DDR_ADDR = \
+                        DISACT.DISACT( cntPat, actrow, actcol,
+                        actBlk[cntPat][cntfrm][cntBlk], FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,DDR_ADDR,
+                        FlagActFile, GBFFLGACT_DatWrFile, PECMAC_FlgActFile, ActFile, GBFACT_DatWrFile, PECMAC_ActFile,GBFFLGACT_PatchAddrFile,GBFACT_PatchAddrFile,PECMAC_FLGACT_PatchAddrFile,
+                        Len, NumChn )
+
+Addr =int("080A5600",16) #ACT
+for cntnum in range(NumPat):
+    Addr += DDR_ADDR[3][cntnum]
+    Patch_DDR_ADDR_BaseFile.write(str(hex(Addr)).lstrip('0x').rstrip('L').zfill(8)+'\n')
+Addr = int("083B5600", 16) #FLGACT 
+for cntnum in range(NumPat):
+    Addr += DDR_ADDR[2][cntnum]
+    Patch_DDR_ADDR_BaseFile.write(str(hex(Addr)).lstrip('0x').rstrip('L').zfill(8)+'\n')
+    
+Addr = int("088016C8",16) #WEI
+for cntnum in range(NumFtrGrp):
+    Addr += DDR_ADDR[1][cntnum]
+    Patch_DDR_ADDR_BaseFile.write(str(hex(Addr)).lstrip('0x').rstrip('L').zfill(8)+'\n')
+    
+Addr = int("088376C8",16)#FLGWEI
+for cntnum in range(NumFtrGrp):
+    Addr += DDR_ADDR[0][cntnum]
+    Patch_DDR_ADDR_BaseFile.write(str(hex(Addr)).lstrip('0x').rstrip('L').zfill(8)+'\n')
+
+
+# for cntLay in range(0, NumLay):
+for cntFtrGrp in range( 1): # 1 FtrGrp 
+
+    for cntPat in range(NumPat):# 
         FRMPOOL = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
         DELTA = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
         for cntfrm in range(0,NumFrm):
 
             for cntBlk in range (0, NumBlk ):
 
-                actBlk = [[[ 0 for x in range (0,NumChn)] for y in range (0,Len)] for z in range(0,Len)]
                 CNVOUT_Psum2_PEL = [['' for x in range ( 0, Len)] for y in range(0,Len)]
                 CNVOUT_Psum1_PEL = [['' for x in range ( 0, Len)] for y in range(0,Len)]
                 CNVOUT_Psum0_PEL = [['' for x in range ( 0, Len)] for y in range(0,Len)]
                 PECRAM_DatWr_PEL = [['' for x in range ( 0, Len-2)] for y in range(0,Len-2)]
                 RAMPEC_DatRd_PEL = [['' for x in range ( 0, Len-2)] for y in range(0,Len-2)]
 
-                #Fetch a block activation
-                for actrow in range(0, Len) :
-                    for actcol in range(0, Len):
-
-                        actBlk, FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,DDR_ADDR = \
-                            DISACT.DISACT( cntPat, actrow, actcol,
-                            actBlk, FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,DDR_ADDR,
-                            FlagActFile, GBFFLGACT_DatWrFile, PECMAC_FlgActFile, ActFile, GBFACT_DatWrFile, PECMAC_ActFile,GBFFLGACT_PatchAddrFile,GBFACT_PatchAddrFile,PECMAC_FLGACT_PatchAddrFile,
-                            Len, NumChn )
-
                 for cntPEB in range(0, NumPEB):
                     for cntPEC in range (0, NumPEC):
 
                         # ***************** PEC **********************************************************
                         RAMPEC_DatRd_PEL, PECRAM_DatWr_PEL, Psum0 = \
-                            PEC.PEC(actBlk, PECMAC_Wei[cntFtrGrp][cntBlk][cntPEB][cntPEC], 
+                            PEC.PEC(actBlk[cntPat][cntfrm][cntBlk], PECMAC_Wei[cntFtrGrp][cntBlk][cntPEB][cntPEC], 
                                     Psum0, PECRAM_DatWr_PEL, RAMPEC_DatRd_PEL, 
                                     CNVOUT_Psum1File, CNVOUT_Psum2File,
                                     Len,NumBlk, NumWei, NumChn,  NumPEB, NumPEC,cntfrm,cntBlk, cntPEB,cntPEC )
@@ -208,21 +234,3 @@ for cntFtrGrp in range( 4):
                             POOL_SPRS_MEMFile, GBFOFM_DatRdFile, POOL_FLAG_MEMFile, GBFFLGOFM_DatRdFile,
                             Len, Stride, NumBlk, NumPEB, NumPEC, PORT_DATAWIDTH, cntfrm )
     
-    Addr =int("080A5600",16) #ACT
-    for cntnum in range(NumPat):
-        Addr += DDR_ADDR[3][cntnum]
-        Patch_DDR_ADDR_BaseFile.write(str(hex(Addr)).lstrip('0x').rstrip('L').zfill(8)+'\n')
-    Addr = int("083B5600", 16) #FLGACT 
-    for cntnum in range(NumPat):
-        Addr += DDR_ADDR[2][cntnum]
-        Patch_DDR_ADDR_BaseFile.write(str(hex(Addr)).lstrip('0x').rstrip('L').zfill(8)+'\n')
-        
-    Addr = int("088016C8",16) #WEI
-    for cntnum in range(NumFtrGrp):
-        Addr += DDR_ADDR[1][cntnum]
-        Patch_DDR_ADDR_BaseFile.write(str(hex(Addr)).lstrip('0x').rstrip('L').zfill(8)+'\n')
-        
-    Addr = int("088376C8",16)#FLGWEI
-    for cntnum in range(NumFtrGrp):
-        Addr += DDR_ADDR[0][cntnum]
-        Patch_DDR_ADDR_BaseFile.write(str(hex(Addr)).lstrip('0x').rstrip('L').zfill(8)+'\n')
