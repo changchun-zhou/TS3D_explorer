@@ -31,6 +31,9 @@ module  CTRLACT (
     output                                      CTRLACT_ValCol,
     output                                       CTRLACT_FrtBlk, /// glitch: PEC0 -> PEC2 second BLK -> first Blk
     output                                       CTRLACT_FrtFrm,
+    output                                       CTRLACT_FrtPat,
+    output                                       CTRLACT_FrtFtrGrp,
+    output                                       CTRLACT_FrtLay,
     output                                       CTRLACT_FnhPat,
     output                                       CTRLACT_FnhFtrGrp,
     output                                       CTRLACT_FnhLay,
@@ -94,8 +97,9 @@ parameter FTRGRP = 2;
 // Logic Design :
 //=====================================================================================================================PEB
 assign POOL_En = ~CTRLACT_FrtBlk && ~CTRLACT_FrtFrm && CTRLACT_FrtActBlk ;
-assign POOL_ValDelta = CntFrm >=2; // compute 2st frame; POOL delta 1st frame
-assign POOL_ValFrm = ~CntFrm[0] && CntFrm >=2 ;//
+// except first patch/ftrgrp
+assign POOL_ValDelta = CTRLACT_FrtLay&&CTRLACT_FrtPat&&CTRLACT_FrtFtrGrp ? CntFrm>= 2 : CntFrm !=1; // compute 2st frame; POOL delta 1st frame
+assign POOL_ValFrm =   CTRLACT_FrtLay&&CTRLACT_FrtPat&&CTRLACT_FrtFtrGrp ? ~CntFrm[0]&&CntFrm >=2 : ~CntFrm[0] ;//
 //assign POOL_ValFrm =0;
 // For loop
 
@@ -168,6 +172,8 @@ always @ ( posedge clk or negedge rst_n ) begin
         CntPat <= CntPat + 1;
     end
 end
+assign CTRLACT_FrtPat = ~(|CntPat);
+assign CTRLACT_FrtFtrGrp = ~(|CntFtrGrp);
 
 assign CTRLACT_LstActFtrGrp = CntFrm == CFG_NumFrm && CTRLACT_LstActFrm;
 assign CTRLACT_FrtActFtrGrp = CntFrm == 0 && CTRLACT_FrtActFrm;
@@ -229,6 +235,7 @@ always @ ( posedge clk or negedge rst_n ) begin
         CntLay <= CntLay + 1;
     end
 end
+assign CTRLACT_FrtLay = ~(|CntLay);
 // assign FrtActEx =
 assign CTRLACT_FnhLay = CTRLACT_FrtActLay && CTRLACT_FrtActLay_d;
 
