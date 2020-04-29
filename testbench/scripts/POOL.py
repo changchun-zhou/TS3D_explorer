@@ -37,6 +37,7 @@ def POOL(   Psum0, fl,
                         POOL_MEM[AddrPooly][AddrPoolx][cntPEB] = FRMPOOL[AddrPooly][AddrPoolx][cntPEB];
                 elif cntfrm % 2 == 0: # 0 , 2
                         FRMPOOL[AddrPooly][AddrPoolx][cntPEB] = POOL_MEM[AddrPooly][AddrPoolx][cntPEB] # update frame for pool_frame
+                # save delta frame: DELTA: Last frame's POOL_MEM
                 SPRS[AddrPooly][AddrPoolx][cntPEB] = POOL_MEM[AddrPooly][AddrPoolx][cntPEB] - DELTA[AddrPooly][AddrPoolx][cntPEB]
                 DELTA[AddrPooly][AddrPoolx][cntPEB] = POOL_MEM[AddrPooly][AddrPoolx][cntPEB];# update frame for delta
                 if SPRS[AddrPooly][AddrPoolx][cntPEB] != 0:

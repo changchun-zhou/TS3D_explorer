@@ -95,8 +95,7 @@ Patch_DDR_ADDR_BaseFile = open(Patch_DDR_ADDR_BaseFileName,'w')
 #Psum2 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ] for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
 #Psum1 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ]for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
 Psum0 = [[[[ [ 0 for x in range (0,Len -2)] for y in range(0, Len) ]for z in range(0, NumPEC)] for m in range(0,NumPEB)] for n in range(0,NumBlk)]
-FRMPOOL = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
-DELTA = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
+
 cnt_ACT = 0
 cnt_Flag = 0 # continously save one frame by one frame
 GBFFLGOFM_DatRd = ""
@@ -156,6 +155,8 @@ for cntFtrGrp in range( 4):
 for cntFtrGrp in range( 4):
 
     for cntPat in range(2):# 2 patch
+        FRMPOOL = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
+        DELTA = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
         for cntfrm in range(0,NumFrm):
 
             for cntBlk in range (0, NumBlk ):

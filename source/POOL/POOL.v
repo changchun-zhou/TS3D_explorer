@@ -11,25 +11,25 @@
 //========================================================
 `include "../source/include/dw_params_presim.vh"
 module POOL(
-    input                                                                       clk     ,
-    input                                                                       rst_n   ,
-    input                                                                       Reset_OFM,
-    input [ 5 + 1+`POOL_KERNEL_WIDTH                -1 : 0] CFG_POOL      ,
-    input                                                                            POOL_En,  // paulse: the last PEB finish
-    input                                                                        POOL_ValFrm,
-    input                                                                        POOL_ValDelta,
-  //  input  [ `FRAME_WIDTH                - 1 : 0 ] CntFrm,
-    output [ 1			                       -1 : 0] POOLPEL_EnRd,// 4 bit ID of PEB
-    output [ `C_LOG_2(`LENPSUM * `LENPSUM)-1 : 0] POOLPEL_AddrRd,
-    input  [ `PSUM_WIDTH * `NUMPEB                   -1 : 0] PELPOOL_Dat,
-    output                                                                    GBFOFM_EnWr,
-    input                                                                    GBFOFM_EnRd,
-    output  reg[ `GBFOFM_ADDRWIDTH                 -1 : 0] GBFOFM_AddrWr,
-    output [ `PORT_DATAWIDTH                        -1 : 0] GBFOFM_DatWr,
-    output                                                                    GBFFLGOFM_EnWr,
-    input                                                                    GBFFLGOFM_EnRd,
-    output reg  [ `GBFFLGOFM_ADDRWIDTH         - 1 :0 ] GBFFLGOFM_AddrWr,
-    output  [ `PORT_DATAWIDTH                     - 1 : 0 ] GBFFLGOFM_DatWr
+    input                                               clk     ,
+    input                                               rst_n   ,
+    input                                               Reset_OFM,
+    input [ 5 + 1+`POOL_KERNEL_WIDTH            -1 : 0] CFG_POOL      ,
+    input                                               POOL_En,  // paulse: the last PEB finish
+    input                                               POOL_ValFrm,
+    input                                               POOL_ValDelta,
+  //  input  [ `FRAME_WIDTH                     -1 : 0] CntFrm,
+    output [ 1			                        -1 : 0] POOLPEL_EnRd,// 4 bit ID of PEB
+    output [ `C_LOG_2(`LENPSUM * `LENPSUM)      -1 : 0] POOLPEL_AddrRd,
+    input  [ `PSUM_WIDTH * `NUMPEB              -1 : 0] PELPOOL_Dat,
+    output                                              GBFOFM_EnWr,
+    input                                               GBFOFM_EnRd,
+    output  reg[ `GBFOFM_ADDRWIDTH              -1 : 0] GBFOFM_AddrWr,
+    output [ `PORT_DATAWIDTH                    -1 : 0] GBFOFM_DatWr,
+    output                                              GBFFLGOFM_EnWr,
+    input                                               GBFFLGOFM_EnRd,
+    output reg  [ `GBFFLGOFM_ADDRWIDTH          -1 : 0] GBFFLGOFM_AddrWr,
+    output  [ `PORT_DATAWIDTH                   -1 : 0] GBFFLGOFM_DatWr
 
 );
 //=====================================================================================================================
@@ -270,7 +270,8 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
-//assign FRMPOOL_EnWr =(state == FRMPOOLDELTA) && (state_d!= FRMPOOLDELTA);
+// assign FRMPOOL_EnWr =(state == FRMPOOLDELTA) && (state_d!= FRMPOOLDELTA);
+// write for every frame
 assign SIPOOFM_En = FLAG_MEM[SPRS_Addr]  && state ==SPRS;
 assign SIPOFLGOFM_En = state_dd==FRMPOOLDELTA && state_ddd != FRMPOOLDELTA;
 //=====================================================================================================================
@@ -278,20 +279,6 @@ assign SIPOFLGOFM_En = state_dd==FRMPOOLDELTA && state_ddd != FRMPOOLDELTA;
 //=====================================================================================================================
 
 // sipo
-
-// sipo
-// #( // INPUT PARAMETERS
-//     .DATA_IN_WIDTH(`DATA_WIDTH),
-//    .DATA_OUT_WIDTH (`PORT_DATAWIDTH) // 12*
-// )SIPO_OFM( // PORTS
-//     .clk(clk),
-//     .rst_n(rst_n),
-//     .enable(SIPOOFM_En),
-//     .data_in(SPRS_MEM[SPRS_Addr]),
-//     .ready( ),
-//     .data_out(GBFOFM_DatWr),
-//     .out_valid(GBFOFM_EnWr)   // output must be gotten immediately
-// );
 
 wire OFM_Unpacked_RdyWr;
 wire OFM_Packed_RdyRd;
@@ -313,18 +300,7 @@ packer_right #(
 assign GBFOFM_EnWr = OFM_Packed_RdyRd;// Write first, in IF.v exclude Wr and Rd;
 assign OFM_Packed_EnRd = GBFOFM_EnWr;
 // sipo
-// #( // INPUT PARAMETERS
-//     .DATA_IN_WIDTH(`NUMPEB),
-//    .DATA_OUT_WIDTH (`PORT_DATAWIDTH) // 12*
-// )SIPO_FLGOFM( // PORTS
-//     .clk(clk),
-//     .rst_n(rst_n),
-//     .enable(SIPOFLGOFM_En),
-//     .data_in(FLAG_MEM),
-//     .ready( ),
-//     .data_out(GBFFLGOFM_DatWr),
-//     .out_valid(GBFFLGOFM_EnWr)   // output must be gotten immediately
-// );
+
 wire FLGOFM_Unpacked_RdyWr;
 wire FLGOFM_Packed_RdyRd;
 wire FLGOFM_Packed_EnRd;

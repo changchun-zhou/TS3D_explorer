@@ -221,6 +221,14 @@ Reset_FtrLay ,
 Reset_OFM
 };
 
+// always @ ( posedge clk or negedge rst_n ) begin
+//     if ( !rst_n ) begin
+//         CntPEBPOOL_En <= 0;
+//     end else if ( PEBPOOL_En ) begin
+//         CntPEBPOOL_En <= CntPEBPOOL_En + 1;
+//     end
+// end
+
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================

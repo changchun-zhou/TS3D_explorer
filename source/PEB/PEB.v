@@ -184,7 +184,24 @@ always @ ( posedge clk or negedge rst_n ) begin
         CTRLPEB_FrtBlk_d <=CTRLPEB_FrtBlk ;
     end
 end
-assign PEBPOOL_En = (~CTRLPEB_FrtBlk && CTRLPEB_FrtBlk_d) && ~CTRLPEB_FrtFrm ;
+
+// Start Pooling(paulse): FrtBlk trun to Second block && Not first Frame ( FrtBlk PEC2 fetch psum)
+// bug: 1. the last PEB isn't the latest finished; 
+//      2. FrtBlk paulse: only one Block(CntBlk=0)?: always high level:only conv1
+//      3. the last frame of last patch is not be pooled:
+
+// not first frame of a layer(correct should be network)
+// assign PEBPOOL_En = (~CTRLPEB_FrtBlk && CTRLPEB_FrtBlk_d) && ~(CTRLPEB_FrtFrm&&CTRLPEB_FrtPat&&CTRLPEB_FrtFtr) ;
+reg NotFrtBlk; // except the first Block
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        NotFrtBlk <= 0;
+    end else if ( ~CTRLPEB_FrtBlk && CTRLPEB_FrtBlk_d ) begin
+        NotFrtBlk <= 1;
+    end
+end
+
+assign PEBPOOL_En = (~CTRLPEB_FrtBlk && CTRLPEB_FrtBlk_d) && NotFrtBlk ;
 // Fetch LAST SRAM when new frame comes ( frtblk of new frame)
 // only read
 assign EnWr0                = PECRAM_EnWr0     ;
