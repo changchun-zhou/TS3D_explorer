@@ -103,6 +103,7 @@ GBFOFM_DatRd = ""
 FlgAct_hex = ''
 cnt_wei = 0
 cnt_GBFFLGACT = 0
+cnt_PECMACFLGACT = 0
 GBFFLGACT = ""
 cntPat_last = -1
 
@@ -162,29 +163,29 @@ for cntPat in range(15):#
             for actrow in range(0, Len) :
                 for actcol in range(0, Len):
 
-                    actBlk[cntPat][cntfrm][cntBlk], FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,DDR_ADDR = \
+                    actBlk[cntPat][cntfrm][cntBlk], FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, cnt_PECMACFLGACT,GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,DDR_ADDR = \
                         DISACT.DISACT( cntPat, actrow, actcol,
-                        actBlk[cntPat][cntfrm][cntBlk], FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,DDR_ADDR,
+                        actBlk[cntPat][cntfrm][cntBlk], FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT,cnt_PECMACFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,DDR_ADDR,
                         FlagActFile, GBFFLGACT_DatWrFile, PECMAC_FlgActFile, ActFile, GBFACT_DatWrFile, PECMAC_ActFile,GBFFLGACT_PatchAddrFile,GBFACT_PatchAddrFile,PECMAC_FLGACT_PatchAddrFile,
                         Len, NumChn )
 
-Addr =int("080A5600",16) #ACT
+BaseAddr =int("080A5600",16) #ACT
 for cntnum in range(NumPat):
-    Addr += DDR_ADDR[3][cntnum]
+    Addr = BaseAddr + DDR_ADDR[3][cntnum] # cntnum is addr of Act ( because accum all the time)
     Patch_DDR_ADDR_BaseFile.write(str(hex(Addr)).lstrip('0x').rstrip('L').zfill(8)+'\n')
-Addr = int("083B5600", 16) #FLGACT 
+BaseAddr = int("083B5600", 16) #FLGACT 
 for cntnum in range(NumPat):
-    Addr += DDR_ADDR[2][cntnum]
+    Addr = BaseAddr + DDR_ADDR[2][cntnum]
     Patch_DDR_ADDR_BaseFile.write(str(hex(Addr)).lstrip('0x').rstrip('L').zfill(8)+'\n')
     
-Addr = int("088016C8",16) #WEI
+BaseAddr = int("088016C8",16) #WEI
 for cntnum in range(NumFtrGrp):
-    Addr += DDR_ADDR[1][cntnum]
+    Addr = BaseAddr + DDR_ADDR[1][cntnum]
     Patch_DDR_ADDR_BaseFile.write(str(hex(Addr)).lstrip('0x').rstrip('L').zfill(8)+'\n')
     
-Addr = int("088376C8",16)#FLGWEI
+BaseAddr = int("088376C8",16)#FLGWEI
 for cntnum in range(NumFtrGrp):
-    Addr += DDR_ADDR[0][cntnum]
+    Addr = BaseAddr + DDR_ADDR[0][cntnum]
     Patch_DDR_ADDR_BaseFile.write(str(hex(Addr)).lstrip('0x').rstrip('L').zfill(8)+'\n')
 
 

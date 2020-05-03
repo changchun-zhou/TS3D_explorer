@@ -84,3 +84,4 @@ def DISWEI( cntPat,
         PECMAC_Wei_wr = PECMAC_Wei_wr + PECMAC_Wei_1
 
     return PECMAC_Wei, cnt_Flagwei_hex, PECMAC_FlgWei_wr, ColWei, cnt_GBFWEI, cnt_GBFFLGWEI, cntPat_last_GBFWEI,cntPat_last_GBFFLGWEI,PECMAC_Wei_wr,DDR_ADDR,
+    

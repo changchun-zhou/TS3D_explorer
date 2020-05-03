@@ -3,7 +3,7 @@ import random
 import os
 
 def DISACT( cntPat, actrow, actcol,
-            actBlk, FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,DDR_ADDR,
+            actBlk, FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, cnt_PECMACFLGACT,GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,DDR_ADDR,
             FlagActFile, GBFFLGACT_DatWrFile, PECMAC_FlgActFile, ActFile, GBFACT_DatWrFile, PECMAC_ActFile,GBFFLGACT_PatchAddrFile,GBFACT_PatchAddrFile,PECMAC_FLGACT_PatchAddrFile,
             Len, NumChn ):
     #actBlk = [[[ 0 for x in range (0,NumChn)] for y in range (0,Len)] for z in range(0,Len)]
@@ -19,8 +19,9 @@ def DISACT( cntPat, actrow, actcol,
     # ****************************
     
     cnt_GBFFLGACT += 1 #4B
+    cnt_PECMACFLGACT += 1
     if cntPat != cntPat_last: # complete the current line
-        PECMAC_FLGACT_PatchAddrFile.write( str(hex(cnt_GBFFLGACT -1)).lstrip('0x').rstrip('L').zfill(8) +'\n')
+        PECMAC_FLGACT_PatchAddrFile.write( str(hex(cnt_PECMACFLGACT -1)).lstrip('0x').rstrip('L').zfill(8) +'\n')
 
     if cnt_GBFFLGACT % 3 == 1 and cnt_GBFFLGACT != 1:  
         GBFFLGACT_DatWrFile.write(GBFFLGACT + '\n' )
@@ -31,9 +32,11 @@ def DISACT( cntPat, actrow, actcol,
             if cnt_GBFFLGACT % 3 == 0: # current data is third of last patch line
                 GBFFLGACT += "xx"*4
                 cnt_GBFFLGACT += 1 #Mean: is first of new line
+                # PECMAC_FlgActFile.write("xx"*4+'\n')
             elif cnt_GBFFLGACT% 3 == 2:
                 GBFFLGACT += "xx"*8
                 cnt_GBFFLGACT += 2 #Mean: is first of new line
+                # PECMAC_FlgActFile.write(("xx"*4+'\n')*2)
             GBFFLGACT_DatWrFile.write(GBFFLGACT + '\n' )
             GBFFLGACT = ""
     if cntPat != cntPat_last: # complete the current line
@@ -52,8 +55,7 @@ def DISACT( cntPat, actrow, actcol,
         cnt_Flag_hex += 1
     # ***************************************************************************
 
-    PECMAC_FlgActFile.write(PECMAC_FlgAct_hex)
-    PECMAC_FlgActFile.write('\n')
+    PECMAC_FlgActFile.write(PECMAC_FlgAct_hex + '\n')
 
 
     #FlagActFile.read(1)
@@ -101,8 +103,6 @@ def DISACT( cntPat, actrow, actcol,
         if act >127:
             act = act -256
         actBlk[actrow][actcol][i] = act
-    PECMAC_ActFile.write(PECMAC_Act)
+    PECMAC_ActFile.write(PECMAC_Act+'\n')
 
-    PECMAC_ActFile.write('\n')
-
-    return  actBlk, FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,DDR_ADDR
+    return  actBlk, FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT,cnt_PECMACFLGACT, GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,DDR_ADDR
