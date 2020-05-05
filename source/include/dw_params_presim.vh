@@ -25,7 +25,7 @@
 `define MAX_DEPTH 8192 // c3d's conv:512 i3d's conv:1024; fc: 8192
 `define LENROW 16
 `define LENPSUM 14
-`define POOL_KERNEL_WIDTH 3 // 2 3 7
+`define POOL_WIDTH 32 // 20 + 8 + 1 + 3
 //`define POOL_WIDTH 2//Stride
 
 // ************* Config parameters *****************

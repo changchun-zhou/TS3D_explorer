@@ -5,7 +5,7 @@
 // Module : CONFIG
 // Author : CC zhou
 // Contact :
-// Date :   1 . 8 .2019
+// Date :   8 . 1 .2019
 //=======================================================
 // Description :
 //========================================================
@@ -24,7 +24,7 @@ module  CONFIG (
     output [ `PATCH_WIDTH                - 1 : 0 ] CFG_NumPat,
     output [ `FTRGRP_WIDTH                -1 : 0 ] CFG_NumFtrGrp,
     output [ `LAYER_WIDTH                - 1 : 0 ] CFG_NumLay,
-    output [ 5 + 1+`POOL_KERNEL_WIDTH                -1 : 0] CFG_POOL
+    output [ `POOL_WIDTH               -1 : 0] CFG_POOL
 );
 //=====================================================================================================================
 // Constant Definition :

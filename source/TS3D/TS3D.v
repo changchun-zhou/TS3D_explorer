@@ -98,7 +98,7 @@ wire    [ `PATCH_WIDTH                              -1 : 0] CFG_NumPat;
 wire    [ `LAYER_WIDTH                              -1 : 0] CFG_NumLay;
 wire  [ `FTRGRP_WIDTH                -1 : 0 ] CFG_NumFtrGrp;
 
-wire [ 5 + 1+`POOL_KERNEL_WIDTH                -1 : 0] CFG_POOL;
+wire [ `POOL_WIDTH                -1 : 0] CFG_POOL;
 wire                                                        CTRLACT_FrtBlk;
 wire                                                        CTRLACT_FrtFrm;
 wire                                                        CTRLACT_FrtActRow;

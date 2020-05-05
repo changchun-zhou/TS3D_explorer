@@ -14,7 +14,7 @@ module POOL(
     input                                               clk     ,
     input                                               rst_n   ,
     input                                               Reset_OFM,
-    input [ 5 + 1+`POOL_KERNEL_WIDTH            -1 : 0] CFG_POOL      ,
+    input [`POOL_WIDTH            -1 : 0] CFG_POOL      ,
     input                                               POOL_En,  // paulse: the last PEB finish
     input                                               POOL_ValFrm,
     input                                               POOL_ValDelta,
@@ -50,13 +50,14 @@ reg     [ 3                                              -1 : 0 ] cnt_poolx;
 reg     [ 3                                              -1 : 0 ] cnt_pooly;
 wire     [ `C_LOG_2(`LENPSUM * `LENPSUM) -1 : 0] AddrBasePEL;
 wire                                                                        POOL_ValIFM;
-wire    [ `POOL_KERNEL_WIDTH         -1 : 0 ] Stride;
+wire    [ 3         -1 : 0 ] Stride;
 reg     [ `C_LOG_2(`LENPSUM)                -1 : 0 ] AddrCol;
 reg     [ `C_LOG_2(`LENPSUM*`LENPSUM)                -1 : 0 ] AddrBaseRow;
 reg                                                                    FnhPoolRow;
 wire                                                                    FnhPoolPat;
 wire   [ `NUMPEB            -1 : 0] FLAG_PSUM;
 wire [ `PSUM_WIDTH       - 1 : 0] ReLU [0: `NUMPEB -1];
+wire [ `DATA_WIDTH       - 2 : 0] ReLU_q [0: `NUMPEB -1];
 wire                                              POOLPEL_EnRd_d;
 wire [ `DATA_WIDTH * `NUMPEB - 1:0] FRMPOOL_DatWr;
 wire [ `DATA_WIDTH * `NUMPEB - 1:0] FRMPOOL_DatRd;
@@ -142,8 +143,10 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
+wire [20  -1 :0 ] Scale_y;
+wire [8   -1 :0 ] Bias_y;
 
-assign {fl, POOL_ValIFM, Stride} = CFG_POOL;
+assign {Scale_y, Bias_y, POOL_ValIFM, Stride} = CFG_POOL;
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         AddrCol <= 0;
@@ -202,7 +205,7 @@ always @ ( posedge clk or negedge rst_n ) begin
 end
 
 // ==================================================================
-assign FL = (fl > 5'd21)? 5'd21 : fl;
+// assign FL = (fl > 5'd21)? 5'd21 : fl;
 generate
   genvar i;
   for(i=0;i<`NUMPEB; i=i+1) begin:POOL_PEB
@@ -212,13 +215,14 @@ generate
 //
 
   // Pooling 1x2x2
+        assign ReLU_q[i] = ReLU[i]/Scale_y + Bias_y;// 7bits
         always @ ( posedge clk or negedge rst_n ) begin
           if ( !rst_n ) begin
              POOL_MEM[i] <= 0;
           end else if ( state == IDLE ) begin
              POOL_MEM[i] <= 0;
          end else if(  POOLPEL_EnRd_d)begin
-             POOL_MEM[i]   <= (POOL_MEM[i]  >  { 1'b0 , ReLU[i][FL + 6 -: 7]} )? POOL_MEM[i] :{ 1'b0 , ReLU[i][FL + 6 -: 7] } ;
+             POOL_MEM[i]   <= (POOL_MEM[i]  >  {1'b0,ReLU_q[i] })? POOL_MEM[i] : {1'b0,ReLU_q[i]};//7 bit act(signed)
           end
         end
     // Pooling 2x1x1
