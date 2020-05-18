@@ -61,7 +61,7 @@ integer fp_FLGWEI,Suc_FLGWEI;
             if( addr_r_BUS_1 == 0)
               //                       {CFG_LenRow,CFG_DepBlk,CFG_NumBlk,CFG_NumFrm, CFG_NumPat, CFG_NumFilterG, CFG_NumLay,CFG_POOL    }
               //                                                                                                         {scale_y,bias_y, POOL_ValIFM, Stride}
-               tmp = {2'd3, 2'd2, 2'd0,  4'd15,     5'd31,      5'd1,       5'd15,      8'd15,       9'd7,        8'd7,   20'd1,   8'd0,    1'd1,       3'd2};//Conv2
+               tmp = {2'd3, 2'd2, 2'd0,  4'd15,     5'd31,      5'd1,       5'd15,      8'd0,       9'd3,        8'd7,   20'd1,   8'd0,    1'd1,       3'd2};//Conv2
                //{ }// Priority of Patch, Filter group(Cout), Channel group( Cin): 6bit, NumFiltergroup: `C_LOG_2( `MAX_DEPTH /  `NUMPEB ) 8192/16=512:9bits, 8'd3 = 32 x 4 = 128
               //tmp = {4'd15,    5'd31,     5'd1,      5'd3,          8'd0,         8'd7,      9'd10};
             else

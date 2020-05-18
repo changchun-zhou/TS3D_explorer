@@ -40,9 +40,9 @@ def DISACT( cntPat, actrow, actcol,
             GBFFLGACT_DatWrFile.write(GBFFLGACT + '\n' )
             GBFFLGACT = ""
     if cntPat != cntPat_last: # complete the current line
-        print("GBFFLGACT_DatWr next patch line:", cnt_GBFFLGACT/3) # Addr ( 0 begin)
+        print("GBFFLGACT_DatWr next patch line:", cnt_GBFFLGACT//3) # Addr ( 0 begin)
         print("PECMAC_FlgAct next patch line:", cnt_GBFFLGACT -1) # Addr ( 0 begin)
-        GBFFLGACT_PatchAddrFile.write( str(hex(cnt_GBFFLGACT/3)).lstrip('0x').rstrip('L').zfill(8) +'\n')
+        GBFFLGACT_PatchAddrFile.write( str(hex(cnt_GBFFLGACT//3)).lstrip('0x').rstrip('L').zfill(8) +'\n')
         DDR_ADDR[2][cntPat] = (cnt_GBFFLGACT - 1)*4 #begin addr
     GBFFLGACT = GBFFLGACT + PECMAC_FlgAct_hex
     cntPat_last = cntPat #when First data of Patch is write, updata Patch_last
@@ -77,8 +77,8 @@ def DISACT( cntPat, actrow, actcol,
                     cnt_GBFACT +=  13 - cnt_GBFACT % 12
                 GBFACT_DatWrFile.write(Zero+'\n')# turn to next line
             if cntPat != cntPat_last_GBFACT: # complete the current line
-                print("GBFACT_DatWr next patch line:", cnt_GBFACT/12) # Addr ( 0 begin)
-                GBFACT_PatchAddrFile.write( str(hex(cnt_GBFACT/12)).lstrip('0x').rstrip('L').zfill(8) +'\n')
+                print("GBFACT_DatWr next patch line:", cnt_GBFACT//12) # Addr ( 0 begin)
+                GBFACT_PatchAddrFile.write( str(hex(cnt_GBFACT//12)).lstrip('0x').rstrip('L').zfill(8) +'\n')
                 DDR_ADDR[3][cntPat] = cnt_GBFACT -1
             GBFACT_DatWrFile.write(act) 
             cntPat_last_GBFACT = cntPat # When new patch's first data, update patch

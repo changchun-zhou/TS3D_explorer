@@ -39,7 +39,8 @@ module  CTRLACT (
     output                                       CTRLACT_FnhLay,
     output                                       CTRLACT_FnhFrm,
     output                                       CTRLACT_EvenFrm,
-    output                                          POOL_En,
+    // input                                        POOL_DisACT,
+    // output                                          POOL_En,
     output                                         POOL_ValDelta,
     output                                         POOL_ValFrm,
     output                                         Next_Patch,
@@ -100,6 +101,7 @@ assign POOL_En = ~CTRLACT_FrtBlk && ~CTRLACT_FrtFrm && CTRLACT_FrtActBlk ;
 // except first patch/ftrgrp
 assign POOL_ValDelta = CTRLACT_FrtLay&&CTRLACT_FrtPat&&CTRLACT_FrtFtrGrp ? CntFrm>= 2 : CntFrm !=1; // compute 2st frame; POOL delta 1st frame
 assign POOL_ValFrm =   CTRLACT_FrtLay&&CTRLACT_FrtPat&&CTRLACT_FrtFtrGrp ? ~CntFrm[0]&&CntFrm >=2 : ~CntFrm[0] ;//
+
 //assign POOL_ValFrm =0;
 // For loop
 
@@ -113,7 +115,7 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
-assign CTRLACT_PlsFetch = Sta || ( CTRLACT_GetAct && ~CTRLACT_LstActPat);//////////////////
+assign CTRLACT_PlsFetch = Sta || ( CTRLACT_GetAct && ~CTRLACT_LstActPat) ;//////////////////
 assign CTRLACT_LstActRow = CntAct == CFG_LenRow;
 assign CTRLACT_FrtActRow = CntAct == 0;
 assign CTRLACT_ValCol = CntAct >= 2;

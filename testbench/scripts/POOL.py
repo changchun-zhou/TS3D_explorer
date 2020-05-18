@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import os
-def POOL(   Psum0, fl,
+def POOL(   Psum0, fl, POOL_ValIFM,
             FRMPOOL, DELTA, cnt_ACT, cnt_Flag, GBFOFM_DatRd, GBFFLGOFM_DatRd, 
             POOL_SPRS_MEMFile, GBFOFM_DatRdFile, POOL_FLAG_MEMFile, GBFFLGOFM_DatRdFile,
             Len, Stride, NumBlk, NumPEB, NumPEC, PORT_DATAWIDTH, cntfrm ):
@@ -11,7 +11,7 @@ def POOL(   Psum0, fl,
     FLAG_MEM = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
     POOL_SPRS_MEM = ''
     POOL_FLAG_MEM = ''
-
+    OFM_Val = ( POOL_ValIFM and cntfrm %2) or POOL_ValIFM == 0
     for AddrRow in range ( 0, Len-2 - Stride + 1, Stride):
         AddrPooly = AddrRow / Stride
         for AddrCol in range ( 0, Len-2 - Stride + 1, Stride):
@@ -47,30 +47,36 @@ def POOL(   Psum0, fl,
                         POOL_SPRS_MEM = ((str(hex(SPRS[AddrPooly][AddrPoolx][cntPEB])).lstrip('0x')).rstrip('L')).zfill(2)
                     else: # neg [-127, 0)
                         POOL_SPRS_MEM = ((str(hex(SPRS[AddrPooly][AddrPoolx][cntPEB]+256)).lstrip('0x')).rstrip('L')).zfill(2)
-                    POOL_SPRS_MEMFile.write(POOL_SPRS_MEM+'\n')
-                    if cnt_ACT < PORT_DATAWIDTH/8 : #12B
-                        GBFOFM_DatRd =POOL_SPRS_MEM + GBFOFM_DatRd;
-                        cnt_ACT = cnt_ACT + 1
-                    else:
-                        GBFOFM_DatRdFile.write(GBFOFM_DatRd+'\n')
-                        cnt_ACT = 1
-                        GBFOFM_DatRd = ''
-                        GBFOFM_DatRd =POOL_SPRS_MEM + GBFOFM_DatRd;
+                    if OFM_Val:
+                        POOL_SPRS_MEMFile.write(POOL_SPRS_MEM+'\n')
+                    if OFM_Val:
+                        if cnt_ACT < PORT_DATAWIDTH//8 : #12B
+                            GBFOFM_DatRd =POOL_SPRS_MEM + GBFOFM_DatRd;
+                            cnt_ACT = cnt_ACT + 1
+                        else:
+                            
+                            GBFOFM_DatRdFile.write(GBFOFM_DatRd+'\n')
+                            cnt_ACT = 1
+                            GBFOFM_DatRd = ''
+                            GBFOFM_DatRd =POOL_SPRS_MEM + GBFOFM_DatRd;
                 else:
                     FLAG_MEM[AddrPooly][AddrPoolx][cntPEB]  = 0
                 POOL_FLAG_MEM =  str(FLAG_MEM[AddrPooly][AddrPoolx][cntPEB] ) +POOL_FLAG_MEM  # PEB15 PEB1 PEB0
             POOL_FLAG_MEM0 = int(POOL_FLAG_MEM[0:8], 2)
             POOL_FLAG_MEM1 = int(POOL_FLAG_MEM[8:16], 2)
             POOL_FLAG_MEM_hex =  str(hex(POOL_FLAG_MEM0)).lstrip('0x').rstrip('L').zfill(2) + str(hex(POOL_FLAG_MEM1)).lstrip('0x').rstrip('L').zfill(2);
-            POOL_FLAG_MEMFile.write(POOL_FLAG_MEM_hex+'\n')#HEX
-            if cnt_Flag < PORT_DATAWIDTH/NumPEB: #12
-                GBFFLGOFM_DatRd = POOL_FLAG_MEM_hex + GBFFLGOFM_DatRd #shift right
-                cnt_Flag = cnt_Flag + 1
-            else:
-                GBFFLGOFM_DatRdFile.write(GBFFLGOFM_DatRd+'\n') #HEX
-                cnt_Flag = 1
-                GBFFLGOFM_DatRd = ''
-                GBFFLGOFM_DatRd = POOL_FLAG_MEM_hex + GBFFLGOFM_DatRd #shift right
+            if OFM_Val:
+                POOL_FLAG_MEMFile.write(POOL_FLAG_MEM_hex+'\n')#HEX
+            if OFM_Val:
+                if cnt_Flag < PORT_DATAWIDTH//NumPEB: #12
+                    GBFFLGOFM_DatRd = POOL_FLAG_MEM_hex + GBFFLGOFM_DatRd #shift right
+                    cnt_Flag = cnt_Flag + 1
+                else:
+                    
+                    GBFFLGOFM_DatRdFile.write(GBFFLGOFM_DatRd+'\n') #HEX
+                    cnt_Flag = 1
+                    GBFFLGOFM_DatRd = ''
+                    GBFFLGOFM_DatRd = POOL_FLAG_MEM_hex + GBFFLGOFM_DatRd #shift right
             #AddrPoolx = AddrPoolx + 1
         #AddrPooly = AddrPooly + 1;
     return FRMPOOL, DELTA, cnt_ACT, cnt_Flag, GBFOFM_DatRd, GBFFLGOFM_DatRd

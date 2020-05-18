@@ -156,10 +156,13 @@ wire                                        CTRLPEB_FrtFrm;
 //=====================================================================================================================
 // Logic Design :
 //=====================================================================================================================
+wire   CTRLPEB_LstActBlk;
 
 assign CTRLPEB_FrtBlk = INBUS_LSTPEB[ `BUSPEB_WIDTH -1]; // ahead
+
 assign CTRLPEB_FrtFrm = INBUS_LSTPEB[ `BUSPEB_WIDTH -2]; // ahead
 assign CTRLPEB_EvenFrm = OUTBUS_NXTPEB[ `BUSPEB_WIDTH-3];// delay
+assign CTRLPEB_LstActBlk = INBUS_LSTPEB[ `BUSPEB_WIDTH - 6];
 /*always @ ( posedge clk or negedge rst_n ) begin
     if ( ~rst_n ) begin
         FlgRAM2 <= 0;
@@ -185,9 +188,19 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
-// Start Pooling(paulse): FrtBlk trun to Second block && Not first Frame ( FrtBlk PEC2 fetch psum)
+reg   CTRLPEB_LstActBlk_d;
+
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        CTRLPEB_LstActBlk_d <= 0;
+    end else begin
+        CTRLPEB_LstActBlk_d <=CTRLPEB_LstActBlk ;
+    end
+end
+// Start Pooling(paulse): FrtBlk finished Not first Frame ( FrtBlk PEC2 fetch psum)
 // bug: 1. the last PEB isn't the latest finished; 
-//      2. FrtBlk paulse: only one Block(CntBlk=0)?: always high level:only conv1
+//      *2. FrtBlk paulse: only one Block(CntBlk=0)?: always high level:only conv1
+//          a. use LstActBlk negedge with FrtBlk
 //      3. the last frame of last patch is not be pooled:
 
 // not first frame of a layer(correct should be network)
@@ -201,7 +214,9 @@ always @ ( posedge clk or negedge rst_n ) begin
     end
 end
 
-assign PEBPOOL_En = (~CTRLPEB_FrtBlk && CTRLPEB_FrtBlk_d) && NotFrtBlk ;
+// assign PEBPOOL_En = (~CTRLPEB_FrtBlk && CTRLPEB_FrtBlk_d) && NotFrtBlk ;
+assign PEBPOOL_En = (~CTRLPEB_LstActBlk&&CTRLPEB_LstActBlk_d ) && CTRLPEB_FrtBlk_d && NotFrtBlk ;
+
 // Fetch LAST SRAM when new frame comes ( frtblk of new frame)
 // only read
 assign EnWr0                = PECRAM_EnWr0     ;

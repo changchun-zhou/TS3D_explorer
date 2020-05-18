@@ -58,8 +58,8 @@ def DISWEI( cntPat,
                         cnt_GBFWEI +=  13 - cnt_GBFWEI % 12
                     GBFWEI_DatWrFile.write(Zero+'\n')# turn to next line
                 if cntPat != cntPat_last_GBFWEI: # complete the current line
-                    print("GBFWEI_DatWr next patch line:", cnt_GBFWEI/12) # Addr ( 0 begin)
-                    GBFWEI_FrtGrpAddrFile.write( str(hex(cnt_GBFWEI/12)).lstrip('0x').rstrip('L').zfill(8) +'\n')
+                    print("GBFWEI_DatWr next patch line:", cnt_GBFWEI//12) # Addr ( 0 begin)
+                    GBFWEI_FrtGrpAddrFile.write( str(hex(cnt_GBFWEI//12)).lstrip('0x').rstrip('L').zfill(8) +'\n')
                     DDR_ADDR[1][cntPat] = cnt_GBFWEI - 1 #begin addr
 
                 GBFWEI_DatWrFile.write(wei) 

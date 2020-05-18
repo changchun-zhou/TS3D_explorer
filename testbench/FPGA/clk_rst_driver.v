@@ -1,10 +1,11 @@
+`include "../source/include/dw_params_presim.vh"
 module clk_rst_driver (
     output reg      clk,
     output reg      reset_n,
     output wire     reset
 );
 
-always #6 clk = !clk;
+always #(`CLOCK_PERIOD_FPGA/2.0) clk = !clk;
 assign reset = !reset_n;
 
 initial begin

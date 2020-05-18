@@ -15,8 +15,9 @@ module POOL(
     input                                               rst_n   ,
     input                                               Reset_OFM,
     input [`POOL_WIDTH            -1 : 0] CFG_POOL      ,
+
     input                                               POOL_En,  // paulse: the last PEB finish
-    input                                               POOL_ValFrm,
+    input                                               POOL_ValFrm, // level: last frame whether pooling;
     input                                               POOL_ValDelta,
   //  input  [ `FRAME_WIDTH                     -1 : 0] CntFrm,
     output [ 1			                        -1 : 0] POOLPEL_EnRd,// 4 bit ID of PEB
@@ -43,6 +44,8 @@ module POOL(
 //=====================================================================================================================
 //wire                                                                POOL_En;
 reg  [ `DATA_WIDTH                           -1 : 0 ] POOL_MEM [0:`NUMPEB -1]; // modify to 2D array
+wire  [ `PSUM_WIDTH                           -1 : 0 ] Output_Quant [0:`NUMPEB -1]; // modify to 2D array
+wire  [ `PSUM_WIDTH  + 20                         -1 : 0 ] PELPOOL_Dat_Div [0:`NUMPEB -1]; // modify to 2D array
 wire  [  5                                              -1     : 0 ] FL;
 wire  [  5                                              -1     : 0 ] fl;
 
@@ -56,8 +59,8 @@ reg     [ `C_LOG_2(`LENPSUM*`LENPSUM)                -1 : 0 ] AddrBaseRow;
 reg                                                                    FnhPoolRow;
 wire                                                                    FnhPoolPat;
 wire   [ `NUMPEB            -1 : 0] FLAG_PSUM;
-wire [ `PSUM_WIDTH       - 1 : 0] ReLU [0: `NUMPEB -1];
-wire [ `DATA_WIDTH       - 2 : 0] ReLU_q [0: `NUMPEB -1];
+wire [ `DATA_WIDTH       - 2 : 0] ReLU [0: `NUMPEB -1]; // 8bit MSB = 0
+// wire [ `DATA_WIDTH       - 2 : 0] ReLU_q [0: `NUMPEB -1];
 wire                                              POOLPEL_EnRd_d;
 wire [ `DATA_WIDTH * `NUMPEB - 1:0] FRMPOOL_DatWr;
 wire [ `DATA_WIDTH * `NUMPEB - 1:0] FRMPOOL_DatRd;
@@ -145,8 +148,11 @@ end
 
 wire [20  -1 :0 ] Scale_y;
 wire [8   -1 :0 ] Bias_y;
-
+wire [5   -1 :0 ] Quant_shift;
+assign Quant_shift = 0;
 assign {Scale_y, Bias_y, POOL_ValIFM, Stride} = CFG_POOL;
+//POOL_ValIFM : level: Current layer whether pooling >POOL_ValFrm
+
 always @ ( posedge clk or negedge rst_n ) begin
     if ( !rst_n ) begin
         AddrCol <= 0;
@@ -210,19 +216,22 @@ generate
   genvar i;
   for(i=0;i<`NUMPEB; i=i+1) begin:POOL_PEB
 // ReLU
-        assign FLAG_PSUM[i] = PELPOOL_Dat[`PSUM_WIDTH * (i+1)  - 1];
-        assign ReLU[i]  =  FLAG_PSUM[i] ?  'b0 : PELPOOL_Dat[ `PSUM_WIDTH *  i  +: `PSUM_WIDTH];
+// to get y_q = y_f * s_y = (x_f*w_f + b_f)*s_y = Scale_y * x_q*w_q + Bias_y;
+        assign PELPOOL_Dat_Div[i] = PELPOOL_Dat[`PSUM_WIDTH*i +: `PSUM_WIDTH];//
+        assign Output_Quant[i] = ( PELPOOL_Dat_Div[i]*Scale_y ) >> Quant_shift + Bias_y;// Scale_y = 2**20/Scale_y(old)
+        assign FLAG_PSUM[i] = Output_Quant[i][`PSUM_WIDTH- 1];
+        assign ReLU[i]  =  FLAG_PSUM[i] ?  'b0 : Output_Quant[i];
 //
 
   // Pooling 1x2x2
-        assign ReLU_q[i] = ReLU[i]/Scale_y + Bias_y;// 7bits
+        // assign ReLU_q[i] = ReLU[i]/Scale_y + Bias_y;// 7bits
         always @ ( posedge clk or negedge rst_n ) begin
           if ( !rst_n ) begin
              POOL_MEM[i] <= 0;
           end else if ( state == IDLE ) begin
              POOL_MEM[i] <= 0;
          end else if(  POOLPEL_EnRd_d)begin
-             POOL_MEM[i]   <= (POOL_MEM[i]  >  {1'b0,ReLU_q[i] })? POOL_MEM[i] : {1'b0,ReLU_q[i]};//7 bit act(signed)
+             POOL_MEM[i]   <= (POOL_MEM[i]  >  {1'b0,ReLU[i] })? POOL_MEM[i] : {1'b0,ReLU[i]};//7 bit act(signed)
           end
         end
     // Pooling 2x1x1
@@ -276,8 +285,10 @@ end
 
 // assign FRMPOOL_EnWr =(state == FRMPOOLDELTA) && (state_d!= FRMPOOLDELTA);
 // write for every frame
-assign SIPOOFM_En = FLAG_MEM[SPRS_Addr]  && state ==SPRS;
-assign SIPOFLGOFM_En = state_dd==FRMPOOLDELTA && state_ddd != FRMPOOLDELTA;
+wire OFM_Val;
+assign OFM_Val = POOL_ValIFM && POOL_ValFrm || ~POOL_ValIFM;
+assign SIPOOFM_En = FLAG_MEM[SPRS_Addr]  && state ==SPRS && OFM_Val;
+assign SIPOFLGOFM_En = state_dd==FRMPOOLDELTA && state_ddd != FRMPOOLDELTA && OFM_Val;
 //=====================================================================================================================
 // Sub-Module :
 //=====================================================================================================================

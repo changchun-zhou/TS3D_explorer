@@ -5,6 +5,7 @@ import PEC
 import POOL
 import DISWEI
 import DISACT
+import Statistic
 #*********** read files *******************************************
 # FlagActFileName = '../Data/dequant_data/prune_quant_extract_high/Activation_45_pool3b_flag.dat'
 # ActFileName = '../Data/dequant_data/prune_quant_extract_high/Activation_45_pool3b_data.dat'
@@ -62,6 +63,7 @@ cnt_Flag_hex = 0
 cntActError = 0
 cnt_act_hex = 0
 cnt_act_col = 0
+POOL_ValIFM = 1
 
 FlagActFile        = open (FlagActFileName,        'r')
 ActFile            = open (ActFileName,            'r')
@@ -157,11 +159,11 @@ actBlk = [[[
             [[[ 0 for x in range (0,NumChn)] for y in range (0,Len)] for z in range(0,Len)]
                   for m in range (0,NumBlk)] for n in range (NumFrm)]for o in range (NumPat)]    
 for cntPat in range(15):# 
-    for cntfrm in range(0,NumFrm):
-        for cntBlk in range (0, NumBlk ):
+    for cntfrm in range(NumFrm):
+        for cntBlk in range (NumBlk ):
             #Fetch a block activation
-            for actrow in range(0, Len) :
-                for actcol in range(0, Len):
+            for actrow in range(Len) :
+                for actcol in range(Len):
 
                     actBlk[cntPat][cntfrm][cntBlk], FlgAct_hex, cnt_Flag_hex, cnt_GBFFLGACT, cnt_PECMACFLGACT,GBFFLGACT, cntPat_last, cnt_GBFACT, cntPat_last_GBFACT, cnt_act_col, cntActError,DDR_ADDR = \
                         DISACT.DISACT( cntPat, actrow, actcol,
@@ -169,6 +171,8 @@ for cntPat in range(15):#
                         FlagActFile, GBFFLGACT_DatWrFile, PECMAC_FlgActFile, ActFile, GBFACT_DatWrFile, PECMAC_ActFile,GBFFLGACT_PatchAddrFile,GBFACT_PatchAddrFile,PECMAC_FLGACT_PatchAddrFile,
                         Len, NumChn )
 
+# Statistic.Statistic( actBlk, PECMAC_Wei, 
+#          Len, NumFtrGrp, NumBlk, NumWei, NumChn, NumPEB, NumPEC, cntfrm,cntBlk, cntPEB,cntPEC )
 BaseAddr =int("080A5600",16) #ACT
 for cntnum in range(NumPat):
     Addr = BaseAddr + DDR_ADDR[3][cntnum] # cntnum is addr of Act ( because accum all the time)
@@ -190,9 +194,9 @@ for cntnum in range(NumFtrGrp):
 
 
 # for cntLay in range(0, NumLay):
-for cntFtrGrp in range( 1): # 1 FtrGrp 
+for cntFtrGrp in range( 4): # 4 FtrGrp 
 
-    for cntPat in range(NumPat):# 
+    for cntPat in range(1):# 1 patch
         FRMPOOL = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
         DELTA = [[[ 0 for x in range(NumPEB)] for y in range (Len-2)] for z in range(Len-2)]
         for cntfrm in range(0,NumFrm):
@@ -230,7 +234,7 @@ for cntFtrGrp in range( 1): # 1 FtrGrp
 
             # ************* POOL *****************************
             FRMPOOL, DELTA, cnt_ACT, cnt_Flag, GBFOFM_DatRd, GBFFLGOFM_DatRd = \
-                POOL.POOL(  Psum0,fl,
+                POOL.POOL(  Psum0,fl,POOL_ValIFM,
                             FRMPOOL, DELTA, cnt_ACT, cnt_Flag, GBFOFM_DatRd, GBFFLGOFM_DatRd,
                             POOL_SPRS_MEMFile, GBFOFM_DatRdFile, POOL_FLAG_MEMFile, GBFFLGOFM_DatRdFile,
                             Len, Stride, NumBlk, NumPEB, NumPEC, PORT_DATAWIDTH, cntfrm )

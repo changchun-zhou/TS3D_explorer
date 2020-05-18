@@ -220,7 +220,19 @@ Reset_FtrGrp,
 Reset_FtrLay ,
 Reset_OFM
 };
+reg POOL_DisACT;
+wire POOL_Sta;
+assign POOL_Sta = PEBPOOL_En[`NUMPEB -1];
 
+always @ ( posedge clk or negedge rst_n ) begin
+    if ( !rst_n ) begin
+        POOL_DisACT <= 0;
+    end else if ( POOL_Sta && CFG_NumBlk==0) begin // Pooling start && Block ==1
+        POOL_DisACT <= 1;
+    end else if ( POOLPEL_AddrRd == 195) begin // Pooling finish
+        POOL_DisACT <= 0;
+    end
+end
 // always @ ( posedge clk or negedge rst_n ) begin
 //     if ( !rst_n ) begin
 //         CntPEBPOOL_En <= 0;
@@ -287,7 +299,7 @@ PEL PEL
     .CTRLACT_ValPsum     (CTRLACT_ValPsum),
     .CTRLACT_ValCol         ( CTRLACT_ValCol),
     .CTRLPEB_FnhFrm      (CTRLACT_EvenFrm),
-    .CTRLACT_RdyAct      (DISACT_RdyAct),
+    .CTRLACT_RdyAct      (DISACT_RdyAct && ~POOL_DisACT),// BLOCK = 1
     .CTRLACT_GetAct      (CTRLACT_GetAct),
     .CTRLACT_FlgAct      (DISACT_FlgAct),
     .CTRLACT_Act         (DISACT_Act),
@@ -375,7 +387,8 @@ CTRLACT CTRLACT
     .CTRLACT_FnhLay    ( CTRLACT_FnhLay),
     .CTRLACT_EvenFrm    (CTRLACT_EvenFrm),
 
-    .POOL_En                   ( POOL_En),
+    // .POOL_En                   ( POOL_En),
+    // .POOL_DisACT    (POOL_DisACT),
     .POOL_ValFrm    ( POOL_ValFrm),
     .POOL_ValDelta    ( POOL_ValDelta),
     .Next_Patch ( Next_Patch ),
@@ -412,7 +425,7 @@ DISACT DISACT
     .rst_n (rst_n)  ,
     .Reset_OFM ( Reset_OFM),
     .CFG_POOL(CFG_POOL)      ,
-    .POOL_En(PEBPOOL_En[`NUMPEB -1]),  // paulse: the last PEB
+    .POOL_En(POOL_Sta),  // paulse: the last PEB
     .POOL_ValFrm( POOL_ValFrm),
     .POOL_ValDelta( POOL_ValDelta ),
     .POOLPEL_EnRd(POOLPEL_EnRd),// 4 bit ID of PEB
